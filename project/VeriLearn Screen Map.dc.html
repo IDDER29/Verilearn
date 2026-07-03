@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1640px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#2a2722;color:#fff;border-color:#2a2722}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .laneh a.lttl{text-decoration:none;color:inherit}
+  .laneh a.lttl:hover{text-decoration:underline}
+  .lopen{font:600 10px ui-monospace,Menlo,monospace;text-decoration:none;color:#7a746a;border:1px solid #ddd8cf;background:#fff;border-radius:99px;padding:3px 9px;margin-left:2px}
+  .lopen:hover{border-color:#b9b3a7;color:#2a2722}
+  /* header */
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.5 system-ui;color:#7a746a;margin:7px 0 0;max-width:560px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 6px}
+  .lchip{display:flex;align-items:center;gap:6px;font:600 11px system-ui;color:#3a362f;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 11px 5px 8px}
+  .lsw{width:9px;height:9px;border-radius:3px}
+  .flowbox{margin-top:14px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:11px;padding:15px 18px}
+  .fbh{font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#a49e92;margin:0 0 9px}
+  .frow{display:flex;flex-wrap:wrap;gap:7px 20px;font:12px/1.5 system-ui;color:#524d45}
+  .frow b{color:#2a2722;font-weight:600}
+  .fk{font:600 10px ui-monospace,Menlo,monospace;background:#2a2722;color:#fff;padding:1px 5px;border-radius:4px;vertical-align:middle}
+  /* lanes */
+  .lane{margin-top:40px}
+  .laneh{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .lnum{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font:600 11px ui-monospace,Menlo,monospace;flex-shrink:0}
+  .lttl{font:600 16px system-ui;letter-spacing:-.005em}
+  .ldesc{font:12px/1.4 system-ui;color:#8a8478}
+  .cards{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+  /* flow arrow */
+  .arr{align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:26px}
+  .arr .gl{font:400 22px system-ui;color:#b3aca0;line-height:1}
+  .arr .al{font:600 8px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#a49e92;text-align:center;max-width:66px}
+  /* wireframe card */
+  .col{display:flex;flex-direction:column;width:252px}
+  .wf{width:252px;height:196px;background:#fff;border:1px solid #dcd7ce;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.045);display:flex;flex-direction:column}
+  .wf.tall{height:236px}
+  .wftop{height:19px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;gap:5px;padding:0 8px}
+  .wtt{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase}
+  .chev{color:#b3aca0;font-size:9px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:16px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0}
+  .rd{width:6px;height:6px;border-radius:50%;background:#d0cbc0}
+  .rd.on{background:#2d6cdf}
+  .pane{flex:1;padding:8px;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .tabs{display:flex;gap:8px;padding:4px 8px;flex-shrink:0;border-bottom:1px solid #eee7dd}
+  .tb{font:600 7.5px ui-monospace,Menlo,monospace;letter-spacing:.03em;text-transform:uppercase;color:#b0a99d;padding-bottom:2px}
+  .tb.on{color:#0e8c6b;border-bottom:1.5px solid #0e8c6b}
+  .b{background:#e8e5de;border-radius:3px;display:block;flex-shrink:0}
+  .bd{background:#dbd6cc}
+  .bl{background:#e8e5de;border-radius:2px;height:6px;display:block;flex-shrink:0}
+  .cap{font:600 7.5px ui-monospace,Menlo,monospace;letter-spacing:.04em;text-transform:uppercase;color:#a49e92;flex-shrink:0}
+  .cols2{display:grid;flex:1;gap:6px;min-height:0}
+  .side{display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden}
+  .dstrip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;flex-shrink:0}
+  .dcell{background:#f4f2ec;border:1px solid #e7e2d8;border-radius:4px;padding:5px 4px;display:flex;flex-direction:column;gap:3px}
+  .dnum{height:11px;width:60%;border-radius:2px}
+  .pill{height:9px;border-radius:99px;background:#e8e5de}
+  .stepper{display:flex;flex-direction:column;gap:0;align-items:flex-start;padding:2px 0 0 2px}
+  .stp{display:flex;align-items:center;gap:6px}
+  .sdot{width:9px;height:9px;border-radius:50%;border:1.5px solid #cfcabf;box-sizing:border-box}
+  .sline{width:1.5px;height:9px;background:#e2ddd3;margin-left:3.75px}
+  /* card meta */
+  .mtop{display:flex;align-items:center;gap:7px;margin:9px 0 3px}
+  .idp{font:600 8.5px ui-monospace,Menlo,monospace;color:#fff;padding:2px 6px;border-radius:5px;flex-shrink:0}
+  .nm{font:600 12.5px system-ui;letter-spacing:-.003em}
+  .nt{font:11px/1.42 system-ui;color:#837d73}
+  .sub-states{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .ss{font:600 8.5px ui-monospace,Menlo,monospace;color:#6a655c;background:#efece5;border:1px solid #e2ddd3;border-radius:99px;padding:2px 7px}
+  .grp{border:1.5px dashed #cbc5b9;border-radius:14px;padding:16px 16px 14px;background:rgba(255,255,255,.35)}
+  .grph{font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#0e8c6b;margin:-4px 0 13px}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a class="on" href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a style="border-style:dashed" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a style="border-style:dashed" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a style="border-style:dashed" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <h1 class="title">VeriLearn — Screen Map &amp; Flows</h1>
+  <p class="subttl">Every screen in the prototype, grouped into five functional areas. Cards are low-fidelity wireframes of the current layout; arrows show how a learner moves between them. <b>Library is the hub</b> — the left rail reaches all top-level areas from anywhere.</p>
+
+  <div class="legend">
+    <div class="lchip"><span class="lsw" style="background:#2d6cdf"></span>Create &amp; onboard</div>
+    <div class="lchip"><span class="lsw" style="background:#0e8c6b"></span>Learn — topic workspace</div>
+    <div class="lchip"><span class="lsw" style="background:#c0392b"></span>Verify &amp; trust — global</div>
+    <div class="lchip"><span class="lsw" style="background:#6d5bd0"></span>Retain — review</div>
+    <div class="lchip"><span class="lsw" style="background:#b4690e"></span>Insight &amp; config</div>
+  </div>
+
+  <div class="flowbox">
+    <p class="fbh">Cross-area navigation</p>
+    <div class="frow">
+      <span><b>Left rail</b> (persistent) → <span class="fk">L</span> <span class="fk">N</span> <span class="fk">R</span> <span class="fk">C</span> <span class="fk">S</span> <span class="fk">PR</span> <span class="fk">SE</span></span>
+      <span><b>Library due-strip</b> → <span class="fk">R</span> reviews · <span class="fk">C</span> conflicts</span>
+      <span><b>Topic card</b> → <span class="fk">T1–T4</span> workspace</span>
+      <span><b>Pipeline done</b> → back to <span class="fk">L</span>, topic now "ready"</span>
+      <span><b>Review "wrong idea"</b> → gap map</span>
+    </div>
+  </div>
+
+  <!-- LANE 1 -->
+  <div class="lane">
+    <div class="laneh">
+      <span class="lnum" style="background:#2d6cdf">1</span>
+      <a class="lttl" href="VeriLearn%20Create%20%26%20Onboard.dc.html">Create &amp; onboard</a>
+      <span class="ldesc">Start a new topic and watch it get verified</span>
+      <a class="lopen" href="VeriLearn%20Create%20%26%20Onboard.dc.html">Deep-dive →</a>
+    </div>
+    <div class="cards">
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="wtt">Library</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd on"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span></div>
+            <div class="pane">
+              <div class="dstrip">
+                <div class="dcell"><span class="dnum" style="background:#c0392b"></span><span class="bl" style="width:80%"></span></div>
+                <div class="dcell"><span class="dnum" style="background:#b4690e"></span><span class="bl" style="width:80%"></span></div>
+                <div class="dcell"><span class="dnum" style="background:#cfcabf"></span><span class="bl" style="width:80%"></span></div>
+              </div>
+              <span class="cap">Topics</span>
+              <div class="b" style="height:34px;border:1px solid #e7e2d8;background:#faf9f6;border-radius:5px"></div>
+              <div class="b" style="height:34px;border:1px solid #e7e2d8;background:#faf9f6;border-radius:5px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#2d6cdf">L</span><span class="nm">Library</span></div>
+        <div class="nt">Home / hub. Due-strip counters + topic cards with trust bars.</div>
+      </div>
+
+      <div class="arr"><span class="gl">→</span><span class="al">New topic</span></div>
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">New topic</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd on"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span></div>
+            <div class="pane">
+              <span class="cap">What to learn</span>
+              <div class="b" style="height:16px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+              <span class="cap">Starting level</span>
+              <div class="b" style="height:24px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+              <span class="cap">Goal</span>
+              <div style="display:flex;gap:4px"><span class="pill" style="width:38px"></span><span class="pill" style="width:30px"></span><span class="pill" style="width:34px"></span></div>
+              <div class="b" style="height:12px;margin-top:auto;width:44%;align-self:flex-end;background:#2d6cdf;border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#2d6cdf">N</span><span class="nm">New topic</span></div>
+        <div class="nt">Topic + level + goal → "Start verifying". Shows the pipeline preview.</div>
+      </div>
+
+      <div class="arr"><span class="gl">→</span><span class="al">Submit</span></div>
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Verifying…</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd on"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span></div>
+            <div class="pane" style="justify-content:center">
+              <div class="b" style="height:9px;width:70%;margin:0 auto"></div>
+              <div class="stepper" style="margin:6px auto 0">
+                <div class="stp"><span class="sdot" style="border-color:#0e8c6b;background:#0e8c6b"></span><span class="bl" style="width:52px"></span></div><span class="sline"></span>
+                <div class="stp"><span class="sdot" style="border-color:#0e8c6b;background:#0e8c6b"></span><span class="bl" style="width:64px"></span></div><span class="sline"></span>
+                <div class="stp"><span class="sdot" style="border-color:#2d6cdf;background:#2d6cdf"></span><span class="bl" style="width:44px"></span></div><span class="sline"></span>
+                <div class="stp"><span class="sdot"></span><span class="bl" style="width:58px"></span></div><span class="sline"></span>
+                <div class="stp"><span class="sdot"></span><span class="bl" style="width:48px"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#2d6cdf">P</span><span class="nm">Pipeline</span></div>
+        <div class="nt">Live 6-stage verify: triage → sources → teach → claims → verify → skeptic.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LANE 2 -->
+  <div class="lane">
+    <div class="laneh">
+      <span class="lnum" style="background:#0e8c6b">2</span>
+      <a class="lttl" href="VeriLearn%20Learn.dc.html">Learn — topic workspace</a>
+      <span class="ldesc">One opened topic, four tabs (<span class="fk">L</span> → topic card opens here)</span>
+      <a class="lopen" href="VeriLearn%20Learn.dc.html">Deep-dive →</a>
+    </div>
+    <div class="grp">
+      <div class="grph">Topic detail · shared top bar + tab strip</div>
+      <div class="cards">
+
+        <div class="col">
+          <div class="wf tall">
+            <div class="wftop"><span class="chev">‹</span><span class="wtt">Dijkstra · ready</span></div>
+            <div class="tabs"><span class="tb on">Lecture</span><span class="tb">Tasks</span><span class="tb">Conf</span><span class="tb">Src</span></div>
+            <div class="b" style="height:3px;width:30%;background:#2d6cdf;border-radius:0"></div>
+            <div style="display:flex;gap:7px;padding:4px 8px"><span class="pill" style="width:34px"></span><span class="pill" style="width:34px"></span><span class="pill" style="width:34px"></span></div>
+            <div class="wfrow" style="padding:0 8px 8px">
+              <div class="pane" style="padding:0;border-right:1px solid #eee7dd;padding-right:7px">
+                <span class="bl" style="width:100%"></span><span class="bl" style="width:96%"></span>
+                <span class="bl" style="width:70%;background:#0e8c6b;opacity:.5"></span>
+                <span class="bl" style="width:92%"></span>
+                <div class="b" style="height:22px;background:#f4f2ec;border-left:2px solid #2d6cdf;border-radius:2px"></div>
+                <span class="bl" style="width:88%"></span>
+              </div>
+              <div class="side" style="width:56px;padding-left:7px">
+                <span class="cap" style="font-size:6.5px">Trust</span>
+                <div style="display:flex;height:4px;gap:1px"><span style="flex:2;background:#0e8c6b"></span><span style="flex:1;background:#2d6cdf"></span><span style="flex:1;background:#c0392b"></span></div>
+                <div class="b" style="height:20px"></div>
+                <div class="b" style="height:26px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mtop"><span class="idp" style="background:#0e8c6b">T1</span><span class="nm">Lecture</span></div>
+          <div class="nt">Sectioned reader. Underlined claims open a trust ledger; active-listening prompts gate "Next".</div>
+        </div>
+
+        <div class="col">
+          <div class="wf tall">
+            <div class="wftop"><span class="chev">‹</span><span class="wtt">Dijkstra · ready</span></div>
+            <div class="tabs"><span class="tb">Lecture</span><span class="tb on">Tasks</span><span class="tb">Conf</span><span class="tb">Src</span></div>
+            <div class="cols2" style="grid-template-columns:64px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <div class="b" style="height:22px;border-left:2px solid #2d6cdf"></div>
+                <div class="b" style="height:22px"></div>
+                <div class="b" style="height:22px;border-left:2px solid #0e8c6b"></div>
+              </div>
+              <div class="pane" style="padding:0">
+                <span class="bl" style="width:80%"></span>
+                <div class="b" style="height:30px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+                <span class="cap" style="font-size:6.5px">Rubric</span>
+                <div style="display:flex;gap:4px;align-items:center"><span class="sdot" style="width:6px;height:6px;border-color:#0e8c6b;background:#0e8c6b"></span><span class="bl" style="width:60%"></span></div>
+                <div style="display:flex;gap:4px;align-items:center"><span class="sdot" style="width:6px;height:6px"></span><span class="bl" style="width:52%"></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="mtop"><span class="idp" style="background:#0e8c6b">T2</span><span class="nm">Tasks</span></div>
+          <div class="nt">Write-in answers graded against a source-derived rubric → follow-up, micro-chapter, model answer.</div>
+        </div>
+
+        <div class="col">
+          <div class="wf tall">
+            <div class="wftop"><span class="chev">‹</span><span class="wtt">Dijkstra · ready</span></div>
+            <div class="tabs"><span class="tb">Lecture</span><span class="tb">Tasks</span><span class="tb on" style="color:#c0392b;border-color:#c0392b">Conf</span><span class="tb">Src</span></div>
+            <div class="cols2" style="grid-template-columns:70px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <div class="b" style="height:26px;border-left:2px solid #c0392b"></div>
+                <div class="b" style="height:26px"></div>
+              </div>
+              <div class="pane" style="padding:0">
+                <div class="b" style="height:20px;border-left:2px solid #c0392b;background:#f4f2ec;border-radius:2px"></div>
+                <span class="cap" style="font-size:6.5px">Positions</span>
+                <div style="display:flex;gap:4px"><div class="b" style="flex:1;height:22px"></div><div class="b" style="flex:1;height:22px"></div></div>
+                <div class="b" style="height:22px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mtop"><span class="idp" style="background:#0e8c6b">T3</span><span class="nm">Conflicts (tab)</span></div>
+          <div class="nt">Skeptic / execution disputes for this topic. Pick a position, record a resolution.</div>
+        </div>
+
+        <div class="col">
+          <div class="wf tall">
+            <div class="wftop"><span class="chev">‹</span><span class="wtt">Dijkstra · ready</span></div>
+            <div class="tabs"><span class="tb">Lecture</span><span class="tb">Tasks</span><span class="tb">Conf</span><span class="tb on">Src</span></div>
+            <div class="cols2" style="grid-template-columns:76px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <div class="b" style="height:20px;border-left:2px solid #2d6cdf"></div>
+                <div class="b" style="height:20px"></div>
+                <div class="b" style="height:20px"></div>
+              </div>
+              <div class="pane" style="padding:0">
+                <div class="b" style="height:26px"></div>
+                <span class="cap" style="font-size:6.5px">Coverage map</span>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px">
+                  <span class="b" style="height:8px;background:#0e8c6b"></span><span class="b" style="height:8px"></span><span class="b" style="height:8px;background:#2d6cdf"></span><span class="b" style="height:8px"></span>
+                  <span class="b" style="height:8px;background:#0e8c6b"></span><span class="b" style="height:8px;background:#b4690e"></span><span class="b" style="height:8px"></span><span class="b" style="height:8px"></span>
+                  <span class="b" style="height:8px"></span><span class="b" style="height:8px;background:#6d5bd0"></span><span class="b" style="height:8px"></span><span class="b" style="height:8px;background:#0e8c6b"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mtop"><span class="idp" style="background:#0e8c6b">T4</span><span class="nm">Sources (tab)</span></div>
+          <div class="nt">Attached sources + claims-×-sources coverage grid. Set a preferred source.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE 3 -->
+  <div class="lane">
+    <div class="laneh">
+      <span class="lnum" style="background:#c0392b">3</span>
+      <a class="lttl" href="VeriLearn%20Verify%20%26%20Trust.dc.html">Verify &amp; trust — global</a>
+      <span class="ldesc">Same tools as the topic tabs, but across every topic (opened from the rail)</span>
+      <a class="lopen" href="VeriLearn%20Verify%20%26%20Trust.dc.html">Deep-dive →</a>
+    </div>
+    <div class="cards">
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Conflicts · 2 open</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd on" style="background:#c0392b"></span><span class="rd"></span></div>
+            <div class="cols2" style="grid-template-columns:78px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <div class="b" style="height:28px;border-left:2px solid #c0392b"></div>
+                <div class="b" style="height:28px"></div>
+              </div>
+              <div class="pane" style="padding:0">
+                <div class="b" style="height:22px;border-left:2px solid #c0392b;background:#f4f2ec;border-radius:2px"></div>
+                <div style="display:flex;gap:4px"><div class="b" style="flex:1;height:24px"></div><div class="b" style="flex:1;height:24px"></div></div>
+                <div class="b" style="height:20px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#c0392b">C</span><span class="nm">Conflicts (global)</span></div>
+        <div class="nt">All open disputes across topics. Adjudicate — resolutions sync back to the topic + badges.</div>
+      </div>
+
+      <div class="arr"><span class="gl" style="font-size:16px">↔</span><span class="al">Shared list ↔ detail</span></div>
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Sources · Dijkstra</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd on"></span></div>
+            <div class="cols2" style="grid-template-columns:84px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <div class="b" style="height:22px;border-left:2px solid #2d6cdf"></div>
+                <div class="b" style="height:22px"></div>
+                <div class="b" style="height:22px"></div>
+              </div>
+              <div class="pane" style="padding:0">
+                <div class="b" style="height:26px"></div>
+                <span class="cap" style="font-size:6.5px">Claims × sources</span>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px">
+                  <span class="b" style="height:8px;background:#0e8c6b"></span><span class="b" style="height:8px"></span><span class="b" style="height:8px;background:#2d6cdf"></span><span class="b" style="height:8px"></span>
+                  <span class="b" style="height:8px;background:#0e8c6b"></span><span class="b" style="height:8px;background:#6d5bd0"></span><span class="b" style="height:8px"></span><span class="b" style="height:8px;background:#0e8c6b"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#c0392b">S</span><span class="nm">Sources (global)</span></div>
+        <div class="nt">Every attached source + full coverage matrix. Spot unsupported claims &amp; unused sources.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LANE 4 -->
+  <div class="lane">
+    <div class="laneh">
+      <span class="lnum" style="background:#6d5bd0">4</span>
+      <a class="lttl" href="VeriLearn%20Retain.dc.html">Retain — review session</a>
+      <span class="ldesc">Spaced repetition (opened from the rail or the Library due-strip)</span>
+      <a class="lopen" href="VeriLearn%20Retain.dc.html">Deep-dive →</a>
+    </div>
+    <div class="cards">
+
+      <div class="col" style="width:300px">
+        <div class="wf tall" style="width:300px">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Review · 1 / 4</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd"></span><span class="rd on" style="background:#6d5bd0"></span><span class="rd"></span><span class="rd"></span></div>
+            <div class="cols2" style="grid-template-columns:1fr 74px;padding:8px">
+              <div class="pane" style="padding:0;border-right:1px solid #eee7dd;padding-right:7px">
+                <div class="b" style="height:40px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:5px"></div>
+                <span class="cap" style="font-size:6.5px">Confidence gate</span>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px"><span class="b" style="height:16px;border:1px solid #0e8c6b"></span><span class="b" style="height:16px;border:1px solid #b4690e"></span><span class="b" style="height:16px;border:1px solid #c0392b"></span></div>
+                <div class="b" style="height:12px;background:#e8e5de;border-radius:4px"></div>
+                <span class="cap" style="font-size:6.5px">Rate</span>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px"><span class="b" style="height:14px"></span><span class="b" style="height:14px"></span><span class="b" style="height:14px"></span><span class="b" style="height:14px"></span></div>
+              </div>
+              <div class="side">
+                <span class="cap" style="font-size:6.5px">Up next</span>
+                <div class="b" style="height:9px"></div><div class="b" style="height:9px"></div><div class="b" style="height:9px"></div>
+                <span class="cap" style="font-size:6.5px;margin-top:4px">Blind-spot</span>
+                <div class="b" style="height:22px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#6d5bd0">R</span><span class="nm">Review session</span></div>
+        <div class="nt">Flashcards + seeded error drills. Confidence gate before reveal; FSRS rating after.</div>
+        <div class="sub-states">
+          <span class="ss">confidence gate</span><span class="ss">reveal + source</span><span class="ss">rate (Again→Easy)</span><span class="ss">"wrong idea" → gap map</span><span class="ss">seeded drill</span><span class="ss">session complete</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LANE 5 -->
+  <div class="lane">
+    <div class="laneh">
+      <span class="lnum" style="background:#b4690e">5</span>
+      <a class="lttl" href="VeriLearn%20Insight%20%26%20Config.dc.html">Insight &amp; config</a>
+      <span class="ldesc">Where the learner reflects and tunes the system (rail footer)</span>
+      <a class="lopen" href="VeriLearn%20Insight%20%26%20Config.dc.html">Deep-dive →</a>
+    </div>
+    <div class="cards">
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Progress</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd on" style="background:#b4690e"></span></div>
+            <div class="pane">
+              <span class="cap">Signals</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                <div class="dcell"><span class="dnum" style="background:#2d6cdf;width:44%"></span><span class="bl" style="width:70%"></span></div>
+                <div class="dcell"><span class="dnum" style="background:#0e8c6b;width:44%"></span><span class="bl" style="width:70%"></span></div>
+                <div class="dcell"><span class="dnum" style="background:#6d5bd0;width:44%"></span><span class="bl" style="width:70%"></span></div>
+                <div class="dcell"><span class="dnum" style="background:#b4690e;width:44%"></span><span class="bl" style="width:70%"></span></div>
+              </div>
+              <span class="cap">Where to focus</span>
+              <div class="b" style="height:14px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#b4690e">PR</span><span class="nm">Progress</span></div>
+        <div class="nt">Retention · transfer · calibration · drill-detection signals, by topic, with focus areas.</div>
+      </div>
+
+      <div class="arr" style="padding-top:26px"><span class="gl" style="color:transparent">·</span></div>
+
+      <div class="col">
+        <div class="wf">
+          <div class="wftop"><span class="chev">‹</span><span class="wtt">Settings</span></div>
+          <div class="wfrow">
+            <div class="rail"><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd"></span><span class="rd on" style="background:#b4690e"></span></div>
+            <div class="cols2" style="grid-template-columns:70px 1fr;padding:8px">
+              <div class="side" style="border-right:1px solid #eee7dd;padding-right:6px">
+                <span class="bl" style="width:80%;background:#2d6cdf;opacity:.4"></span>
+                <span class="bl" style="width:90%"></span><span class="bl" style="width:70%"></span>
+                <span class="bl" style="width:88%"></span><span class="bl" style="width:76%"></span>
+                <span class="bl" style="width:84%;background:#c0392b;opacity:.4"></span>
+              </div>
+              <div class="pane" style="padding:0">
+                <div class="b" style="height:12px;width:60%"></div>
+                <div class="b" style="height:18px;border:1px solid #e2ddd3;background:#faf9f6;border-radius:4px"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span class="bl" style="width:50%"></span><span class="b" style="width:20px;height:11px;border-radius:99px;background:#2d6cdf"></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span class="bl" style="width:44%"></span><span class="b" style="width:20px;height:11px;border-radius:99px"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mtop"><span class="idp" style="background:#b4690e">SE</span><span class="nm">Settings</span></div>
+        <div class="nt">8 panels: profile · plan · preferences · verification · active-listening · FSRS · privacy · danger.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

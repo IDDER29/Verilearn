@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#3f6b8a;color:#fff;border-color:#3f6b8a}
+  .nav a.prop{border-style:dashed}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#3f6b8a;background:#fff;border:1px solid rgba(63,107,138,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#3f6b8a}
+  .kick .pb{font:600 8px ui-monospace,Menlo,monospace;background:#3f6b8a;color:#fff;padding:2px 6px;border-radius:99px;letter-spacing:.06em}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:30px;padding-top:28px;border-top:1px dashed #cdc7bb}
+  .scap{width:392px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 8px;border-radius:7px;background:#3f6b8a;color:#fff;font:600 11px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 17px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#3f6b8a;border:1px solid rgba(63,107,138,.35);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:392px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:30px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:24px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0}
+  .rdd{width:7px;height:7px;border-radius:50%;background:#d0cbc0}
+  .rdd.on{background:#3f6b8a}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:20px}
+  .eicon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .eh{font:600 14px system-ui}
+  .ed{font:11.5px/1.5 system-ui;color:#948e84;max-width:230px}
+  .btnp{height:26px;border-radius:7px;background:#3f6b8a;color:#fff;display:flex;align-items:center;justify-content:center;font:600 10px system-ui;padding:0 14px;margin-top:2px}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#3f6b8a;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(63,107,138,.1);border:1px solid rgba(63,107,138,.35);color:#3f6b8a;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:42px 0 0}
+  .sectlead .cap{font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#3f6b8a}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .sectlead p{font:12.5px/1.5 system-ui;color:#7a746a;margin:6px 0 0;max-width:600px}
+  .gallery{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .gcell{display:flex;flex-direction:column;gap:9px}
+  .mini{background:#fff;border:1px solid #dcd7ce;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;flex-direction:column;height:150px}
+  .minitop{height:22px;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;padding:0 9px;font:600 8px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:#8a8478}
+  .miniempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px}
+  .miniic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .minih{font:600 11.5px system-ui}
+  .minid{font:10px/1.4 system-ui;color:#9a948a;max-width:180px}
+  .gcap{display:flex;gap:8px;align-items:baseline}
+  .gcapid{font:600 9px ui-monospace,Menlo,monospace;color:#3f6b8a;flex-shrink:0}
+  .gcapt{font:11.5px/1.45 system-ui;color:#6a655c}
+  .gcapt b{color:#2a2722;font-weight:600}
+  .princ{margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .pc{background:#fff;border:1px solid #e2ddd3;border-radius:10px;padding:12px}
+  .pch{font:600 12px system-ui;margin-bottom:3px}
+  .pcn{font:600 9px ui-monospace,Menlo,monospace;color:#b0a99d;margin-bottom:6px}
+  .pcd{font:11px/1.42 system-ui;color:#837d73}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a class="prop" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a class="on prop" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a class="prop" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Proposed · Empty &amp; first-run states<span class="pb">NEW</span></div>
+  <h1 class="title">The zero states</h1>
+  <p class="subttl">The screens a new learner actually meets first — before there's a single topic, review, or conflict. Right now the prototype only shows the "full" state of each screen; these are the most important screens for adoption, and they're undesigned.</p>
+
+  <!-- FEATURED: FIRST RUN LIBRARY -->
+  <div class="screen" style="border-top:none;padding-top:6px">
+    <div class="scap">
+      <div class="schd"><span class="snum">E0</span><span class="sname">First run — Library</span><span class="sid">proposed</span></div>
+      <div class="wf" style="height:250px">
+        <div class="wftop"><span class="wtt">Library</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd on"></span><span class="rdd"></span><span class="rdd" style="opacity:.4"></span><span class="rdd" style="opacity:.4"></span><span class="rdd" style="opacity:.4"></span></div>
+          <div class="empty">
+            <div class="region"><span class="pin">1</span><div class="eicon" style="background:rgba(63,107,138,.1);color:#3f6b8a"><svg width="22" height="22" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3f6b8a" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#3f6b8a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+            <div class="region"><span class="pin">2</span><div class="eh">Learn something you can trust</div></div>
+            <div class="ed">VeriLearn writes you a lecture, then verifies every claim against real sources before you read it.</div>
+            <div class="region"><span class="pin">3</span><div class="btnp">＋ Start your first topic</div></div>
+            <div class="region" style="margin-top:4px"><span class="pin">4</span><div style="font:10px ui-monospace,Menlo,monospace;color:#b0a99d">or try an example: Dijkstra · Binary search</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">First impressions carry the whole value proposition. An empty Library is the one screen every user sees — it has to sell the "verified" idea and point at exactly one action.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Brand moment</span><span class="and">The check-mark mark, not a sad empty box. Sets the tone: this is about trust.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Value in one line</span><span class="and">Says what makes VeriLearn different — verification — before asking for any work.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">One primary action</span><span class="and">A single unmissable CTA into <span class="fk">New topic</span>. No competing buttons on an empty screen.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Zero-effort on-ramp</span><span class="and">Pre-built example topics let a curious user see a finished, verified lecture in one click — before typing anything.</span></div></div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="sectlead">
+    <span class="cap">Gallery</span>
+    <h2>Zero states across the app</h2>
+    <p>Every list-driven screen needs one. The rule: never a dead end — each explains why it's empty and offers the next step (or reassures that empty is good).</p>
+  </div>
+  <div class="gallery">
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Reviews</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(14,140,107,.1)">✅</div><div class="minih">All caught up</div><div class="minid">Nothing due today. Next batch in 2 days.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E1</span><span class="gcapt"><b>Reviews · none due.</b> A reward, not a void — show the next due date so the loop stays visible.</span></div>
+    </div>
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Conflicts</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(14,140,107,.1)">🛡️</div><div class="minih">No open conflicts</div><div class="minid">Every claim is currently settled.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E2</span><span class="gcapt"><b>Conflicts · zero open.</b> Reassure — a clean ledger is the healthy state, not a missing feature.</span></div>
+    </div>
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Progress</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(63,107,138,.12)">📈</div><div class="minih">Not enough data yet</div><div class="minid">Signals appear after a few reviews.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E3</span><span class="gcapt"><b>Progress · pre-data.</b> Set expectations instead of showing four 0% bars that look like failure.</span></div>
+    </div>
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Gap map</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(14,140,107,.1)">◎</div><div class="minih">No gaps tracked</div><div class="minid">Misconceptions you flag will collect here.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E4</span><span class="gcapt"><b>Gap map · empty.</b> Teach the feature: explain how gaps get created so it isn't a mystery.</span></div>
+    </div>
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Tasks</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(63,107,138,.12)">📝</div><div class="minih">Finish the lecture first</div><div class="minid">Tasks unlock once you've read through.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E5</span><span class="gcapt"><b>Tasks · locked.</b> Explain the dependency rather than showing a blank pane.</span></div>
+    </div>
+
+    <div class="gcell">
+      <div class="mini">
+        <div class="minitop">Sources</div>
+        <div class="miniempty"><div class="miniic" style="background:rgba(63,107,138,.12)">📎</div><div class="minih">Add a source</div><div class="minid">Attach your own reading to verify against.</div></div>
+      </div>
+      <div class="gcap"><span class="gcapid">E6</span><span class="gcapt"><b>Sources · none added.</b> Invite an action — bring-your-own reference is a power-user hook.</span></div>
+    </div>
+
+  </div>
+
+  <!-- PRINCIPLES -->
+  <div class="sectlead">
+    <span class="cap">Principles</span>
+    <h2>What makes these work</h2>
+  </div>
+  <div class="princ">
+    <div class="pc"><div class="pcn">01</div><div class="pch">Never a dead end</div><div class="pcd">Every empty state names the next step or reassures that empty is the good state.</div></div>
+    <div class="pc"><div class="pcn">02</div><div class="pch">One action, not five</div><div class="pcd">A blank screen is the one place to be ruthless about a single primary CTA.</div></div>
+    <div class="pc"><div class="pcn">03</div><div class="pch">Teach the feature</div><div class="pcd">First-empty is a chance to explain how the thing fills up — gaps, sources, reviews.</div></div>
+    <div class="pc"><div class="pcn">04</div><div class="pch">Reward, don't scold</div><div class="pcd">"All caught up" and "no conflicts" are wins — style them as such, never as errors.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

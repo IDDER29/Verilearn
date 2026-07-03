@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#c0392b;color:#fff;border-color:#c0392b}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#c0392b;background:#fff;border:1px solid rgba(192,57,43,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#c0392b}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .ribbon{display:flex;gap:0;margin:26px 0 8px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:12px;padding:14px 8px;flex-wrap:wrap}
+  .rstep{flex:1;min-width:150px;display:flex;flex-direction:column;gap:3px;padding:4px 14px;position:relative}
+  .rstep:not(:last-child):after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:rgba(192,57,43,.4);font-size:17px}
+  .rk{font:600 9px ui-monospace,Menlo,monospace;color:#fff;background:#c0392b;min-width:24px;padding:0 5px;height:19px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .rt{font:600 13px system-ui;letter-spacing:-.005em}
+  .rd{font:11.5px/1.4 system-ui;color:#837d73}
+  .loop{font:11px/1.4 system-ui;color:#9a948a;margin:9px 0 0;padding-left:6px}
+  .loop b{color:#c0392b;font-weight:600}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:34px;padding-top:30px;border-top:1px dashed #cdc7bb}
+  .screen:first-of-type{border-top:none}
+  .scap{width:392px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#c0392b;color:#fff;font:600 12px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 17px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#c0392b;border:1px solid rgba(192,57,43,.35);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:392px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:32px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .chev{color:#b3aca0;font-size:12px}
+  .pill{font:600 8px ui-monospace,Menlo,monospace;color:#c0392b;border:1px solid rgba(192,57,43,.35);border-radius:99px;padding:2px 7px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:26px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0}
+  .rdd{width:8px;height:8px;border-radius:50%;background:#d0cbc0}
+  .rdd.on{background:#c0392b}
+  .cols2{display:grid;flex:1;min-height:0}
+  .lcol{border-right:1px solid #eee7dd;overflow:hidden;display:flex;flex-direction:column}
+  .lrow{border-bottom:1px solid #eee7dd;padding:8px 9px;display:flex;flex-direction:column;gap:5px}
+  .lrow.sel{background:#faf9f6;box-shadow:inset 2px 0 0 #c0392b}
+  .dcol{padding:11px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .cap{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:#a49e92}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#c0392b;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .b{background:#e8e5de;border-radius:4px;display:block}
+  .bl{background:#e8e5de;border-radius:3px;height:8px;display:block}
+  .status{display:flex;align-items:center;gap:5px;font:600 8px ui-monospace,Menlo,monospace}
+  .sdotc{width:7px;height:7px;border-radius:50%}
+  .tag{font:600 8px ui-monospace,Menlo,monospace;background:#efece5;color:#6a655c;border:1px solid #e2ddd3;border-radius:99px;padding:2px 7px}
+  .posgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .poscard{border:1px solid #e2ddd3;background:#faf9f6;border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:4px}
+  .poscard.sel{border-color:#2d6cdf;background:#eef4fd}
+  .field{border:1px solid #e2ddd3;background:#faf9f6;border-radius:7px;display:flex;align-items:flex-start;padding:8px 10px;color:#bdb7ab;font:10.5px system-ui}
+  .btnph{height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font:600 9px system-ui;padding:0 10px}
+  .covrow{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center}
+  .covcells{display:flex;gap:3px}
+  .cc{width:18px;height:13px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff}
+  .cc.empty{background:#f1eee8;border:1px dashed #d5cfc3}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);color:#c0392b;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui;letter-spacing:-.003em}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:44px 0 0}
+  .sectlead .cap{color:#c0392b}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .vocab{margin-top:16px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .vc{background:#fff;border:1px solid #e2ddd3;border-radius:10px;padding:12px}
+  .vg{width:20px;height:20px;margin-bottom:8px}
+  .vch{font:600 12px system-ui;margin-bottom:3px}
+  .vcd{font:11px/1.42 system-ui;color:#837d73}
+  .states{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stt{background:#fff;border:1px solid #e2ddd3;border-radius:9px;padding:9px 12px;min-width:150px;flex:1}
+  .sth{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;margin-bottom:4px}
+  .std{font:12px/1.45 system-ui;color:#6a655c}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a class="on" href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a style="border-style:dashed" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a style="border-style:dashed" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a style="border-style:dashed" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Area 3 · Verify &amp; trust — global</div>
+  <h1 class="title">The trust backbone, across every topic</h1>
+  <p class="subttl">The same conflict and source tools that live inside a topic, lifted to span the whole library. Opened straight from the rail, these are where a learner audits provenance and adjudicates disputes without hunting through individual topics.</p>
+
+  <div class="ribbon">
+    <div class="rstep"><span class="rk">Rail</span><span class="rt">Persistent access</span><span class="rd">Conflict &amp; Source icons carry live badge counts.</span></div>
+    <div class="rstep"><span class="rk">C</span><span class="rt">Conflicts (global)</span><span class="rd">Every open dispute, across all topics.</span></div>
+    <div class="rstep"><span class="rk">S</span><span class="rt">Sources (global)</span><span class="rd">Full coverage matrix + attached references.</span></div>
+  </div>
+  <p class="loop"><b>Two-way sync:</b> a resolution recorded here is the same object as in the topic's Conflicts tab — badges on the rail, Library, and topic all update together. Nothing lives in two places.</p>
+
+  <!-- C CONFLICTS -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">C</span><span class="sname">Conflicts</span><span class="sid">scr-conflicts</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Conflicts</span><span class="pill">2 open</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span></div>
+          <div class="cols2" style="grid-template-columns:140px 1fr">
+            <div class="lcol">
+              <div class="region"><span class="pin">1</span>
+                <div class="lrow sel"><span class="bl" style="width:90%"></span><div style="display:flex;gap:4px;align-items:center"><span class="tag">Dijkstra</span><span class="status" style="color:#c0392b"><span class="sdotc" style="background:#c0392b"></span>open</span></div></div>
+              </div>
+              <div class="lrow"><span class="bl" style="width:82%"></span><div style="display:flex;gap:4px;align-items:center"><span class="tag">Dijkstra</span><span class="status" style="color:#c0392b"><span class="sdotc" style="background:#c0392b"></span>open</span></div></div>
+              <div class="lrow" style="opacity:.5"><span class="bl" style="width:70%"></span><div style="display:flex;gap:4px;align-items:center"><span class="tag">Merkle</span><span class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>done</span></div></div>
+            </div>
+            <div class="dcol">
+              <div class="region"><span class="pin">2</span><div class="b" style="background:#faf9f6;border-left:2px solid #c0392b;border-radius:2px;padding:8px;display:flex;flex-direction:column;gap:4px"><span class="cap" style="color:#c0392b">Raised by Execution</span><span class="bl" style="width:92%;height:7px"></span><span class="bl" style="width:66%;height:6px;background:#efece5"></span></div></div>
+              <div class="region"><span class="pin">3</span><span class="cap">Competing positions</span><div class="posgrid" style="margin-top:5px"><div class="poscard sel"><span class="bl" style="width:82%;height:6px"></span><span class="bl" style="width:60%;height:5px;background:#efece5"></span></div><div class="poscard"><span class="bl" style="width:82%;height:6px"></span><span class="bl" style="width:60%;height:5px;background:#efece5"></span></div></div></div>
+              <div class="region"><span class="pin">4</span><div class="field" style="height:24px">Which position holds, and why?</div><div style="display:flex;justify-content:flex-end;margin-top:6px"><span class="btnph" style="background:#2d6cdf">Record resolution</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">One inbox for every disagreement in the library. The learner triages disputes by importance, not by which topic happens to be open.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Cross-topic list</span><span class="and">Each conflict is tagged with its topic and marked <span class="fk">open</span> / <span class="fk">resolved</span>. Resolved items dim.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Claim + raiser</span><span class="and">The disputed claim and who flagged it — the <b>Skeptic</b> (red-team) or the <b>Execution</b> sandbox (a failed assertion).</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Competing positions</span><span class="and">Two stances with their support; selecting one drafts the resolution.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Adjudicate</span><span class="and">Recording a resolution closes it and updates every badge in the app at once.</span></div></div>
+    </div>
+  </div>
+
+  <!-- S SOURCES -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">S</span><span class="sname">Sources</span><span class="sid">scr-sources</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Sources — Dijkstra</span><span class="cap">4 src · 6 claims · 1 unsupported</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span></div>
+          <div class="cols2" style="grid-template-columns:140px 1fr">
+            <div class="lcol">
+              <div class="region"><span class="pin">1</span>
+                <div class="lrow sel"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">📘</span><span class="bl" style="width:60%;height:6px"></span></div><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>verified</div></div>
+              </div>
+              <div class="lrow"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">🔬</span><span class="bl" style="width:52%;height:6px"></span></div><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>verified</div></div>
+              <div class="lrow"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">📄</span><span class="bl" style="width:58%;height:6px"></span></div><div class="status" style="color:#2d6cdf"><span class="sdotc" style="background:#2d6cdf"></span>retrieved</div></div>
+              <div class="lrow"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">🌐</span><span class="bl" style="width:50%;height:6px"></span></div><div class="status" style="color:#6d5bd0"><span class="sdotc" style="background:#6d5bd0"></span>attached</div></div>
+            </div>
+            <div class="dcol">
+              <div class="region"><span class="pin">2</span><span class="cap">Coverage — claims × sources</span>
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+                  <div class="covrow"><span class="bl" style="width:80%;height:6px"></span><div class="covcells"><span class="cc" style="background:#0e8c6b">📘</span><span class="cc" style="background:#0e8c6b">🔬</span><span class="cc empty"></span><span class="cc empty"></span></div></div>
+                  <div class="covrow"><span class="bl" style="width:70%;height:6px"></span><div class="covcells"><span class="cc" style="background:#0e8c6b">📘</span><span class="cc" style="background:#0e8c6b">🔬</span><span class="cc empty"></span><span class="cc empty"></span></div></div>
+                  <div class="covrow"><span class="bl" style="width:76%;height:6px"></span><div class="covcells"><span class="cc" style="background:#0e8c6b">📘</span><span class="cc empty"></span><span class="cc" style="background:#2d6cdf">📄</span><span class="cc empty"></span></div></div>
+                  <div class="region covrow"><span class="pin" style="top:-8px;left:-8px">3</span><span class="bl" style="width:64%;height:6px;background:rgba(180,105,14,.3)"></span><div class="covcells"><span class="cc empty"></span><span class="cc empty"></span><span class="cc empty"></span><span class="cc empty"></span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Provenance you can scan. The coverage grid turns "is this trustworthy?" into a picture — and the gaps jump out.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">All attached sources</span><span class="and">Books, the execution sandbox, papers, web notes — each with a status and type icon. Any can be set preferred or removed.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Coverage matrix</span><span class="and">Rows are claims, columns are sources. A filled cell means that source backs that claim.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">The empty row</span><span class="and">A claim with no supporting source is <b>unsupported</b> — surfaced here as the thing to shore up or drop.</span></div></div>
+    </div>
+  </div>
+
+  <!-- TRUST VOCAB -->
+  <div class="sectlead">
+    <span class="cap">Shared vocabulary</span>
+    <h2>The five trust states used everywhere</h2>
+  </div>
+  <div class="vocab">
+    <div class="vc"><svg class="vg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#0e8c6b"/><path d="M4.5 8.5l2 2L11.5 6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="vch">Verified · execution</div><div class="vcd">Proven by running code — assertions passed in the sandbox.</div></div>
+    <div class="vc"><svg class="vg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#2d6cdf" stroke-width="2"/><circle cx="8" cy="8" r="3" fill="#2d6cdf"/></svg><div class="vch">Verified · source</div><div class="vcd">Matched against a documented, cited reference.</div></div>
+    <div class="vc"><svg class="vg" viewBox="0 0 16 16"><path d="M8 2l6.5 11H1.5z" fill="none" stroke="#b4690e" stroke-width="1.7" stroke-linejoin="round"/></svg><div class="vch">Unsupported</div><div class="vcd">No source found — flagged, treat with scepticism.</div></div>
+    <div class="vc"><svg class="vg" viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" transform="rotate(45 8 8)" fill="#c0392b"/><path d="M8 5.5V10M8 11.5h.01" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg><div class="vch">Disputed</div><div class="vcd">The Skeptic or sandbox contests it — becomes a Conflict.</div></div>
+    <div class="vc"><svg class="vg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#6d5bd0" stroke-width="2"/><path d="M8 1.5a6.5 6.5 0 010 13z" fill="#6d5bd0"/></svg><div class="vch">Interpretive</div><div class="vcd">Genuinely contested — positions mapped, not certified.</div></div>
+  </div>
+
+  <div class="sectlead">
+    <span class="cap">Reference</span>
+    <h2>States across verify &amp; trust</h2>
+  </div>
+  <div class="states">
+    <div class="stt"><div class="sth">Conflict</div><div class="std">open → resolved. Raised by Skeptic or Execution; resolution syncs everywhere.</div></div>
+    <div class="stt"><div class="sth">Source</div><div class="std">attached → retrieved → verified. One can be marked preferred; any removable.</div></div>
+    <div class="stt"><div class="sth">Claim in matrix</div><div class="std">covered by ≥1 source, or an empty row = unsupported.</div></div>
+    <div class="stt"><div class="sth">Rail badges</div><div class="std">Live counts of open conflicts drive the numbers on the rail &amp; Library.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

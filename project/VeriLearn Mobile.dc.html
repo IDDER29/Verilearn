@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e4e1da;font-family:'Nunito',system-ui,sans-serif;color:#221f2e;-webkit-font-smoothing:antialiased}
+  .board{padding:44px 52px 80px;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .phone{width:390px;flex:none;display:flex;flex-direction:column;gap:14px}
+  .plabel{display:flex;align-items:center;gap:9px;font:800 12px 'Nunito';letter-spacing:.03em;color:#6c6780}
+  .pnum{width:22px;height:22px;border-radius:7px;background:#6d5bd0;color:#fff;font:800 11px ui-monospace,monospace;display:flex;align-items:center;justify-content:center}
+  .screen{width:390px;height:812px;background:#f4f2f8;border-radius:44px;border:9px solid #221f2e;box-sizing:border-box;overflow:hidden;position:relative;box-shadow:0 30px 70px -30px rgba(40,30,70,.55)}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:26px;background:#221f2e;border-radius:0 0 16px 16px;z-index:20}
+  .statusbar{display:flex;align-items:center;justify-content:space-between;padding:12px 26px 4px;font:800 12px 'Nunito'}
+  .scroll{height:100%;overflow:hidden;display:flex;flex-direction:column}
+  .content{flex:1;overflow:hidden;padding:6px 18px 0}
+  /* bottom tab */
+  .tabbar{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ece8f4;display:flex;justify-content:space-around;align-items:center;padding:10px 8px 26px;z-index:15}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font:800 9.5px 'Nunito';color:#b6b1c4;text-decoration:none;flex:1}
+  .tab.on{color:#6d5bd0}
+  .fab{width:52px;height:52px;border-radius:18px;background:#6d5bd0;display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 10px 22px -6px rgba(109,91,208,.7)}
+</style>
+</helmet>
+
+<div class="board">
+
+  <!-- ============ PHONE 1 · DASHBOARD ============ -->
+  <div class="phone">
+    <div class="plabel"><span class="pnum">1</span>Dashboard · home</div>
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span><span style="display:flex;gap:5px;align-items:center"><svg width="17" height="12" viewBox="0 0 24 16" fill="#221f2e"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="5" y="2" width="3" height="10" rx="1"/><rect x="10" y="0" width="3" height="12" rx="1"/><rect x="15" y="1" width="3" height="11" rx="1" opacity=".3"/></svg><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="3" stroke="#221f2e" stroke-width="1.3"/><rect x="3" y="3" width="15" height="7" rx="1.5" fill="#221f2e"/><rect x="23" y="4" width="2" height="5" rx="1" fill="#221f2e"/></svg></span></div>
+        <div class="content">
+          <!-- top -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px">
+            <div style="display:flex;align-items:center;gap:11px">
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f6d8e8,#efe4ff);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #f3eefc">🧑‍🎨</div>
+              <div><div style="font:700 12px 'Nunito';color:#8b8699">Welcome back</div><div style="font:900 17px 'Nunito';letter-spacing:-.01em">Adeline 👋</div></div>
+            </div>
+            <button style="width:42px;height:42px;border-radius:14px;border:none;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 6px 16px -10px rgba(80,60,140,.3)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a4560" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 004 0"/></svg>
+              <span style="position:absolute;top:11px;right:12px;width:8px;height:8px;border-radius:50%;background:#f0563a;border:2px solid #fff"></span>
+            </button>
+          </div>
+
+          <!-- hero -->
+          <div style="position:relative;background:#211d2e;border-radius:22px;padding:22px;overflow:hidden;margin-bottom:16px">
+            <div style="position:absolute;inset:0;background:radial-gradient(120% 140% at 90% 15%,rgba(139,120,232,.42),transparent 55%)"></div>
+            <div style="position:relative">
+              <div style="font:800 9.5px 'Nunito';letter-spacing:.12em;text-transform:uppercase;color:#b3a7f0;margin-bottom:8px">Verified learning</div>
+              <div style="font:900 20px/1.2 'Nunito';color:#fff">Learn things you<br>can trust ✨</div>
+              <button style="margin-top:14px;padding:10px 20px;border:none;border-radius:12px;background:#fff;color:#221f2e;font:800 13px 'Nunito'">Start a topic</button>
+            </div>
+          </div>
+
+          <!-- due stat pills -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+            <div style="background:#fdeceb;border-radius:16px;padding:13px 10px;text-align:center"><div style="font:900 21px 'Nunito';color:#c0392b;line-height:1">4</div><div style="font:700 10px 'Nunito';color:#b06;color:#a96b64;margin-top:3px">Reviews</div></div>
+            <div style="background:#fbf3e4;border-radius:16px;padding:13px 10px;text-align:center"><div style="font:900 21px 'Nunito';color:#b4830f;line-height:1">2</div><div style="font:700 10px 'Nunito';color:#b0925a;margin-top:3px">Conflicts</div></div>
+            <div style="background:#eef2fb;border-radius:16px;padding:13px 10px;text-align:center"><div style="font:900 21px 'Nunito';color:#3a63b0;line-height:1">1</div><div style="font:700 10px 'Nunito';color:#7d90b5;margin-top:3px">Tasks</div></div>
+          </div>
+
+          <!-- topics -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+            <span style="font:900 15px 'Nunito'">My topics</span>
+            <span style="font:800 11.5px 'Nunito';color:#6d5bd0">See all</span>
+          </div>
+          <div style="background:#fff;border-radius:18px;padding:15px;margin-bottom:11px;box-shadow:0 8px 22px -16px rgba(80,60,140,.3)">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+              <div style="width:40px;height:40px;border-radius:13px;background:#efe9ff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 5-4 1 2-5z"/></svg></div>
+              <div style="flex:1;min-width:0"><div style="font:800 13.5px 'Nunito'">Dijkstra's algorithm</div><div style="font:700 11px 'Nunito';color:#8b8699">Algorithms · 6 claims</div></div>
+              <span style="font:800 10px 'Nunito';color:#2e9c6a;background:#e4f4ec;padding:5px 9px;border-radius:9px">83%</span>
+            </div>
+            <div style="height:6px;border-radius:4px;background:#eee9f7;overflow:hidden;display:flex;gap:1px"><span style="width:60%;background:#0e8c6b"></span><span style="width:23%;background:#2d6cdf"></span></div>
+          </div>
+          <div style="background:#fff;border-radius:18px;padding:15px;box-shadow:0 8px 22px -16px rgba(80,60,140,.3)">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+              <div style="width:40px;height:40px;border-radius:13px;background:#e9f7ef;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M12 7l4-2M12 11l5-2.5"/><path d="M6 21h12"/></svg></div>
+              <div style="flex:1;min-width:0"><div style="font:800 13.5px 'Nunito'">Merkle trees</div><div style="font:700 11px 'Nunito';color:#8b8699">Cryptography · 5 claims</div></div>
+              <span style="font:800 10px 'Nunito';color:#b4830f;background:#fbefdd;padding:5px 9px;border-radius:9px">1 ⚖</span>
+            </div>
+            <div style="height:6px;border-radius:4px;background:#eee9f7;overflow:hidden;display:flex;gap:1px"><span style="width:52%;background:#0e8c6b"></span><span style="width:20%;background:#2d6cdf"></span><span style="width:10%;background:#b4690e"></span></div>
+          </div>
+        </div>
+
+        <!-- tabbar -->
+        <div class="tabbar">
+          <a href="#" class="tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home</a>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg>Topics</a>
+          <div class="fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5"/></svg>Review</a>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PHONE 2 · LECTURE ============ -->
+  <div class="phone">
+    <div class="plabel"><span class="pnum">2</span>Topic · lecture</div>
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span><span style="display:flex;gap:5px;align-items:center"><svg width="17" height="12" viewBox="0 0 24 16" fill="#221f2e"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="5" y="2" width="3" height="10" rx="1"/><rect x="10" y="0" width="3" height="12" rx="1"/><rect x="15" y="1" width="3" height="11" rx="1" opacity=".3"/></svg><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="3" stroke="#221f2e" stroke-width="1.3"/><rect x="3" y="3" width="15" height="7" rx="1.5" fill="#221f2e"/><rect x="23" y="4" width="2" height="5" rx="1" fill="#221f2e"/></svg></span></div>
+        <div class="content">
+          <!-- topbar -->
+          <div style="display:flex;align-items:center;gap:11px;padding:8px 0 14px">
+            <button style="width:38px;height:38px;border-radius:12px;border:none;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4a4560" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div style="flex:1;min-width:0"><div style="font:700 11px 'Nunito';color:#9a95a8">Algorithms</div><div style="font:900 16px 'Nunito';letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dijkstra's algorithm</div></div>
+            <span style="font:800 10px 'Nunito';color:#2e9c6a;background:#e4f4ec;padding:6px 10px;border-radius:10px;flex-shrink:0">83% ✓</span>
+          </div>
+
+          <!-- tabs scroll -->
+          <div style="display:flex;gap:7px;background:#fff;padding:5px;border-radius:14px;margin-bottom:14px">
+            <span style="flex:1;text-align:center;padding:8px 4px;border-radius:10px;background:#6d5bd0;color:#fff;font:800 11px 'Nunito'">Lecture</span>
+            <span style="flex:1;text-align:center;padding:8px 4px;border-radius:10px;color:#6c6780;font:700 11px 'Nunito'">Tasks</span>
+            <span style="flex:1;text-align:center;padding:8px 4px;border-radius:10px;color:#6c6780;font:700 11px 'Nunito'">Conflicts</span>
+            <span style="flex:1;text-align:center;padding:8px 4px;border-radius:10px;color:#6c6780;font:700 11px 'Nunito'">Src</span>
+          </div>
+
+          <!-- section chips -->
+          <div style="display:flex;gap:7px;margin-bottom:16px;overflow:hidden">
+            <span style="font:800 10.5px 'Nunito';color:#2e9c6a;background:#e7f4ee;padding:6px 11px;border-radius:10px;white-space:nowrap;flex-shrink:0">✓ Prereqs</span>
+            <span style="font:800 10.5px 'Nunito';color:#fff;background:#6d5bd0;padding:6px 11px;border-radius:10px;white-space:nowrap;flex-shrink:0">§1 Core</span>
+            <span style="font:700 10.5px 'Nunito';color:#9a95a8;background:#f3f1f9;padding:6px 11px;border-radius:10px;white-space:nowrap;flex-shrink:0">§2 Impl</span>
+          </div>
+
+          <!-- lecture card -->
+          <div style="background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 22px -16px rgba(80,60,140,.3)">
+            <div style="font:900 16px/1.3 'Nunito';margin-bottom:12px">The core idea</div>
+            <p style="font:600 13.5px/1.75 'Nunito';color:#3a3550;margin:0 0 14px">Dijkstra repeatedly picks the <span style="border-bottom:2.5px solid #0e8c6b">closest unvisited node</span>, then relaxes its neighbours. Each finalised distance is <span style="border-bottom:2.5px solid #2d6cdf">provably correct</span>.</p>
+            <div style="background:#fbeceb;border-left:3px solid #c0392b;border-radius:0 12px 12px 0;padding:12px 14px">
+              <div style="font:800 9.5px 'Nunito';letter-spacing:.05em;text-transform:uppercase;color:#c0392b;margin-bottom:4px">⚠ Disputed</div>
+              <div style="font:700 12.5px/1.5 'Nunito'">"Works on any weighted graph" — fails on negative edges.</div>
+            </div>
+          </div>
+
+          <!-- listen prompt -->
+          <div style="background:#f2effc;border:1.5px solid #e3ddf6;border-radius:18px;padding:15px;margin-top:14px">
+            <div style="display:flex;align-items:center;gap:7px;font:800 11px 'Nunito';color:#6d5bd0;margin-bottom:9px">🧠 Lock it in</div>
+            <div style="font:700 13px/1.45 'Nunito'">Why can the greedy choice never be wrong here?</div>
+          </div>
+        </div>
+
+        <!-- tabbar -->
+        <div class="tabbar">
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home</a>
+          <a href="#" class="tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg>Topics</a>
+          <div class="fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5"/></svg>Review</a>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PHONE 3 · REVIEW ============ -->
+  <div class="phone">
+    <div class="plabel"><span class="pnum">3</span>Review · confidence gate</div>
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span><span style="display:flex;gap:5px;align-items:center"><svg width="17" height="12" viewBox="0 0 24 16" fill="#221f2e"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="5" y="2" width="3" height="10" rx="1"/><rect x="10" y="0" width="3" height="12" rx="1"/><rect x="15" y="1" width="3" height="11" rx="1" opacity=".3"/></svg><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="3" stroke="#221f2e" stroke-width="1.3"/><rect x="3" y="3" width="15" height="7" rx="1.5" fill="#221f2e"/><rect x="23" y="4" width="2" height="5" rx="1" fill="#221f2e"/></svg></span></div>
+        <div class="content">
+          <!-- topbar -->
+          <div style="display:flex;align-items:center;gap:11px;padding:8px 0 14px">
+            <button style="width:38px;height:38px;border-radius:12px;border:none;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4a4560" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            <div style="flex:1;min-width:0"><div style="font:900 16px 'Nunito';letter-spacing:-.01em">Review session</div></div>
+            <span style="font:800 11px 'Nunito';color:#6d5bd0;background:#efe9ff;padding:6px 11px;border-radius:10px;flex-shrink:0">1 / 4</span>
+          </div>
+
+          <!-- progress -->
+          <div style="display:flex;gap:6px;margin-bottom:18px">
+            <div style="flex:1;height:6px;border-radius:4px;background:#6d5bd0"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#e2dcf1"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#e2dcf1"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#e2dcf1"></div>
+          </div>
+
+          <!-- flashcard -->
+          <div style="background:#fff;border-radius:22px;padding:22px;box-shadow:0 8px 22px -16px rgba(80,60,140,.3);margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <span style="font:700 11px 'Nunito';color:#9a95a8">Flashcard · from §1</span>
+              <span style="font:800 10px 'Nunito';color:#2e9c6a;background:#e7f4ee;padding:5px 9px;border-radius:9px">Verified</span>
+            </div>
+            <div style="font:800 10px 'Nunito';letter-spacing:.05em;text-transform:uppercase;color:#a7a1b8;margin-bottom:9px">Question</div>
+            <div style="font:800 18px/1.4 'Nunito'">Why can Dijkstra finalise a node's distance the moment it's picked?</div>
+          </div>
+
+          <!-- confidence gate -->
+          <div style="font:800 12px 'Nunito';color:#6d5bd0;margin-bottom:11px;display:flex;align-items:center;gap:7px">🎯 How confident are you?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:2px solid #cdeadd;background:#f0f9f4;border-radius:15px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg><span style="font:800 12px 'Nunito';color:#2e9c6a">Confident</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:2px solid #f0e2c2;background:#fbf6ec;border-radius:15px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.5.8c0 1.9-2.8 2.5-2.8 2.5M12 17h.01"/></svg><span style="font:800 12px 'Nunito';color:#b4830f">Unsure</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:2px solid #f3d4cf;background:#fdf2f0;border-radius:15px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 15.5s1.5-1 3.5-1 3.5 1 3.5 1M9 9.5h.01M15 9.5h.01"/></svg><span style="font:800 12px 'Nunito';color:#c0392b">Guessing</span></button>
+          </div>
+
+          <!-- locked reveal -->
+          <button style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:15px;background:#e9e5f4;color:#a29cb6;font:800 14px 'Nunito';padding:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>Show answer</button>
+        </div>
+
+        <!-- tabbar -->
+        <div class="tabbar">
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Home</a>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg>Topics</a>
+          <div class="fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <a href="#" class="tab on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5"/></svg>Review</a>
+          <a href="#" class="tab"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e9e4f5;font-family:'Nunito',system-ui,sans-serif;color:#221f2e;-webkit-font-smoothing:antialiased}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:26px;box-sizing:border-box;display:flex;justify-content:center">
+  <div style="width:1340px;flex-shrink:0;background:#f4f2f8;border-radius:30px;display:grid;grid-template-columns:248px 1fr;overflow:hidden;box-shadow:0 30px 80px -40px rgba(80,60,140,.4)">
+
+    <!-- sidebar: dimmed & non-distracting during a test, but present for continuity -->
+    <aside style="background:#fbfafd;padding:26px 18px;display:flex;flex-direction:column;gap:6px;border-right:1px solid #ece8f4">
+      <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 20px">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6d5bd0,#8b78e8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -4px rgba(109,91,208,.6)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.9 7.2 18.7l.9-5.4-3.9-3.8 5.4-.8z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.3 12l1.9 1.9L15 10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span style="font:900 21px 'Nunito';letter-spacing:-.02em">VeriLearn</span>
+      </div>
+      <!-- in-test: the rail is disabled to protect the timed session -->
+      <div style="opacity:.4;pointer-events:none;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Dashboard</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg> Topics</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg> My Tasks</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#6d5bd0;color:#fff;font-weight:700;font-size:14.5px;box-shadow:0 10px 22px -8px rgba(109,91,208,.7)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 3H8zM8 6h8l1 14a1 1 0 01-1 1H8a1 1 0 01-1-1z"/><path d="M10 12h4M10 16h4"/></svg> Tests</div>
+      <div style="opacity:.4;pointer-events:none;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 6a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/></svg> Community</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Reports</div>
+      </div>
+
+      <!-- test-mode notice replaces the promo card -->
+      <div style="margin-top:auto"></div>
+      <div style="background:#f2effc;border:1px solid #e3ddf6;border-radius:20px;padding:18px 16px;text-align:center;margin-top:16px">
+        <div style="width:44px;height:44px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 11px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div style="font:800 13.5px 'Nunito';color:#6d5bd0">Test in progress</div>
+        <div style="font:600 11px/1.5 'Nunito';color:#8b8699;margin-top:5px">Navigation is paused so the timer stays honest.</div>
+      </div>
+    </aside>
+
+    <!-- test area -->
+    <main style="padding:22px 26px 28px;display:flex;flex-direction:column;gap:18px">
+
+      <!-- header: exit + title + timer -->
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="VeriLearn%20Test%20Detail.dc.html" style="width:42px;height:42px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 6px 18px -10px rgba(80,60,140,.25);flex-shrink:0" title="Exit test"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a4560" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></a>
+        <div style="flex:1;min-width:0"><div style="font:700 12px 'Nunito';color:#9a95a8">Checkpoint · covers §1–§3</div><div style="font:900 22px 'Nunito';letter-spacing:-.02em">Dijkstra's algorithm</div></div>
+        <div style="display:flex;align-items:center;gap:7px;font:900 16px 'Nunito';color:#c0392b;background:#fff;padding:11px 16px;border-radius:13px;box-shadow:0 6px 18px -10px rgba(80,60,140,.25)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>12:47</div>
+      </div>
+
+      <!-- progress: question count + segmented bar -->
+      <div style="background:#fff;border-radius:18px;padding:16px 20px;box-shadow:0 10px 30px -20px rgba(80,60,140,.28)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font:800 13px 'Nunito'">Question 4 of 12</span><span style="font:700 11.5px 'Nunito';color:#8b8699">3 answered · 1 flagged</span></div>
+        <div style="display:flex;gap:5px">
+          <div style="flex:1;height:8px;border-radius:4px;background:#2e9c6a"></div><div style="flex:1;height:8px;border-radius:4px;background:#2e9c6a"></div><div style="flex:1;height:8px;border-radius:4px;background:#c99a2b"></div>
+          <div style="flex:1;height:8px;border-radius:4px;background:#6d5bd0"></div>
+          <div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div><div style="flex:1;height:8px;border-radius:4px;background:#e2dcf1"></div>
+        </div>
+      </div>
+
+      <!-- question card -->
+      <div style="background:#fff;border-radius:22px;padding:30px 34px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+        <div style="display:inline-flex;align-items:center;gap:6px;font:800 10px 'Nunito';letter-spacing:.05em;text-transform:uppercase;color:#6d5bd0;background:#efe9ff;padding:5px 11px;border-radius:9px;margin-bottom:18px">§2 · Implementation</div>
+        <div style="font:900 21px/1.45 'Nunito';margin-bottom:24px">Which data structure lets Dijkstra repeatedly extract the unvisited node with the smallest tentative distance in O(log V)?</div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div style="display:flex;align-items:center;gap:14px;padding:15px 18px;border:2px solid #ece8f4;background:#fbfafd;border-radius:15px;cursor:pointer"><span style="width:28px;height:28px;border-radius:9px;background:#f3f1f9;display:flex;align-items:center;justify-content:center;font:800 13px 'Nunito';color:#8b8699;flex-shrink:0">A</span><span style="font:700 14.5px 'Nunito'">A plain unsorted array</span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:15px 18px;border:2px solid #6d5bd0;background:#f7f5fd;border-radius:15px;cursor:pointer;box-shadow:0 8px 20px -10px rgba(109,91,208,.4)"><span style="width:28px;height:28px;border-radius:9px;background:#6d5bd0;display:flex;align-items:center;justify-content:center;font:800 13px 'Nunito';color:#fff;flex-shrink:0">B</span><span style="font:800 14.5px 'Nunito';color:#6d5bd0">A binary min-heap (priority queue)</span><span style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:#6d5bd0;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:15px 18px;border:2px solid #ece8f4;background:#fbfafd;border-radius:15px;cursor:pointer"><span style="width:28px;height:28px;border-radius:9px;background:#f3f1f9;display:flex;align-items:center;justify-content:center;font:800 13px 'Nunito';color:#8b8699;flex-shrink:0">C</span><span style="font:700 14.5px 'Nunito'">A stack (LIFO)</span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:15px 18px;border:2px solid #ece8f4;background:#fbfafd;border-radius:15px;cursor:pointer"><span style="width:28px;height:28px;border-radius:9px;background:#f3f1f9;display:flex;align-items:center;justify-content:center;font:800 13px 'Nunito';color:#8b8699;flex-shrink:0">D</span><span style="font:700 14.5px 'Nunito'">A hash map keyed by node id</span></div>
+        </div>
+      </div>
+
+      <!-- footer nav -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+        <button style="display:flex;align-items:center;gap:8px;border:1.5px solid #ece8f4;border-radius:14px;background:#fff;color:#6c6780;font:800 13.5px 'Nunito';padding:13px 20px;cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Previous</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button style="display:flex;align-items:center;gap:7px;border:1.5px solid #f0e2c2;background:#fbf6ec;color:#b4830f;font:800 12.5px 'Nunito';padding:13px 18px;border-radius:14px;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 3.5L16 11H5"/></svg>Flag</button>
+          <a href="VeriLearn%20Test%20Results.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;border-radius:14px;background:#6d5bd0;color:#fff;font:800 14px 'Nunito';padding:14px 26px;box-shadow:0 12px 26px -10px rgba(109,91,208,.7)">Next question<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;font:600 11.5px 'Nunito';color:#a7a1b8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a7a1b8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>Graded assessment — sources &amp; explanations appear after you finish.</div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1392,&quot;height&quot;:820}}"></script>
+</body>
+</html>

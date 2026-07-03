@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  @keyframes vlpulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes vlbounce{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}
+  body{margin:0;background:#eeece6;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  input,textarea,button{font-family:inherit}
+  textarea{resize:none}
+  input:focus,textarea:focus{outline:none}
+  ::placeholder{color:#b6b0a4}
+  button{-webkit-tap-highlight-color:transparent}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:34px 24px 60px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px">
+
+  <div style="width:960px;max-width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div>
+      <div style="font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#2d6cdf;margin-bottom:6px">Flow 1 · Create &amp; onboard · interactive</div>
+      <div style="font:600 21px/1.15 system-ui;letter-spacing:-.01em">Start a topic &amp; watch it verify</div>
+    </div>
+    <div style="font:12px/1.5 system-ui;color:#8a8478;text-align:right;max-width:340px">Click <b style="color:#2a2722">New topic</b>, fill in the form (the button guides you — try clicking early), then watch it verify. Toasts appear bottom-right of the app.</div>
+  </div>
+
+  <!-- APP FRAME -->
+  <div style="position:relative;width:960px;max-width:100%;height:612px;display:grid;grid-template-columns:56px 1fr;background:#f7f5f0;border:1px solid #ddd8ce;border-radius:18px;overflow:hidden;box-shadow:0 26px 60px -26px rgba(31,28,24,.45),0 4px 12px rgba(31,28,24,.08)">
+
+    <!-- RAIL -->
+    <nav style="background:#fbfaf7;border-right:1px solid #e6e1d7;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:3px">
+      <div style="width:28px;height:28px;border-radius:8px;background:#2d6cdf;display:flex;align-items:center;justify-content:center;margin-bottom:9px;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <button onClick="{{ goLibrary }}" aria-label="Library" title="Library" style="{{ railLibStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg>
+      </button>
+      <button onClick="{{ goNew }}" aria-label="New topic" title="New topic" style="{{ railNewStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <div style="width:20px;height:1px;background:#e6e1d7;margin:5px 0"></div>
+      <button onClick="{{ pokeOther }}" aria-label="Reviews" title="Reviews — not part of this flow" style="{{ railGhostStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg>
+        <span style="position:absolute;top:2px;right:2px;min-width:13px;height:13px;border-radius:99px;background:#c0392b;color:#fff;font:600 8px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box">4</span>
+      </button>
+      <button onClick="{{ pokeOther }}" aria-label="Conflicts" title="Conflicts — not part of this flow" style="{{ railGhostStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg>
+        <span style="position:absolute;top:2px;right:2px;min-width:13px;height:13px;border-radius:99px;background:#b4690e;color:#fff;font:600 8px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box">2</span>
+      </button>
+      <button onClick="{{ pokeOther }}" aria-label="Sources" title="Sources — not part of this flow" style="{{ railGhostStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg>
+      </button>
+      <div style="flex:1"></div>
+      <button onClick="{{ pokeOther }}" aria-label="Progress" title="Progress — not part of this flow" style="{{ railGhostStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg>
+      </button>
+      <button onClick="{{ pokeOther }}" aria-label="Settings" title="Settings — not part of this flow" style="{{ railGhostStyle }}" style-hover="background:#f0eee8" style-focus="outline:2px solid #2d6cdf55;outline-offset:1px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg>
+      </button>
+    </nav>
+
+    <!-- CONTENT -->
+    <div style="display:flex;flex-direction:column;overflow:hidden;background:#f7f5f0">
+
+      <!-- ============ LIBRARY ============ -->
+      <sc-if value="{{ isLibrary }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:#fbfaf7;border-bottom:1px solid #e6e1d7;flex-shrink:0">
+          <span style="font:600 14px system-ui;letter-spacing:-.005em">Library</span>
+          <button onClick="{{ goNew }}" style="display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;border:1px solid #2d6cdf;background:transparent;color:#2d6cdf;font:600 12px system-ui;cursor:pointer;transition:background .15s;white-space:nowrap;flex-shrink:0" style-hover="background:#eaf1fd" style-active="transform:scale(.97)" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg> New topic
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#e6e1d7;flex-shrink:0">
+          <button onClick="{{ pokeOther }}" style="text-align:left;background:#fbfaf7;padding:11px 16px;border:none;cursor:pointer;transition:background .15s" style-hover="background:#f4f2ec" style-focus="outline:2px solid #2d6cdf55;outline-offset:-2px"><div style="font:11px system-ui;color:#8a8478;margin-bottom:3px">Reviews due</div><div style="font:600 22px ui-monospace,Menlo,monospace;line-height:1;color:#c0392b">4</div></button>
+          <button onClick="{{ pokeOther }}" style="text-align:left;background:#fbfaf7;padding:11px 16px;border:none;cursor:pointer;transition:background .15s" style-hover="background:#f4f2ec" style-focus="outline:2px solid #2d6cdf55;outline-offset:-2px"><div style="font:11px system-ui;color:#8a8478;margin-bottom:3px">Conflicts open</div><div style="font:600 22px ui-monospace,Menlo,monospace;line-height:1;color:#b4690e">2</div></button>
+          <button onClick="{{ pokeOther }}" style="text-align:left;background:#fbfaf7;padding:11px 16px;border:none;cursor:pointer;transition:background .15s" style-hover="background:#f4f2ec" style-focus="outline:2px solid #2d6cdf55;outline-offset:-2px"><div style="font:11px system-ui;color:#8a8478;margin-bottom:3px">Tasks pending</div><div style="font:600 22px ui-monospace,Menlo,monospace;line-height:1;color:#8a8478">1</div></button>
+        </div>
+        <div style="padding:16px 18px;overflow-y:auto;flex:1">
+          <div style="font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#a49e92;margin-bottom:10px">Your topics · {{ topicCount }}</div>
+          <sc-for list="{{ topicsView }}" as="t" hint-placeholder-count="2">
+            <button onClick="{{ t.onClick }}" style="{{ t.cardStyle }}" style-hover="{{ t.hoverStyle }}" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px">
+                <span style="font:600 14px/1.3 system-ui">{{ t.title }}</span>
+                <span style="{{ t.pillStyle }}"><span style="{{ t.dotStyle }}"></span>{{ t.status }}</span>
+              </div>
+              <sc-if value="{{ t.running }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:7px;font:11px ui-monospace,Menlo,monospace;color:#2d6cdf">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#2d6cdf;animation:vlpulse 1.1s ease-in-out infinite"></span>{{ t.stage }}
+                </div>
+              </sc-if>
+              <sc-if value="{{ t.ready }}" hint-placeholder-val="{{ true }}">
+                <div>
+                  <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px;margin-bottom:7px">
+                    <sc-for list="{{ t.segs }}" as="s" hint-placeholder-count="3"><span style="flex:{{ s.w }};background:{{ s.c }}"></span></sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font:11px ui-monospace,Menlo,monospace;color:#8a8478">{{ t.domain }} · {{ t.studied }}</span>
+                    <span style="font:11px ui-monospace,Menlo,monospace;color:#8a8478">{{ t.verified }}% verified · {{ t.claims }} claims</span>
+                  </div>
+                </div>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ NEW TOPIC ============ -->
+      <sc-if value="{{ isNew }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div style="display:flex;flex-direction:column;flex-shrink:0;background:#fbfaf7;border-bottom:1px solid #e6e1d7">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:9px;padding:13px 18px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <button onClick="{{ goLibrary }}" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#8a8478;font:12px system-ui;cursor:pointer;padding:2px" style-hover="color:#2a2722" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px;border-radius:4px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Library
+              </button>
+              <span style="width:1px;height:13px;background:#ddd8ce"></span>
+              <span style="font:600 14px system-ui;letter-spacing:-.005em">New topic</span>
+            </div>
+            <span style="font:600 10px ui-monospace,Menlo,monospace;color:{{ progressColor }}">{{ validCount }} / 3 complete</span>
+          </div>
+          <div style="height:2.5px;background:#eee7dd"><div style="height:100%;width:{{ progressPct }}%;background:{{ progressColor }};transition:width .35s ease, background .3s"></div></div>
+        </div>
+        <div style="padding:20px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:17px;max-width:620px">
+
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="font:600 13px system-ui">What do you want to learn?</span>
+              <sc-if value="{{ topicError }}" hint-placeholder-val="{{ false }}"><span style="font:11px system-ui;color:#c0392b">Add a bit more detail</span></sc-if>
+            </div>
+            <div style="position:relative">
+              <input type="text" value="{{ topic }}" onChange="{{ setTopic }}" onInput="{{ setTopic }}" onBlur="{{ touchTopic }}" onKeyDown="{{ handleEnter }}" placeholder="e.g. Dijkstra's algorithm, TCP/IP, binary trees…" style="{{ topicFieldStyle }}" style-focus="border-color:#2d6cdf;box-shadow:0 0 0 3px rgba(45,108,223,.14)">
+              <sc-if value="{{ topicValid }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#0e8c6b;display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></sc-if>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+              <span style="font:600 13px system-ui">Where are you starting from?</span>
+              <sc-if value="{{ levelError }}" hint-placeholder-val="{{ false }}"><span style="font:11px system-ui;color:#c0392b">A little more context helps</span></sc-if>
+            </div>
+            <div style="font:11px system-ui;color:#8a8478;margin-bottom:6px">Be concrete — name what you know and what you don't</div>
+            <div style="position:relative">
+              <textarea rows="3" value="{{ level }}" onChange="{{ setLevel }}" onInput="{{ setLevel }}" onBlur="{{ touchLevel }}" placeholder="e.g. comfortable with Python and graphs; never used a priority queue…" style="{{ levelFieldStyle }}" style-focus="border-color:#2d6cdf;box-shadow:0 0 0 3px rgba(45,108,223,.14)"></textarea>
+              <sc-if value="{{ levelValid }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:11px;top:10px;color:#0e8c6b;display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></sc-if>
+            </div>
+          </div>
+
+          <div>
+            <div style="font:600 13px system-ui;margin-bottom:7px">What does success look like?</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+              <sc-for list="{{ goals }}" as="g" hint-placeholder-count="4">
+                <button onClick="{{ g.onClick }}" style="{{ g.style }}" style-hover="border-color:#2d6cdf;color:#2d6cdf" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px" onBlur="{{ touchGoal }}">{{ g.label }}</button>
+              </sc-for>
+            </div>
+            <div style="position:relative">
+              <input type="text" value="{{ goalText }}" onChange="{{ setGoal }}" onInput="{{ setGoal }}" onBlur="{{ touchGoal }}" onKeyDown="{{ handleEnter }}" placeholder="or describe your own goal…" style="{{ goalFieldStyle }}" style-focus="border-color:#2d6cdf;box-shadow:0 0 0 3px rgba(45,108,223,.14)">
+              <sc-if value="{{ goalValid }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#0e8c6b;display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></sc-if>
+            </div>
+          </div>
+
+          <div style="background:#efece5;border-radius:9px;padding:12px 14px">
+            <div style="font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em;color:#8a8478;margin-bottom:6px">Pipeline — what happens when you submit</div>
+            <div style="font:12px/1.7 system-ui;color:#6a655c">Triage → retrieve sources → teach → decompose claims<br>Verify claims (Tier 1+2) → Skeptic red-team → ready</div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid #e6e1d7;margin-top:auto">
+            <span style="font:12px system-ui;color:{{ hintColor }}">{{ hintText }}</span>
+            <button onClick="{{ submitAttempt }}" style="{{ submitStyle }}" style-hover="background:#2560c7" style-active="transform:scale(.96)" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M8 5v14l11-7z"/></svg> Start verifying
+            </button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ PIPELINE ============ -->
+      <sc-if value="{{ isPipeline }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div style="display:flex;flex-direction:column;flex-shrink:0;background:#fbfaf7;border-bottom:1px solid #e6e1d7">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <button onClick="{{ goLibrary }}" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#8a8478;font:12px system-ui;cursor:pointer;padding:2px" style-hover="color:#2a2722" style-focus="outline:2px solid #2d6cdf55;outline-offset:2px;border-radius:4px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Library
+              </button>
+              <span style="width:1px;height:13px;background:#ddd8ce"></span>
+              <span style="font:600 14px system-ui;color:{{ pipeTitleColor }}">{{ pipeTitle }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font:11px ui-monospace,Menlo,monospace;color:#a49e92">{{ pipeStepLabel }}</span>
+              <span style="font:600 12px ui-monospace,Menlo,monospace;color:{{ pipeTitleColor }}">{{ pipeTimer }}</span>
+            </div>
+          </div>
+          <div style="height:2.5px;background:#eee7dd"><div style="height:100%;width:{{ pipePct }}%;background:{{ pipeTitleColor }};transition:width .5s ease"></div></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:26px;text-align:center">
+          <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+            <div style="width:40px;height:40px;border-radius:50%;background:#0e8c6b14;display:flex;align-items:center;justify-content:center">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0e8c6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+          </sc-if>
+          <div style="font:600 17px system-ui">{{ pipeTopic }}</div>
+          <div style="font:12px system-ui;color:#8a8478;max-width:360px">{{ pipeGoal }}</div>
+          <div style="display:flex;flex-direction:column;width:100%;max-width:300px;margin-top:2px">
+            <sc-for list="{{ stagesView }}" as="st" hint-placeholder-count="6">
+              <div style="display:flex;align-items:flex-start;gap:11px;text-align:left">
+                <div style="display:flex;flex-direction:column;align-items:center">
+                  <div style="{{ st.dotWrapStyle }}">
+                    <sc-if value="{{ st.done }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if>
+                    <sc-if value="{{ st.active }}" hint-placeholder-val="{{ false }}"><span style="width:7px;height:7px;border-radius:50%;background:#2d6cdf;animation:vlpulse 1s ease-in-out infinite"></span></sc-if>
+                  </div>
+                  <sc-if value="{{ st.showLine }}" hint-placeholder-val="{{ true }}"><div style="{{ st.lineStyle }}"></div></sc-if>
+                </div>
+                <div style="padding-bottom:{{ st.pad }}">
+                  <div style="font:600 12px system-ui;color:{{ st.textColor }}">{{ st.name }}</div>
+                  <sc-if value="{{ st.active }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:3px;margin-top:2px">
+                      <span style="width:3px;height:3px;border-radius:50%;background:#2d6cdf;animation:vlbounce 1s ease-in-out infinite"></span>
+                      <span style="width:3px;height:3px;border-radius:50%;background:#2d6cdf;animation:vlbounce 1s ease-in-out .15s infinite"></span>
+                      <span style="width:3px;height:3px;border-radius:50%;background:#2d6cdf;animation:vlbounce 1s ease-in-out .3s infinite"></span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font:11px/1.55 system-ui;color:#8a8478;max-width:280px;margin-top:2px">{{ pipeNote }}</div>
+          <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goLibrary }}" style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;background:#0e8c6b;color:#fff;font:600 12.5px system-ui;cursor:pointer;box-shadow:0 4px 14px -4px rgba(14,140,107,.55);margin-top:4px" style-hover="background:#0c7a5c" style-active="transform:scale(.96)" style-focus="outline:2px solid #0e8c6b55;outline-offset:2px">
+              Open in Library
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+
+    <!-- TOASTS -->
+    <div style="position:absolute;right:14px;bottom:14px;z-index:50;display:flex;flex-direction:column-reverse;gap:8px;align-items:flex-end;pointer-events:none;max-width:280px">
+      <sc-for list="{{ toastsView }}" as="tst" hint-placeholder-count="0">
+        <div style="{{ tst.style }}">{{ tst.msg }}</div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1012,&quot;height&quot;:730}}">
+const PIPE = ['Triage','Retrieve sources','Teach','Decompose claims','Verify claims','Skeptic'];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'library',
+    topics: [
+      {id:1,title:"Dijkstra's shortest-path algorithm",domain:'Algorithms',studied:'2 days ago',status:'ready',claims:6,verified:83,mix:[['#0e8c6b',3],['#2d6cdf',2],['#6d5bd0',1],['#c0392b',1]]},
+      {id:2,title:'Binary search',domain:'Algorithms',studied:'5 days ago',status:'ready',claims:5,verified:88,mix:[['#0e8c6b',3],['#2d6cdf',2]]},
+    ],
+    topic:'', level:'', goalText:'', goalPick:'',
+    touched:{topic:false, level:false, goal:false},
+    nextId:3, runningId:null,
+    pipeStage:0, pipeElapsed:0, pipeDone:false,
+    submittedTopic:'', submittedGoal:'',
+    toasts:[],
+  };
+
+  componentDidMount(){ this._mounted = true; }
+  componentWillUnmount(){
+    this._mounted = false;
+    clearInterval(this._iv);
+    (this._toastTimers||[]).forEach(clearTimeout);
+  }
+
+  safeSetState(fn){ if(this._mounted!==false) this.setState(fn); }
+
+  goalValue(){ return (this.state.goalText || this.state.goalPick || '').trim(); }
+  topicValid(){ return this.state.topic.trim().length>2; }
+  levelValid(){ return this.state.level.trim().length>5; }
+  goalValidCheck(){ return this.goalValue().length>2; }
+  isValid(){ return this.topicValid() && this.levelValid() && this.goalValidCheck(); }
+
+  addToast(msg, tone){
+    const id = (this._toastSeq = (this._toastSeq||0)+1);
+    this.safeSetState(s=>({toasts:[...s.toasts, {id, msg, tone: tone||'info', leaving:false}]}));
+    const t1 = setTimeout(()=>{ this.safeSetState(s=>({toasts:s.toasts.map(t=>t.id===id?{...t,leaving:true}:t)})); }, 2600);
+    const t2 = setTimeout(()=>{ this.safeSetState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})); }, 2950);
+    this._toastTimers = (this._toastTimers||[]).concat([t1,t2]);
+  }
+
+  submitAttempt(){
+    if(!this.isValid()){
+      this.setState({touched:{topic:true, level:true, goal:true}});
+      this.addToast('Complete all three fields to continue');
+      return;
+    }
+    this.startPipe();
+  }
+
+  startPipe(){
+    const t=this.state.topic.trim(), g=this.goalValue(), id=this.state.nextId;
+    const nt={id,title:t,domain:'New',studied:'just now',status:'running',stage:'triage…',claims:0};
+    clearInterval(this._iv);
+    this.setState(s=>({
+      screen:'pipeline', topics:[nt, ...s.topics], nextId:id+1, runningId:id,
+      pipeStage:0, pipeElapsed:0, pipeDone:false,
+      submittedTopic:t, submittedGoal:g,
+      topic:'', level:'', goalText:'', goalPick:'',
+      touched:{topic:false, level:false, goal:false},
+    }));
+    this.addToast('Verifying "'+t+'"…');
+    this._iv = setInterval(()=>{
+      this.setState(s=>{
+        if(s.pipeDone) return null;
+        const el = s.pipeElapsed+1;
+        const st = Math.min(5, s.pipeStage+1);
+        const topics = s.topics.map(x=> x.id===s.runningId ? {...x, stage:(PIPE[st]||'Skeptic').toLowerCase()+'…'} : x);
+        return {pipeElapsed:el, pipeStage:st, topics};
+      });
+      if(this.state.pipeStage>=5 && !this._finishing){
+        this._finishing = true;
+        setTimeout(()=>{ this._finishPipe(); }, 1400);
+      }
+    }, 950);
+  }
+
+  _finishPipe(){
+    clearInterval(this._iv);
+    this._finishing = false;
+    const title = this.state.submittedTopic;
+    this.setState(s=>({
+      pipeDone:true,
+      topics: s.topics.map(x=> x.id===s.runningId
+        ? {...x, status:'ready', claims:5, verified:82, studied:'just now', domain:'New',
+           mix:[['#0e8c6b',2],['#2d6cdf',2],['#6d5bd0',1],['#b4690e',1]], stage:''}
+        : x),
+    }));
+    this.addToast('"'+title+'" is ready', 'success');
+  }
+
+  renderVals(){
+    const s = this.state;
+    const valid = this.isValid();
+    const tValid = this.topicValid(), lValid = this.levelValid(), gValid = this.goalValidCheck();
+    const validCount = (tValid?1:0)+(lValid?1:0)+(gValid?1:0);
+
+    const pill = (color) => `display:flex;align-items:center;gap:4px;font:600 10px ui-monospace,Menlo,monospace;padding:2px 9px;border-radius:99px;color:${color};border:1px solid ${color}59`;
+    const dot  = (color) => `width:6px;height:6px;border-radius:50%;background:${color}`;
+    const topicsView = s.topics.map(t=>{
+      const running = t.status==='running';
+      const color = running ? '#2d6cdf' : '#0e8c6b';
+      const clickable = !running;
+      return {
+        ...t,
+        running, ready: !running,
+        cardStyle:`display:block;width:100%;text-align:left;background:#fff;border:1px solid ${running?'#c9ddfb':'#e6e1d7'};border-radius:11px;padding:12px 14px;margin-bottom:9px;cursor:${clickable?'pointer':'default'};transition:box-shadow .15s, transform .15s, border-color .15s`,
+        hoverStyle: clickable ? 'border-color:#c9ddfb;box-shadow:0 8px 20px -12px rgba(31,28,24,.25);transform:translateY(-1px)' : '',
+        pillStyle: pill(color),
+        dotStyle: running ? `${dot(color)};animation:vlpulse 1.1s ease-in-out infinite` : dot(color),
+        segs: (t.mix||[]).map(([c,w])=>({c,w})),
+        onClick: clickable
+          ? ()=> this.addToast('"'+t.title+'" opens the Learn workspace — coming in Flow 2')
+          : ()=>{},
+      };
+    });
+
+    const goalOpts = ['Understand the intuition','Implement it from scratch','Use it in practice','Pass an interview'];
+    const goals = goalOpts.map(label=>{
+      const on = s.goalPick===label;
+      return {
+        label,
+        onClick: ()=> this.setState({goalPick:label, goalText:''}),
+        style:`font:600 11px system-ui;padding:6px 13px;border-radius:99px;cursor:pointer;white-space:nowrap;flex-shrink:0;background:${on?'#eaf1fd':'#fff'};border:1px solid ${on?'#2d6cdf':'#ddd8ce'};color:${on?'#2d6cdf':'#6a655c'};transition:border-color .15s,color .15s`,
+      };
+    });
+
+    const stagesView = PIPE.map((name,i)=>{
+      const st = i<s.pipeStage ? 'done' : (i===s.pipeStage && !s.pipeDone) ? 'active' : (s.pipeDone ? 'done' : 'pending');
+      const c = st==='done' ? '#0e8c6b' : st==='active' ? '#2d6cdf' : '#cfc9bd';
+      return {
+        name,
+        done: st==='done',
+        active: st==='active',
+        textColor: st==='done' ? '#0e8c6b' : st==='active' ? '#2d6cdf' : '#a49e92',
+        dotWrapStyle: `width:18px;height:18px;border-radius:50%;box-sizing:border-box;border:2px solid ${c};background:${st==='done'?c:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s,border-color .3s`,
+        showLine: i<PIPE.length-1,
+        lineStyle: `width:2px;height:14px;background:${i<s.pipeStage||s.pipeDone?'#0e8c6b':'#e2ddd3'};margin:3px 0;transition:background .3s`,
+        pad: i<PIPE.length-1 ? '14px' : '0',
+      };
+    });
+
+    const fieldBase = (valid, touched, extraPad) => {
+      const err = touched && !valid;
+      const border = err ? '#d9534f' : (valid ? '#a9dcc4' : '#ddd8ce');
+      return `width:100%;box-sizing:border-box;font:13px system-ui;padding:10px ${extraPad}px 10px 12px;border:1.5px solid ${border};border-radius:9px;background:#fff;color:#2a2722;transition:border-color .15s`;
+    };
+
+    const toastsView = s.toasts.map(t=>({
+      id:t.id,
+      msg: (t.tone==='success' ? '✓  ' : '')+t.msg,
+      style:`pointer-events:auto;font:12.5px/1.4 system-ui;padding:10px 14px;border-radius:10px;color:#fff;background:${t.tone==='success'?'#0e8c6b':'#2a2722'};box-shadow:0 10px 24px -10px rgba(0,0,0,.45);transition:opacity .25s ease,transform .25s ease;opacity:${t.leaving?0:1};transform:${t.leaving?'translateY(4px) scale(.98)':'none'}`,
+    }));
+
+    return {
+      isLibrary: s.screen==='library',
+      isNew: s.screen==='new',
+      isPipeline: s.screen==='pipeline',
+      isDone: s.pipeDone,
+      goLibrary: ()=> this.setState({screen:'library'}),
+      goNew: ()=> this.setState({screen:'new'}),
+      pokeOther: ()=> this.addToast('That lives outside Flow 1 — see the other pages'),
+
+      railLibStyle: this._rail(s.screen==='library'),
+      railNewStyle: this._rail(s.screen==='new'),
+      railGhostStyle: this._rail(false),
+
+      topicsView, topicCount: s.topics.length,
+
+      topic: s.topic, level: s.level, goalText: s.goalText,
+      setTopic: e=> this.setState({topic:e.target.value}),
+      setLevel: e=> this.setState({level:e.target.value}),
+      setGoal:  e=> this.setState({goalText:e.target.value, goalPick:''}),
+      touchTopic: ()=> this.setState(st=>({touched:{...st.touched, topic:true}})),
+      touchLevel: ()=> this.setState(st=>({touched:{...st.touched, level:true}})),
+      touchGoal: ()=> this.setState(st=>({touched:{...st.touched, goal:true}})),
+      handleEnter: e=> { if(e.key==='Enter'){ e.preventDefault(); this.submitAttempt(); } },
+      goals,
+
+      topicValid: tValid, levelValid: lValid, goalValid: gValid,
+      topicError: s.touched.topic && !tValid,
+      levelError: s.touched.level && !lValid,
+      topicFieldStyle: fieldBase(tValid, s.touched.topic, 36),
+      levelFieldStyle: fieldBase(lValid, s.touched.level, 36),
+      goalFieldStyle: fieldBase(gValid, s.touched.goal, 36),
+
+      validCount, progressPct: Math.round(validCount/3*100),
+      progressColor: validCount===3 ? '#0e8c6b' : '#2d6cdf',
+
+      hintText: valid ? 'Ready — click to start verifying' : 'Fill in all three fields to continue',
+      hintColor: valid ? '#0e8c6b' : '#8a8478',
+      submitStyle: `display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;background:#2d6cdf;color:#fff;font:600 12.5px system-ui;cursor:pointer;white-space:nowrap;flex-shrink:0;opacity:${valid?1:.5};box-shadow:${valid?'0 4px 14px -4px rgba(45,108,223,.55)':'none'};transition:opacity .15s,box-shadow .2s`,
+      submitAttempt: ()=> this.submitAttempt(),
+
+      pipeTopic: s.submittedTopic,
+      pipeGoal: s.submittedGoal,
+      pipeTitle: s.pipeDone ? 'Ready' : 'Verifying…',
+      pipeTitleColor: s.pipeDone ? '#0e8c6b' : '#2d6cdf',
+      pipeTimer: s.pipeDone ? ('done · '+s.pipeElapsed+'s') : (s.pipeElapsed+'s'),
+      pipeStepLabel: s.pipeDone ? '6 / 6' : (Math.min(s.pipeStage+1,6)+' / 6'),
+      pipePct: s.pipeDone ? 100 : Math.round((s.pipeStage)/6*100)+8,
+      pipeNote: s.pipeDone ? 'Complete — it\u2019s now in your library, ready to open.' : 'The lecture will appear in your library when complete. You can close this — it runs in the background.',
+      stagesView,
+
+      toastsView,
+    };
+  }
+
+  _rail(active){
+    return `position:relative;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;background:${active?'#eaf1fd':'transparent'};color:${active?'#2d6cdf':'#8a8478'};transition:background .15s`;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#6d5bd0;color:#fff;border-color:#6d5bd0}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#6d5bd0;background:#fff;border:1px solid rgba(109,91,208,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#6d5bd0}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .ribbon{display:flex;gap:0;margin:26px 0 8px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:12px;padding:14px 8px;flex-wrap:wrap}
+  .rstep{flex:1;min-width:120px;display:flex;flex-direction:column;gap:3px;padding:4px 13px;position:relative}
+  .rstep:not(:last-child):after{content:"→";position:absolute;right:-7px;top:50%;transform:translateY(-50%);color:rgba(109,91,208,.4);font-size:16px}
+  .rk{font:600 9px ui-monospace,Menlo,monospace;color:#fff;background:#6d5bd0;min-width:22px;padding:0 5px;height:19px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .rt{font:600 12.5px system-ui;letter-spacing:-.005em}
+  .rd{font:11px/1.38 system-ui;color:#837d73}
+  .loop{font:11px/1.4 system-ui;color:#9a948a;margin:9px 0 0;padding-left:6px}
+  .loop b{color:#6d5bd0;font-weight:600}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:32px;padding-top:28px;border-top:1px dashed #cdc7bb}
+  .screen:first-of-type{border-top:none}
+  .scap{width:360px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#6d5bd0;color:#fff;font:600 11px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 16px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#6d5bd0;border:1px solid rgba(109,91,208,.35);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:360px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:30px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .chev{color:#b3aca0;font-size:12px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:24px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0}
+  .rdd{width:7px;height:7px;border-radius:50%;background:#d0cbc0}
+  .rdd.on{background:#6d5bd0}
+  .pane{flex:1;padding:11px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .cap{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:#a49e92}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#6d5bd0;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .b{background:#e8e5de;border-radius:4px;display:block}
+  .bl{background:#e8e5de;border-radius:3px;height:8px;display:block}
+  .qcard{border:1px solid #e7e2d8;background:#faf9f6;border-radius:9px;overflow:hidden}
+  .qh{padding:5px 10px;background:#f4f2ec;border-bottom:1px solid #e7e2d8}
+  .qb{padding:14px 12px;display:flex;flex-direction:column;gap:6px;align-items:center}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .cbtn{border:1px solid;border-radius:7px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 9px system-ui}
+  .cdot{font-size:12px}
+  .btnwide{height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font:600 10px system-ui}
+  .ansbox{background:rgba(14,140,107,.06);border:1px solid rgba(14,140,107,.25);border-radius:7px;padding:9px}
+  .wibox{background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.25);border-radius:7px;padding:9px;display:flex;flex-direction:column;gap:6px}
+  .exprow{border:1px solid #e7e2d8;border-radius:6px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;font:600 9px system-ui;color:#6a655c;background:#fff}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(109,91,208,.1);border:1px solid rgba(109,91,208,.35);color:#6d5bd0;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui;letter-spacing:-.003em}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .branch{display:inline-flex;align-items:center;gap:5px;font:600 9px ui-monospace,Menlo,monospace;color:#b4690e;background:rgba(180,105,14,.09);border:1px solid rgba(180,105,14,.3);border-radius:99px;padding:2px 8px;margin-top:6px}
+  .sectlead{margin:44px 0 0}
+  .sectlead .cap{color:#6d5bd0}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .states{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stt{background:#fff;border:1px solid #e2ddd3;border-radius:9px;padding:9px 12px;min-width:150px;flex:1}
+  .sth{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;margin-bottom:4px}
+  .std{font:12px/1.45 system-ui;color:#6a655c}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a class="on" href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a style="border-style:dashed" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a style="border-style:dashed" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a style="border-style:dashed" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Area 4 · Retain — review session</div>
+  <h1 class="title">One session, a loop of states</h1>
+  <p class="subttl">Spaced repetition with a conscience. Every card is confidence-gated before reveal, misconceptions are caught separately from simple forgetting, and seeded error-drills test whether the learner can spot a wrong claim. The states below are the steps of a single session.</p>
+
+  <div class="ribbon">
+    <div class="rstep"><span class="rk">R1</span><span class="rt">Card + gate</span><span class="rd">Rate confidence before revealing.</span></div>
+    <div class="rstep"><span class="rk">R2</span><span class="rt">Reveal + rate</span><span class="rd">See answer + source, grade recall.</span></div>
+    <div class="rstep"><span class="rk">R3</span><span class="rt">Wrong idea</span><span class="rd">Misconception path, not just "forgot".</span></div>
+    <div class="rstep"><span class="rk">R4</span><span class="rt">Seeded drill</span><span class="rd">Spot the deliberately-wrong claim.</span></div>
+    <div class="rstep"><span class="rk">R5</span><span class="rt">Complete</span><span class="rd">Summary + blind-spot score.</span></div>
+  </div>
+  <p class="loop"><b>The loop:</b> R1 → R2 → next card, repeating through the queue. <b>R3</b> branches off a "wrong idea" or an <span class="fk">Again</span> rating; <b>R4</b> is a drill card mixed into the queue; <b>R5</b> ends the session.</p>
+
+  <!-- R1 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">R1</span><span class="sname">Card + confidence gate</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Review · 1 / 4</span><span class="cap">25%</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="qcard"><div class="qh"><span class="cap">Flashcard</span></div><div class="qb"><span class="bl" style="width:88%"></span><span class="bl" style="width:70%"></span></div></div>
+            <div class="region"><span class="pin">1</span><span class="cap">Before you reveal — confidence?</span>
+              <div class="grid3" style="margin-top:6px"><div class="cbtn" style="border-color:rgba(14,140,107,.4);color:#0e8c6b"><span class="cdot">🟢</span>Sure</div><div class="cbtn" style="border-color:rgba(180,105,14,.4);color:#b4690e"><span class="cdot">🟡</span>Unsure</div><div class="cbtn" style="border-color:rgba(192,57,43,.4);color:#c0392b"><span class="cdot">🔴</span>Guess</div></div>
+            </div>
+            <div class="region"><span class="pin">2</span><div class="btnwide" style="background:#efece5;color:#b0a99d;border:1px solid #e2ddd3">Show answer · locked</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Metacognition first. Committing to a confidence level before seeing the answer is what makes calibration measurable.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Confidence gate</span><span class="and"><span class="fk">Sure</span> / <span class="fk">Unsure</span> / <span class="fk">Guessing</span>. Required — feeds the calibration signal (predicted vs actual).</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Reveal is gated</span><span class="and">"Show answer" stays disabled until a confidence level is picked. No peeking before you commit.</span></div></div>
+    </div>
+  </div>
+
+  <!-- R2 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">R2</span><span class="sname">Reveal + rate</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Review · 1 / 4</span><span class="cap">25%</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="qcard"><div class="qb" style="padding:9px 12px"><span class="bl" style="width:80%"></span></div></div>
+            <div class="region"><span class="pin">1</span><div class="ansbox"><span class="cap" style="color:#0e8c6b">📖 Cormen §24.3 · verified</span><span class="bl" style="width:94%;height:6px;margin-top:5px"></span><span class="bl" style="width:82%;height:6px;margin-top:3px"></span></div></div>
+            <div class="region"><span class="pin">2</span><span class="cap">Rate recall · FSRS</span><div class="grid4" style="margin-top:5px"><div class="cbtn" style="border-color:rgba(192,57,43,.35);color:#c0392b">Again</div><div class="cbtn" style="border-color:rgba(180,105,14,.35);color:#b4690e">Hard</div><div class="cbtn" style="border-color:#e2ddd3;color:#6a655c">Good</div><div class="cbtn" style="border-color:rgba(14,140,107,.35);color:#0e8c6b">Easy</div></div></div>
+            <div class="region"><span class="pin">3</span><div style="display:flex;gap:6px"><div class="exprow" style="flex:1;border-color:rgba(192,57,43,.3);color:#c0392b">✕ I had the wrong idea</div><div class="exprow" style="border-color:rgba(192,57,43,.25);color:#c0392b">Discuss</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Answer with receipts. The reveal carries its source, and rating drives the scheduler — but two escape hatches keep the learner honest.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Answer + source</span><span class="and">The answer always cites where it came from — the same trust vocabulary as the lecture.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">FSRS rating</span><span class="and"><span class="fk">Again / Hard / Good / Easy</span> schedules the next review. <span class="fk">Again</span> opens the wrong-idea path (R3).</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Honesty hatches</span><span class="and">"I had the wrong idea" separates a misconception from forgetting; "Discuss" lets the learner challenge an answer they think is wrong.</span></div></div>
+    </div>
+  </div>
+
+  <!-- R3 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">R3</span><span class="sname">Wrong-idea path</span><span class="branch">branch · misconception</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Review · 1 / 4</span><span class="cap">25%</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="region"><span class="pin">1</span><div class="wibox"><span class="cap" style="color:#c0392b">✕ I had the wrong idea</span><span class="bl" style="width:96%;height:6px"></span><span class="bl" style="width:80%;height:6px"></span></div></div>
+            <div class="region"><span class="pin">2</span><div class="exprow">Why this misconception happens<span>▾</span></div></div>
+            <div class="exprow">Full explanation — micro-chapter<span>▾</span></div>
+            <div class="region"><span class="pin">3</span><div class="btnwide" style="background:rgba(14,140,107,.1);color:#0e8c6b;border:1px solid rgba(14,140,107,.35)">＋ Add to gap map</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">A wrong idea is different from a blank. This path names the misconception and offers to track it, instead of just rescheduling the card.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Named misconception</span><span class="and">Explains the specific confusion (e.g. mixing up no-negative-<em>edges</em> vs no-negative-<em>cycles</em>).</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Layered explanation</span><span class="and">Expandable "why it happens" and a full source-grounded micro-chapter — as much depth as needed.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Add to gap map</span><span class="and">Promotes the misconception to a tracked gap so it resurfaces until genuinely closed.</span></div></div>
+    </div>
+  </div>
+
+  <!-- R4 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">R4</span><span class="sname">Seeded drill</span><span class="branch" style="color:#6d5bd0;background:rgba(109,91,208,.09);border-color:rgba(109,91,208,.3)">mixed into queue</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Review · 4 / 4</span><span class="cap">75%</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="region"><span class="pin">1</span><div class="qcard" style="border-color:rgba(109,91,208,.3)"><div class="qh" style="background:rgba(109,91,208,.08);border-color:rgba(109,91,208,.2)"><span class="cap" style="color:#6d5bd0">Seeded drill — spot the error</span></div><div class="qb"><span class="bl" style="width:90%"></span><span class="bl" style="width:64%"></span></div></div></div>
+            <div class="region"><span class="pin">2</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="btnwide" style="border:1px solid #e2ddd3;color:#6a655c">True</div><div class="btnwide" style="border:1px solid rgba(192,57,43,.35);color:#c0392b">False — it's wrong</div></div></div>
+            <div class="region"><span class="pin">3</span><div class="ansbox"><span class="cap" style="color:#0e8c6b">✓ You caught it</span><span class="bl" style="width:88%;height:6px;margin-top:5px"></span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Can you tell when it's wrong? Drills salt the queue with deliberately false claims and measure the learner's error-detection.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Deliberate error</span><span class="and">A plausible-looking but false statement, flagged as a drill so the learner knows to scrutinise it.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Judge it</span><span class="and">True / False — a single decisive call rather than a recall rating.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Caught or missed</span><span class="and">Feedback + explanation, and the <b>blind-spot</b> counter (e.g. 6/9 caught) updates — the drill-detection signal on Progress.</span></div></div>
+    </div>
+  </div>
+
+  <!-- R5 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">R5</span><span class="sname">Session complete</span></div>
+      <div class="wf" style="height:200px">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Review · done</span><span class="cap">100%</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane" style="align-items:center;justify-content:center;gap:11px">
+            <div style="width:34px;height:34px;border-radius:50%;background:rgba(14,140,107,.12);display:flex;align-items:center;justify-content:center;font-size:16px">✅</div>
+            <div class="region" style="text-align:center"><span class="pin">1</span><span class="bl" style="width:120px;height:9px;margin:0 auto 5px"></span><span class="bl" style="width:150px;height:6px;background:#efece5;margin:0 auto"></span></div>
+            <div class="region"><span class="pin">2</span><div class="btnwide" style="border:1px solid #cfcabf;color:#6a655c;padding:0 12px">Back to library</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">A clean close. The session ends with a recap and the next due date, so the loop's cadence is visible.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Summary</span><span class="and">Count reviewed + when the next batch is due (e.g. "4 reviewed · next due in 2 days").</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Return to Library</span><span class="and">Back to the hub — the due-strip counter has now dropped.</span></div></div>
+      <div class="anote"><span class="an">✦</span><div class="anb"><span class="anh">Throughout: right sidebar</span><span class="and">An "Up next" queue and a live blind-spot score (drills caught) sit alongside every card.</span></div></div>
+    </div>
+  </div>
+
+  <!-- STATES -->
+  <div class="sectlead">
+    <span class="cap">Reference</span>
+    <h2>Rules of the session</h2>
+  </div>
+  <div class="states">
+    <div class="stt"><div class="sth">Confidence gate</div><div class="std">Reveal locked until Sure / Unsure / Guessing is chosen (when the gate is on).</div></div>
+    <div class="stt"><div class="sth">Again rating</div><div class="std">Surfaces the wrong-idea path and reschedules the card soon.</div></div>
+    <div class="stt"><div class="sth">Seeded drill</div><div class="std">Caught or missed updates the blind-spot score → drill-detection signal.</div></div>
+    <div class="stt"><div class="sth">Gap map</div><div class="std">Misconceptions can be promoted to tracked gaps that resurface.</div></div>
+    <div class="stt"><div class="sth">Queue</div><div class="std">Cards + drills progress through "Up next" until the session completes.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

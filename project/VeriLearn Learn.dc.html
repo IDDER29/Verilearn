@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#0e8c6b;color:#fff;border-color:#0e8c6b}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#0e8c6b;background:#fff;border:1px solid rgba(14,140,107,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#0e8c6b}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .ribbon{display:flex;gap:0;margin:26px 0 8px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:12px;padding:14px 8px;flex-wrap:wrap}
+  .rstep{flex:1;min-width:150px;display:flex;flex-direction:column;gap:3px;padding:4px 14px;position:relative}
+  .rstep:not(:last-child):after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:rgba(14,140,107,.4);font-size:17px}
+  .rk{font:600 9px ui-monospace,Menlo,monospace;color:#fff;background:#0e8c6b;width:24px;height:19px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .rt{font:600 13px system-ui;letter-spacing:-.005em}
+  .rd{font:11.5px/1.4 system-ui;color:#837d73}
+  .loop{font:11px/1.4 system-ui;color:#9a948a;margin:9px 0 0;padding-left:6px}
+  .loop b{color:#0e8c6b;font-weight:600}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:34px;padding-top:30px;border-top:1px dashed #cdc7bb}
+  .screen:first-of-type{border-top:none}
+  .scap{width:392px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#0e8c6b;color:#fff;font:600 12px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 17px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#0e8c6b;border:1px solid rgba(14,140,107,.35);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:392px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:32px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .chev{color:#b3aca0;font-size:12px}
+  .tabs{display:flex;gap:14px;padding:0 12px;height:27px;align-items:center;border-bottom:1px solid #eee7dd;flex-shrink:0}
+  .tb{font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.03em;text-transform:uppercase;color:#b0a99d;height:27px;display:flex;align-items:center}
+  .tb.on{color:#0e8c6b;box-shadow:inset 0 -2px 0 #0e8c6b}
+  .tb.onred{color:#c0392b;box-shadow:inset 0 -2px 0 #c0392b}
+  .pane{flex:1;padding:12px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .cols2{display:grid;flex:1;min-height:0}
+  .lcol{border-right:1px solid #eee7dd;overflow:hidden;display:flex;flex-direction:column}
+  .lrow{border-bottom:1px solid #eee7dd;padding:8px 9px;display:flex;flex-direction:column;gap:5px}
+  .lrow.sel{background:#faf9f6;box-shadow:inset 2px 0 0 #0e8c6b}
+  .lrow.selr{background:#faf9f6;box-shadow:inset 2px 0 0 #c0392b}
+  .dcol{padding:11px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .cap{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:#a49e92}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#0e8c6b;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .pin.right{left:auto;right:-7px}
+  .b{background:#e8e5de;border-radius:4px;display:block}
+  .bl{background:#e8e5de;border-radius:3px;height:8px;display:block}
+  .prog{height:4px;border-radius:2px;background:#eee7dd;overflow:hidden;flex-shrink:0}
+  .prog>span{display:block;height:100%;background:#2d6cdf}
+  .snav{display:flex;gap:5px;padding:7px 11px 0;flex-shrink:0;flex-wrap:wrap}
+  .chip{font:600 8px ui-monospace,Menlo,monospace;border:1px solid #e2ddd3;border-radius:99px;padding:3px 8px;color:#847e73;background:#fff;display:flex;align-items:center;gap:4px}
+  .chip .cd{width:5px;height:5px;border-radius:50%;background:#cfcabf}
+  .chip.done{color:#0e8c6b;border-color:rgba(14,140,107,.3)}.chip.done .cd{background:#0e8c6b}
+  .chip.cur{color:#2d6cdf;border-color:rgba(45,108,223,.35)}.chip.cur .cd{background:#2d6cdf}
+  .claimline{border-bottom:2px solid;padding-bottom:1px}
+  .alcard{border-radius:7px;padding:8px 9px;display:flex;flex-direction:column;gap:5px}
+  .field{border:1px solid #e2ddd3;background:#faf9f6;border-radius:7px;display:flex;align-items:flex-start;padding:8px 10px;color:#bdb7ab;font:10.5px system-ui}
+  .btnph{height:22px;border-radius:6px;background:#0e8c6b;display:flex;align-items:center;justify-content:center;color:#fff;font:600 9px system-ui;padding:0 10px}
+  .btng{height:22px;border-radius:6px;border:1px solid #cfcabf;background:#fff;color:#6a655c;display:flex;align-items:center;justify-content:center;font:600 9px system-ui;padding:0 10px}
+  .status{display:flex;align-items:center;gap:5px;font:600 8px ui-monospace,Menlo,monospace}
+  .sdotc{width:7px;height:7px;border-radius:50%}
+  .rubric{display:flex;flex-direction:column;gap:5px}
+  .rr{display:flex;align-items:center;gap:6px}
+  .rrdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .posgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .poscard{border:1px solid #e2ddd3;background:#faf9f6;border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:4px}
+  .poscard.sel{border-color:#2d6cdf;background:#eef4fd}
+  .covgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(14,140,107,.1);border:1px solid rgba(14,140,107,.35);color:#0e8c6b;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui;letter-spacing:-.003em}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:44px 0 0}
+  .sectlead .cap{color:#0e8c6b}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .states{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stt{background:#fff;border:1px solid #e2ddd3;border-radius:9px;padding:9px 12px;min-width:150px;flex:1}
+  .sth{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;margin-bottom:4px}
+  .std{font:12px/1.45 system-ui;color:#6a655c}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a class="on" href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a style="border-style:dashed" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a style="border-style:dashed" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a style="border-style:dashed" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Area 2 · Learn — topic workspace</div>
+  <h1 class="title">One opened topic, four tabs</h1>
+  <p class="subttl">The heart of the product. After a topic is verified it opens into a workspace with a shared top bar and a four-tab strip. The learner reads, applies, resolves disputes, and audits the evidence — all against the same claim ledger.</p>
+
+  <div class="ribbon">
+    <div class="rstep"><span class="rk">T1</span><span class="rt">Lecture</span><span class="rd">Read it. Claims are underlined by trust level.</span></div>
+    <div class="rstep"><span class="rk">T2</span><span class="rt">Tasks</span><span class="rd">Apply it. Write-in answers graded on a rubric.</span></div>
+    <div class="rstep"><span class="rk">T3</span><span class="rt">Conflicts</span><span class="rd">Resolve disputes the Skeptic raised.</span></div>
+    <div class="rstep"><span class="rk">T4</span><span class="rt">Sources</span><span class="rd">Audit which source backs each claim.</span></div>
+  </div>
+  <p class="loop"><b>Freely switchable:</b> these are tabs, not a wizard. The reading order above is the intended path, but the trust ledger is shared — a claim underlined in the Lecture is the same object adjudicated in Conflicts and traced in Sources.</p>
+
+  <!-- T1 LECTURE -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">T1</span><span class="sname">Lecture</span><span class="sid">tab · lecture</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Dijkstra's algorithm</span><span class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>ready</span></div>
+        <div class="tabs"><span class="tb on">Lecture</span><span class="tb">Tasks</span><span class="tb">Conflicts</span><span class="tb">Sources</span></div>
+        <div class="region"><span class="pin">1</span><div class="prog"><span style="width:50%"></span></div></div>
+        <div class="snav"><span class="chip done"><span class="cd"></span>Prereqs</span><span class="chip cur"><span class="cd"></span>§1 Core</span><span class="chip"><span class="cd"></span>§2 Impl</span><span class="chip"><span class="cd"></span>§3 Limits</span></div>
+        <div class="cols2" style="grid-template-columns:1fr 96px">
+          <div class="dcol">
+            <span class="bl" style="width:100%"></span><span class="bl" style="width:94%"></span>
+            <div class="region"><span class="pin">2</span><span class="bl" style="width:78%;border-bottom:2px solid #0e8c6b;background:rgba(14,140,107,.16)"></span></div>
+            <span class="bl" style="width:90%"></span>
+            <div class="region"><span class="pin">3</span>
+              <div class="alcard" style="background:rgba(109,91,208,.07);border:1px solid rgba(109,91,208,.25)">
+                <span class="cap" style="color:#6d5bd0">Predict before reading</span>
+                <div class="field" style="height:22px;padding:6px 8px;font-size:9px">I think this section will…</div>
+              </div>
+            </div>
+            <div class="alcard" style="background:rgba(45,108,223,.06);border:1px solid rgba(45,108,223,.22)">
+              <span class="cap" style="color:#2d6cdf">Close the section · unlocks Next</span>
+              <span class="bl" style="width:84%;height:6px"></span>
+            </div>
+          </div>
+          <div class="dcol" style="background:#faf9f6;border-left:1px solid #eee7dd;padding:9px">
+            <div class="region"><span class="pin right">4</span><span class="cap">Trust — section</span></div>
+            <div style="display:flex;height:5px;gap:1px;border-radius:3px;overflow:hidden"><span style="flex:2;background:#0e8c6b"></span><span style="flex:1;background:#2d6cdf"></span><span style="flex:1;background:#c0392b"></span></div>
+            <span class="bl" style="width:70%;height:6px"></span>
+            <div class="b" style="height:30px;margin-top:4px"></div>
+            <span class="cap">Click a claim</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Active, verifiable reading. The prose is honest about its own confidence, and the learner can't sleepwalk through it.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Progress + section nav</span><span class="and">A progress bar and jump-chips (Prereqs → §1 → §2 → §3). Done sections go green, current is blue.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Underlined claims</span><span class="and">Key sentences are underlined by trust level (verified / sourced / unsupported / disputed / interpretive). Click one to open its ledger in the sidebar.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Active-listening prompts</span><span class="and">Predict → pause-point → fill-the-blank → connection → close. The close is a gate: "Next" stays locked until it's submitted.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Trust sidebar</span><span class="and">Per-section trust breakdown, live active-listening checklist, and the clicked-claim detail (evidence + confidence).</span></div></div>
+    </div>
+  </div>
+
+  <!-- T2 TASKS -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">T2</span><span class="sname">Tasks</span><span class="sid">tab · tasks</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Dijkstra's algorithm</span><span class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>ready</span></div>
+        <div class="tabs"><span class="tb">Lecture</span><span class="tb on">Tasks</span><span class="tb">Conflicts</span><span class="tb">Sources</span></div>
+        <div class="cols2" style="grid-template-columns:120px 1fr">
+          <div class="lcol">
+            <div class="region"><span class="pin">1</span>
+              <div class="lrow sel"><span class="bl" style="width:82%"></span><div class="status" style="color:#b4690e"><span class="sdotc" style="background:#b4690e"></span>revise</div></div>
+            </div>
+            <div class="lrow"><span class="bl" style="width:70%"></span><div class="status" style="color:#9a948a"><span class="sdotc" style="background:#cfcabf"></span>to do</div></div>
+            <div class="lrow"><span class="bl" style="width:76%"></span><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>passed</div></div>
+          </div>
+          <div class="dcol">
+            <div class="region"><span class="pin">2</span><span class="cap">Task 1 · Explain</span><span class="bl" style="width:92%;margin-top:5px"></span><div class="field" style="height:34px;margin-top:6px">Write your answer…</div></div>
+            <div class="region"><span class="pin">3</span>
+              <div class="b" style="background:rgba(180,105,14,.07);border:1px solid rgba(180,105,14,.25);border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#b4690e">Partially correct</span><span class="cap" style="color:#b4690e">60%</span></div>
+                <div class="rubric"><div class="rr"><span class="rrdot" style="background:#0e8c6b"></span><span class="bl" style="width:70%;height:6px"></span></div><div class="rr"><span class="rrdot" style="background:#cfcabf"></span><span class="bl" style="width:60%;height:6px"></span></div></div>
+              </div>
+            </div>
+            <div class="region"><span class="pin">4</span><div class="btng" style="width:100%;justify-content:flex-start">▾ Follow-up · open micro-chapter</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Recall isn't understanding. Tasks force the learner to produce the idea in their own words, then grades it against evidence.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Task list + status</span><span class="and">Each task is <span class="fk">to do</span> / <span class="fk">revise</span> / <span class="fk">passed</span>. Explain and Reason types.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Prompt + write-in</span><span class="and">3–5 sentences in the learner's own words. Submit is gated on a minimum length.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Rubric grading</span><span class="and">Scored against a source-derived rubric; each criterion shows hit or missing with a % score. ≥75% passes.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Follow-up → micro-chapter → model answer</span><span class="and">A partial pass gets a targeted follow-up question and an expandable, source-grounded micro-chapter. A full pass reveals the model answer + Next task.</span></div></div>
+    </div>
+  </div>
+
+  <!-- T3 CONFLICTS -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">T3</span><span class="sname">Conflicts</span><span class="sid">tab · conflicts</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Dijkstra's algorithm</span><span class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>ready</span></div>
+        <div class="tabs"><span class="tb">Lecture</span><span class="tb">Tasks</span><span class="tb onred">Conflicts</span><span class="tb">Sources</span></div>
+        <div class="cols2" style="grid-template-columns:126px 1fr">
+          <div class="lcol">
+            <div class="region"><span class="pin">1</span>
+              <div class="lrow selr"><span class="bl" style="width:88%"></span><div class="status" style="color:#c0392b"><span class="sdotc" style="background:#c0392b"></span>open · Skeptic</div></div>
+            </div>
+            <div class="lrow" style="opacity:.55"><span class="bl" style="width:78%"></span><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>resolved</div></div>
+          </div>
+          <div class="dcol">
+            <div class="region"><span class="pin">2</span><div class="b" style="background:#faf9f6;border-left:2px solid #c0392b;border-radius:2px;padding:8px;display:flex;flex-direction:column;gap:4px"><span class="cap" style="color:#c0392b">Raised by Skeptic</span><span class="bl" style="width:92%;height:7px"></span></div></div>
+            <div class="region"><span class="pin">3</span><span class="cap">Competing positions</span>
+              <div class="posgrid" style="margin-top:5px"><div class="poscard sel"><span class="bl" style="width:80%;height:6px"></span><span class="bl" style="width:60%;height:5px;background:#efece5"></span></div><div class="poscard"><span class="bl" style="width:80%;height:6px"></span><span class="bl" style="width:60%;height:5px;background:#efece5"></span></div></div>
+            </div>
+            <div class="region"><span class="pin">4</span><div class="field" style="height:26px">Which position holds, and why?</div><div style="display:flex;justify-content:flex-end;margin-top:6px"><span class="btnph" style="background:#2d6cdf">Record resolution</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Disagreement is a first-class object. When the Skeptic or the execution sandbox flags an overreach, the learner adjudicates it rather than the app hiding it.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Conflict list</span><span class="and">Open vs resolved, tagged by who raised it (Skeptic / Execution). Resolved items dim out.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">The disputed claim</span><span class="and">The exact claim in question plus why it's contested (e.g. "fails with negative weights").</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Competing positions</span><span class="and">Two mapped stances with their support. Picking one seeds the resolution text.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Record resolution</span><span class="and">Writing a resolution closes the conflict and decrements the badges everywhere — rail, Library, topic tab.</span></div></div>
+    </div>
+  </div>
+
+  <!-- T4 SOURCES -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">T4</span><span class="sname">Sources</span><span class="sid">tab · sources</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Dijkstra's algorithm</span><span class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>ready</span></div>
+        <div class="tabs"><span class="tb">Lecture</span><span class="tb">Tasks</span><span class="tb">Conflicts</span><span class="tb on">Sources</span></div>
+        <div class="cols2" style="grid-template-columns:132px 1fr">
+          <div class="lcol">
+            <div class="region"><span class="pin">1</span>
+              <div class="lrow sel"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">📘</span><span class="bl" style="width:64%;height:6px"></span></div><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>verified · preferred</div></div>
+            </div>
+            <div class="lrow"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">🔬</span><span class="bl" style="width:50%;height:6px"></span></div><div class="status" style="color:#0e8c6b"><span class="sdotc" style="background:#0e8c6b"></span>verified</div></div>
+            <div class="lrow"><div style="display:flex;gap:6px;align-items:center"><span style="font-size:12px">🌐</span><span class="bl" style="width:56%;height:6px"></span></div><div class="status" style="color:#6d5bd0"><span class="sdotc" style="background:#6d5bd0"></span>attached</div></div>
+          </div>
+          <div class="dcol">
+            <div class="region"><span class="pin">2</span><div class="b" style="background:#faf9f6;border:1px solid #e7e2d8;border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:5px"><span class="bl" style="width:80%;height:7px"></span><div style="display:flex;gap:4px"><span class="chip done" style="padding:2px 7px"><span class="cd"></span>verified</span><span class="chip" style="padding:2px 7px;color:#0e8c6b;border-color:rgba(14,140,107,.3)">preferred</span></div></div></div>
+            <div class="region"><span class="pin">3</span><span class="cap">Claims grounded here</span><div class="rr" style="margin-top:5px"><span class="rrdot" style="background:#0e8c6b"></span><span class="bl" style="width:74%;height:6px"></span></div></div>
+            <div class="region"><span class="pin">4</span><span class="cap">Coverage — claims × sources</span>
+              <div class="covgrid" style="margin-top:5px">
+                <span class="b" style="height:9px;background:#0e8c6b"></span><span class="b" style="height:9px;background:#e8e5de"></span><span class="b" style="height:9px;background:#2d6cdf"></span><span class="b" style="height:9px;background:#e8e5de"></span>
+                <span class="b" style="height:9px;background:#0e8c6b"></span><span class="b" style="height:9px;background:#b4690e"></span><span class="b" style="height:9px;background:#e8e5de"></span><span class="b" style="height:9px;background:#e8e5de"></span>
+                <span class="b" style="height:9px;background:#e8e5de"></span><span class="b" style="height:9px;background:#6d5bd0"></span><span class="b" style="height:9px;background:#e8e5de"></span><span class="b" style="height:9px;background:#0e8c6b"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Every claim traces back to something. Sources make the provenance auditable — and expose where it's thin.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Source list + status</span><span class="and"><span class="fk">verified</span> / <span class="fk">retrieved</span> / <span class="fk">attached-by-you</span>, with one marked <span class="fk">preferred</span>. Icons hint at type (book, sandbox, web).</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Source detail</span><span class="and">Title, location, status, and actions — set as preferred or remove.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Claims grounded here</span><span class="and">Which claims this specific source supports, each with its trust glyph.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Coverage matrix</span><span class="and">All claims × all sources at a glance. Empty rows are the unsupported claims worth worrying about.</span></div></div>
+    </div>
+  </div>
+
+  <!-- STATES -->
+  <div class="sectlead">
+    <span class="cap">Reference</span>
+    <h2>Object states inside the workspace</h2>
+  </div>
+  <div class="states">
+    <div class="stt"><div class="sth">Section · close gate</div><div class="std">"Next" is locked until the end-of-section close is submitted (when the gate is on).</div></div>
+    <div class="stt"><div class="sth">Task</div><div class="std">to do → revise (partial) → passed (≥75%). Follow-up can lift a partial to a pass.</div></div>
+    <div class="stt"><div class="sth">Conflict</div><div class="std">open → resolved. Resolving syncs badge counts across the whole app.</div></div>
+    <div class="stt"><div class="sth">Source</div><div class="std">attached → retrieved → verified; any one can be set preferred.</div></div>
+    <div class="stt"><div class="sth">Claim trust</div><div class="std">verified-exec · verified-source · unsupported · disputed · interpretive.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

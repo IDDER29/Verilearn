@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#0891b2;color:#fff;border-color:#0891b2}
+  .nav a.prop{border-style:dashed}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#0891b2;background:#fff;border:1px solid rgba(8,145,178,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#0891b2}
+  .kick .pb{font:600 8px ui-monospace,Menlo,monospace;background:#0891b2;color:#fff;padding:2px 6px;border-radius:99px;letter-spacing:.06em}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .callout{margin-top:18px;background:#fff;border:1px solid #e2ddd3;border-left:3px solid #0891b2;border-radius:0 10px 10px 0;padding:13px 16px;max-width:760px}
+  .callout .ch{font:600 12px system-ui;margin:0 0 3px}
+  .callout p{font:12px/1.5 system-ui;color:#6a655c;margin:0}
+  .callout .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .ribbon{display:flex;gap:0;margin:26px 0 8px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:12px;padding:14px 8px;flex-wrap:wrap}
+  .rstep{flex:1;min-width:132px;display:flex;flex-direction:column;gap:3px;padding:4px 13px;position:relative}
+  .rstep:not(:last-child):after{content:"→";position:absolute;right:-7px;top:50%;transform:translateY(-50%);color:rgba(8,145,178,.4);font-size:16px}
+  .rk{font:600 9px ui-monospace,Menlo,monospace;color:#fff;background:#0891b2;min-width:22px;padding:0 5px;height:19px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .rt{font:600 12.5px system-ui;letter-spacing:-.005em}
+  .rd{font:11px/1.38 system-ui;color:#837d73}
+  .loop{font:11px/1.4 system-ui;color:#9a948a;margin:9px 0 0;padding-left:6px}
+  .loop b{color:#0891b2;font-weight:600}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:34px;padding-top:30px;border-top:1px dashed #cdc7bb}
+  .screen:first-of-type{border-top:none}
+  .scap{width:430px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#0891b2;color:#fff;font:600 12px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 17px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#0891b2;border:1px dashed rgba(8,145,178,.5);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:430px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:32px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .chev{color:#b3aca0;font-size:12px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:26px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0}
+  .rdd{width:8px;height:8px;border-radius:50%;background:#d0cbc0}
+  .rdd.on{background:#0891b2}
+  .pane{flex:1;padding:11px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .cap{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:#a49e92}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#0891b2;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .pin.right{left:auto;right:-7px}
+  .b{background:#e8e5de;border-radius:4px;display:block}
+  .bl{background:#e8e5de;border-radius:3px;height:8px;display:block}
+  .seg{display:inline-flex;border:1px solid #e2ddd3;border-radius:6px;overflow:hidden}
+  .segb{padding:4px 9px;font:600 8.5px system-ui;color:#847e73;border-right:1px solid #e2ddd3}
+  .segb:last-child{border-right:none}
+  .segb.on{background:#e6f6fa;color:#0891b2}
+  .board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;flex:1;min-height:0}
+  .bcol{background:#faf9f6;border:1px solid #e7e2d8;border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+  .bch{padding:6px 9px;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;gap:5px;font:600 8.5px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.04em}
+  .bccount{margin-left:auto;color:#a49e92}
+  .bcbody{padding:7px;display:flex;flex-direction:column;gap:6px}
+  .gcard{background:#fff;border:1px solid #e7e2d8;border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:5px}
+  .gcard.sev-hi{border-left:3px solid #c0392b}
+  .gcard.sev-md{border-left:3px solid #b4690e}
+  .gcard.sev-lo{border-left:3px solid #0e8c6b}
+  .gtag{font:600 7.5px ui-monospace,Menlo,monospace;color:#847e73;background:#f0eee8;border-radius:99px;padding:1px 6px;align-self:flex-start}
+  .dcol{padding:11px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .statusbar{display:flex;gap:5px}
+  .sp{flex:1;text-align:center;padding:5px 4px;border:1px solid #e2ddd3;border-radius:6px;font:600 8.5px ui-monospace,Menlo,monospace;text-transform:uppercase;color:#a49e92;background:#faf9f6}
+  .sp.on{background:#e6f6fa;border-color:#0891b2;color:#0891b2}
+  .originbox{background:#faf9f6;border:1px solid #e7e2d8;border-radius:7px;padding:9px;display:flex;flex-direction:column;gap:5px}
+  .revisit{border:1px solid rgba(45,108,223,.3);background:rgba(45,108,223,.05);border-radius:7px;padding:9px;display:flex;flex-direction:column;gap:6px}
+  .thread{display:flex;flex-direction:column;gap:7px}
+  .msg{display:flex;gap:7px}
+  .av{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font:600 8px system-ui;color:#fff}
+  .bub{flex:1;background:#faf9f6;border:1px solid #e7e2d8;border-radius:7px;padding:6px 8px;display:flex;flex-direction:column;gap:3px}
+  .btnwide{height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font:600 9.5px system-ui;padding:0 10px}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(8,145,178,.1);border:1px solid rgba(8,145,178,.35);color:#0891b2;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui;letter-spacing:-.003em}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:44px 0 0}
+  .sectlead .cap{color:#0891b2}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .origins{margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .oc{background:#fff;border:1px solid #e2ddd3;border-radius:10px;padding:12px}
+  .och{font:600 12px system-ui;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+  .ocdot{width:8px;height:8px;border-radius:50%}
+  .ocd{font:11px/1.42 system-ui;color:#837d73}
+  .lifecycle{margin-top:16px;display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid #e2ddd3;border-radius:12px;padding:16px 8px;flex-wrap:wrap}
+  .lcs{flex:1;min-width:140px;padding:4px 14px;position:relative;display:flex;flex-direction:column;gap:4px}
+  .lcs:not(:last-child):after{content:"→";position:absolute;right:-7px;top:22px;color:#c9c3b7;font-size:15px}
+  .lcdot{width:12px;height:12px;border-radius:50%}
+  .lch{font:600 12px system-ui}
+  .lcd{font:11px/1.4 system-ui;color:#837d73}
+  .states{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stt{background:#fff;border:1px solid #e2ddd3;border-radius:9px;padding:9px 12px;min-width:160px;flex:1}
+  .sth{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;margin-bottom:4px}
+  .std{font:12px/1.45 system-ui;color:#6a655c}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a class="on prop" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Proposed page · Gap map<span class="pb">NEW</span></div>
+  <h1 class="title">Every known gap, in one place</h1>
+  <p class="subttl">A proposed home for the concept the prototype already leans on but never gives a screen. Misconceptions and weak spots get named, tracked through a lifecycle, and resurfaced until they're genuinely closed — instead of vanishing into a review queue.</p>
+
+  <div class="callout">
+    <p class="ch">Why this page exists</p>
+    <p>The gap map is referenced all over the app — <span class="fk">＋ Add to gap map</span> in review, "named gaps, statuses, discussion threads" in Privacy, "Reset gap map" in Settings — but there is nowhere to actually <em>see</em> your gaps. This page closes that loop and turns Progress's "Where to focus" into something actionable.</p>
+  </div>
+
+  <div class="ribbon">
+    <div class="rstep"><span class="rk">In</span><span class="rt">A gap is caught</span><span class="rd">From a wrong-idea, missed drill, partial task, or dispute.</span></div>
+    <div class="rstep"><span class="rk">Map</span><span class="rt">It's tracked</span><span class="rd">Named, given a status &amp; severity, linked to its source.</span></div>
+    <div class="rstep"><span class="rk">Work</span><span class="rt">You close it</span><span class="rd">Revisit the section, drill it, discuss it.</span></div>
+    <div class="rstep"><span class="rk">Out</span><span class="rt">It resurfaces</span><span class="rd">Reopens automatically if you lapse again.</span></div>
+  </div>
+  <p class="loop"><b>Not another queue:</b> the review deck tests recall on a schedule; the gap map tracks <b>specific known weaknesses</b> as durable objects — with a status you can see and a thread you can revisit.</p>
+
+  <!-- SCREEN 1 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">G1</span><span class="sname">Gap map — board</span><span class="sid">proposed · scr-gaps</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Gap map · 4 tracked</span><span class="cap">2 open</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="region"><span class="pin">1</span><div style="display:flex;align-items:center;gap:7px"><span class="cap">Group by</span><div class="seg"><span class="segb on">Status</span><span class="segb">Topic</span><span class="segb">Severity</span></div></div></div>
+            <div class="region" style="flex:1;display:flex"><span class="pin">3</span>
+              <div class="board">
+                <div class="bcol">
+                  <div class="bch" style="color:#c0392b"><span class="lcdot" style="width:7px;height:7px;background:#c0392b;border-radius:50%"></span>Open<span class="bccount">2</span></div>
+                  <div class="bcbody">
+                    <div class="region"><span class="pin">2</span>
+                      <div class="gcard sev-hi"><span class="bl" style="width:90%"></span><span class="gtag">from review · wrong idea</span><div style="display:flex;align-items:center;gap:4px"><span class="cap" style="color:#c0392b">high</span><span class="bl" style="width:36%;height:5px;background:#efece5"></span></div></div>
+                    </div>
+                    <div class="gcard sev-md"><span class="bl" style="width:80%"></span><span class="gtag">from dispute</span></div>
+                  </div>
+                </div>
+                <div class="bcol">
+                  <div class="bch" style="color:#b4690e"><span style="width:7px;height:7px;background:#b4690e;border-radius:50%"></span>Watching<span class="bccount">1</span></div>
+                  <div class="bcbody"><div class="gcard sev-md"><span class="bl" style="width:86%"></span><span class="gtag">2 lapses</span><div class="region"><span class="pin right">4</span><span class="bl" style="width:50%;height:5px;background:#efece5"></span></div></div></div>
+                </div>
+                <div class="bcol">
+                  <div class="bch" style="color:#0e8c6b"><span style="width:7px;height:7px;background:#0e8c6b;border-radius:50%"></span>Closed<span class="bccount">1</span></div>
+                  <div class="bcbody"><div class="gcard sev-lo" style="opacity:.6"><span class="bl" style="width:78%"></span><span class="gtag">solid · 4 reviews</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">A living board, not a to-do list. The learner sees at a glance where their understanding is fragile and what's already solid.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Group / filter</span><span class="and">Regroup by <span class="fk">status</span>, <span class="fk">topic</span>, or <span class="fk">severity</span> — the same weak spots Progress's "Where to focus" names, now organised.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Gap card</span><span class="and">A named gap with its origin tag (where it was caught) and a severity accent. Click to open the detail.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Lifecycle columns</span><span class="and"><b>Open → Watching → Closed.</b> Gaps move as the learner works them — and slide back to Open if they lapse.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Severity / heat</span><span class="and">How much this gap is hurting — driven by recent lapses, drill misses, and confidence miscalibration.</span></div></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">G2</span><span class="sname">Gap detail</span><span class="sid">proposed · gap-detail</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Negative edges vs cycles</span><span class="cap" style="color:#c0392b">open · high</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span><span class="rdd"></span><span class="rdd"></span></div>
+          <div class="pane">
+            <div class="region"><span class="pin">1</span><span class="cap">Status</span><div class="statusbar" style="margin-top:4px"><span class="sp on">Open</span><span class="sp">Watching</span><span class="sp">Closed</span></div></div>
+            <div class="region"><span class="pin">2</span>
+              <div class="originbox"><span class="cap" style="color:#0891b2">Origin</span><span class="bl" style="width:92%;height:6px"></span><div style="display:flex;gap:4px"><span class="gtag">review · rated Again</span><span class="gtag">you flagged "wrong idea"</span></div></div>
+            </div>
+            <div class="region"><span class="pin">3</span>
+              <div class="revisit"><span class="cap" style="color:#2d6cdf">Revisit</span><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="bl" style="width:56%;height:6px"></span><span class="btnwide" style="background:#2d6cdf;color:#fff">§3 Limits →</span></div><span class="bl" style="width:80%;height:5px;background:#dce8fb"></span></div>
+            </div>
+            <div class="region"><span class="pin">4</span><span class="cap">Discussion</span>
+              <div class="thread" style="margin-top:5px">
+                <div class="msg"><span class="av" style="background:#0891b2">M</span><div class="bub"><span class="bl" style="width:90%;height:5px"></span><span class="bl" style="width:70%;height:5px"></span></div></div>
+                <div class="msg"><span class="av" style="background:#6d5bd0">✦</span><div class="bub" style="background:rgba(109,91,208,.06);border-color:rgba(109,91,208,.2)"><span class="cap" style="color:#6d5bd0">Skeptic</span><span class="bl" style="width:94%;height:5px"></span><span class="bl" style="width:64%;height:5px"></span></div></div>
+              </div>
+            </div>
+            <div class="region"><span class="pin">5</span><div style="display:flex;gap:6px"><span class="btnwide" style="flex:1;border:1px solid #cfcabf;color:#6a655c">＋ Add a drill</span><span class="btnwide" style="flex:1;background:rgba(14,140,107,.1);color:#0e8c6b;border:1px solid rgba(14,140,107,.35)">✓ Mark closed</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">A gap you can actually work. Every gap knows where it came from and offers a way back to the source material — with the Skeptic as a study partner.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">Status control</span><span class="and">Move it through <span class="fk">Open → Watching → Closed</span> by hand, or let the system reopen it after a lapse.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Origin trail</span><span class="and">Exactly how the gap was caught — the review card, drill, task, or conflict that created it. No mystery gaps.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Revisit the source</span><span class="and">A jump straight back to the lecture section and the specific claim — the fastest path to actually fixing it.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Discussion thread</span><span class="and">The "threads" Privacy already promises — the learner and the Skeptic work the misconception together, kept with the gap.</span></div></div>
+      <div class="anote"><span class="an">5</span><div class="anb"><span class="anh">Actions</span><span class="and">Seed a targeted drill into the next review, or mark it closed once it's genuinely understood.</span></div></div>
+    </div>
+  </div>
+
+  <!-- ORIGINS -->
+  <div class="sectlead">
+    <span class="cap">Where gaps come from</span>
+    <h2>Four sources already in the app</h2>
+  </div>
+  <div class="origins">
+    <div class="oc"><div class="och"><span class="ocdot" style="background:#6d5bd0"></span>Review · wrong idea</div><div class="ocd">Acknowledging a misconception on a card — the existing "＋ Add to gap map" button.</div></div>
+    <div class="oc"><div class="och"><span class="ocdot" style="background:#6d5bd0"></span>Missed seeded drill</div><div class="ocd">Failing to catch a deliberately-wrong claim — a blind spot worth tracking.</div></div>
+    <div class="oc"><div class="och"><span class="ocdot" style="background:#b4690e"></span>Partial task</div><div class="ocd">A rubric criterion the learner keeps missing across attempts.</div></div>
+    <div class="oc"><div class="och"><span class="ocdot" style="background:#c0392b"></span>Resolved dispute</div><div class="ocd">A conflict whose resolution revealed a shaky underlying assumption.</div></div>
+  </div>
+
+  <!-- LIFECYCLE -->
+  <div class="sectlead">
+    <span class="cap">Lifecycle</span>
+    <h2>How a gap moves</h2>
+  </div>
+  <div class="lifecycle">
+    <div class="lcs"><span class="lcdot" style="background:#c0392b"></span><span class="lch">Open</span><span class="lcd">Newly caught and actively hurting. Shows on the board and in "Where to focus".</span></div>
+    <div class="lcs"><span class="lcdot" style="background:#b4690e"></span><span class="lch">Watching</span><span class="lcd">Improving — recalled correctly recently, but not yet trusted. On probation.</span></div>
+    <div class="lcs"><span class="lcdot" style="background:#0e8c6b"></span><span class="lch">Closed</span><span class="lcd">Consistently solid across reviews and drills. Archived, still searchable.</span></div>
+    <div class="lcs"><span class="lcdot" style="background:#c0392b;outline:2px solid rgba(192,57,43,.25);outline-offset:2px"></span><span class="lch">Reopened</span><span class="lcd">A later lapse auto-reopens a closed gap — the honesty mechanism.</span></div>
+  </div>
+
+  <!-- CONNECTIONS -->
+  <div class="sectlead">
+    <span class="cap">Reference</span>
+    <h2>How it wires into the existing app</h2>
+  </div>
+  <div class="states">
+    <div class="stt"><div class="sth">Rail</div><div class="std">A new rail item with a badge for open gaps (proposed 6th destination).</div></div>
+    <div class="stt"><div class="sth">Review → gap</div><div class="std">"＋ Add to gap map" now has a real destination and a status.</div></div>
+    <div class="stt"><div class="sth">Progress ↔ gap</div><div class="std">"Where to focus" items become clickable, opening the matching gap.</div></div>
+    <div class="stt"><div class="sth">Settings</div><div class="std">"Reset gap map" clears these gaps &amp; their threads — already in Privacy/Danger.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

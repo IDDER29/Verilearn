@@ -1,0 +1,790 @@
+
+<style>
+.vl{font-family:var(--font-sans);color:var(--color-text-primary);font-size:13px}
+.app{display:grid;grid-template-columns:48px 1fr;height:620px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-secondary)}
+.rail{background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px}
+.rail-logo{width:28px;height:28px;border-radius:7px;background:#2d6cdf;display:flex;align-items:center;justify-content:center;margin-bottom:8px;flex-shrink:0}
+.rbtn{width:36px;height:36px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;color:var(--color-text-secondary);position:relative;font-size:16px;transition:background .1s}
+.rbtn:hover,.rbtn.on{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.rbadge{position:absolute;top:3px;right:3px;min-width:13px;height:13px;border-radius:99px;font-size:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;font-family:var(--font-mono)}
+.rail-spacer{flex:1}
+.content{display:flex;flex-direction:column;overflow:hidden}
+.scr{display:none;flex-direction:column;flex:1;overflow:hidden}
+.scr.on{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.tb-l{display:flex;align-items:center;gap:8px}
+.back{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;font-family:var(--font-sans)}
+.back:hover{color:var(--color-text-primary)}
+.vd{width:0.5px;height:13px;background:var(--color-border-tertiary)}
+.tb-title{font-size:13px;font-weight:500}
+.tb-r{display:flex;align-items:center;gap:7px}
+.pill{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:99px;border:0.5px solid}
+.btn{display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-size:11px;font-family:var(--font-sans);color:var(--color-text-primary)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-blue{border-color:#2d6cdf;color:#2d6cdf}
+.btn-blue:hover{background:rgba(45,108,223,.07)}
+.btn-green{border-color:#0e8c6b;color:#0e8c6b}
+.btn-green:hover{background:rgba(14,140,107,.07)}
+.scroll{overflow-y:auto;flex:1}
+.p14{padding:14px 16px}
+.ey{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary)}
+.hd{height:0.5px;background:var(--color-border-tertiary)}
+textarea,input[type=text]{font-family:var(--font-sans);font-size:12px;padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;width:100%}
+textarea:focus,input:focus{border-color:var(--color-border-secondary);background:var(--color-background-primary)}
+textarea{resize:none;line-height:1.65}
+.due-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--color-border-tertiary);flex-shrink:0}
+.due-cell{background:var(--color-background-primary);padding:8px 13px;cursor:pointer}
+.due-cell:hover{background:var(--color-background-secondary)}
+.due-num{font-family:var(--font-mono);font-size:20px;font-weight:500;line-height:1}
+.due-lbl{font-size:10px;color:var(--color-text-secondary);margin-bottom:2px}
+.tc{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;cursor:pointer;margin-bottom:7px}
+.tc:hover{border-color:var(--color-border-secondary)}
+.tc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.tc-title{font-size:13px;font-weight:500;flex:1;line-height:1.3}
+.tc-status{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary)}
+.sdot{width:6px;height:6px;border-radius:50%}
+.tbar{display:flex;height:5px;border-radius:3px;overflow:hidden;gap:1px;margin-bottom:4px}
+.tbseg{height:100%}
+.tc-foot{display:flex;align-items:center;justify-content:space-between}
+.tc-meta{font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary)}
+.tabs{display:flex;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0;padding:0 14px;background:var(--color-background-primary)}
+.tab{font-size:12px;padding:7px 12px;border:none;background:none;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-0.5px;font-family:var(--font-sans)}
+.tab.on{color:var(--color-text-primary);border-bottom-color:#2d6cdf}
+.tbadge{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;font-size:8px;margin-left:3px;vertical-align:middle;font-family:var(--font-mono)}
+.lec-layout{display:grid;grid-template-columns:1fr 196px;flex:1;overflow:hidden}
+.lec-main{overflow-y:auto;padding:16px 18px;border-right:0.5px solid var(--color-border-tertiary)}
+.prose{font-size:13px;line-height:1.75;margin-bottom:12px;color:var(--color-text-primary)}
+.callout{border-left:2px solid #2d6cdf;padding:9px 13px;margin:10px 0;background:rgba(45,108,223,.05);border-radius:0}
+.callout .cl-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#2d6cdf;margin-bottom:3px}
+.callout-warn{border-left-color:#b4690e;background:rgba(180,105,14,.05)}
+.callout-warn .cl-lbl{color:#b4690e}
+.claim-span{cursor:pointer;border-radius:2px}
+.claim-span.ve{border-bottom:2px solid rgba(14,140,107,.6)}
+.claim-span.vs{border-bottom:2px solid rgba(45,108,223,.5)}
+.claim-span.di{border-bottom:2px solid rgba(192,57,43,.7)}
+.claim-span.us{border-bottom:2px solid rgba(180,105,14,.6)}
+.claim-span.in{border-bottom:2px dashed rgba(109,91,208,.6)}
+.claim-span:hover{opacity:.75}
+.al-card{border-radius:var(--border-radius-md);padding:10px 12px;margin:10px 0;font-size:12px}
+.al-predict{background:rgba(109,91,208,.05);border:0.5px solid rgba(109,91,208,.25)}
+.al-pause{background:rgba(45,108,223,.05);border:0.5px solid rgba(45,108,223,.2)}
+.al-conn{background:rgba(14,140,107,.05);border:0.5px solid rgba(14,140,107,.2)}
+.al-close{background:rgba(45,108,223,.05);border:0.5px solid rgba(45,108,223,.25)}
+.al-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.al-ey{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.al-sbm{padding:5px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-size:11px;font-family:var(--font-sans);color:var(--color-text-secondary);opacity:.4;pointer-events:none;align-self:flex-end}
+.al-sbm.go{opacity:1;pointer-events:auto;border-color:#2d6cdf;color:#2d6cdf}
+.al-sbm.go:hover{background:rgba(45,108,223,.07)}
+.al-sbm.done{opacity:1;pointer-events:none;border-color:#0e8c6b;color:#0e8c6b}
+.lec-sb{overflow-y:auto;padding:10px;background:var(--color-background-secondary);display:flex;flex-direction:column;gap:8px}
+.sb-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:9px 10px}
+.snav{display:flex;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);overflow-x:auto;flex-shrink:0}
+.snav-btn{font-size:11px;padding:6px 12px;border:none;background:transparent;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-0.5px;white-space:nowrap;font-family:var(--font-sans);display:flex;align-items:center;gap:4px}
+.snav-btn.on{color:var(--color-text-primary);border-bottom-color:#2d6cdf}
+.snav-btn.done{color:#0e8c6b}
+.progbar{height:2px;background:var(--color-background-secondary);flex-shrink:0}
+.progfill{height:100%;background:#2d6cdf;transition:width .4s}
+.tasks-layout{display:grid;grid-template-columns:180px 1fr;flex:1;overflow:hidden}
+.task-list{border-right:0.5px solid var(--color-border-tertiary);overflow-y:auto;background:var(--color-background-secondary)}
+.task-item{padding:9px 11px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.task-item:hover{background:var(--color-background-primary)}
+.task-item.sel{background:var(--color-background-primary);border-left:2px solid #2d6cdf}
+.task-item.passed{border-left:2px solid #0e8c6b}
+.ti-lbl{font-size:11px;font-weight:500;line-height:1.3}
+.ti-type{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary)}
+.task-detail{overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.grade-pass{background:rgba(14,140,107,.07);border:0.5px solid rgba(14,140,107,.25);border-radius:var(--border-radius-md);padding:11px 13px}
+.grade-partial{background:rgba(180,105,14,.07);border:0.5px solid rgba(180,105,14,.25);border-radius:var(--border-radius-md);padding:11px 13px}
+.grade-fail{background:rgba(192,57,43,.07);border:0.5px solid rgba(192,57,43,.25);border-radius:var(--border-radius-md);padding:11px 13px}
+.rr{display:flex;align-items:flex-start;gap:7px;font-size:12px;margin-bottom:4px}
+.rr-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.mc-block{border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid var(--color-border-tertiary);margin-top:4px}
+.mc-hdr{display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.mc-body{padding:12px 13px;display:flex;flex-direction:column;gap:8px}
+.mc-wrote{font-size:11px;color:var(--color-text-secondary);padding:7px 9px;border-left:2px solid var(--color-border-secondary);background:var(--color-background-secondary);font-style:italic;line-height:1.5}
+.mc-sent{display:grid;grid-template-columns:20px 1fr;gap:0 7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.mc-sent:last-child{border-bottom:none}
+.mc-sent-text{font-size:12px;line-height:1.65}
+.mc-sent-meta{font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary);margin-top:2px}
+.ma-block{border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid rgba(14,140,107,.3);margin-top:4px}
+.ma-hdr{display:flex;align-items:center;gap:7px;padding:8px 12px;background:rgba(14,140,107,.06);border-bottom:0.5px solid rgba(14,140,107,.2)}
+.ma-body{padding:12px 13px;font-size:12px;line-height:1.7;color:var(--color-text-primary)}
+.fu-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 12px;margin-top:4px}
+.fu-ey{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#6d5bd0;margin-bottom:5px}
+.cq-layout{display:grid;grid-template-columns:196px 1fr;flex:1;overflow:hidden}
+.cq-list{border-right:0.5px solid var(--color-border-tertiary);overflow-y:auto;background:var(--color-background-secondary)}
+.cq-item{padding:9px 11px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.cq-item:hover{background:var(--color-background-primary)}
+.cq-item.sel{background:var(--color-background-primary);border-left:2px solid #c0392b}
+.cq-item.res{opacity:.5}
+.cq-claim{font-size:11px;line-height:1.35}
+.cq-detail{overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.cq-claim-box{font-size:13px;font-weight:500;padding:10px 12px;background:var(--color-background-secondary);border-left:2px solid #c0392b;border-top-left-radius:0;border-bottom-left-radius:0;line-height:1.4}
+.positions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pos-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:9px 10px;cursor:pointer}
+.pos-card:hover,.pos-card.sel{border-color:#2d6cdf;background:rgba(45,108,223,.04)}
+.pos-stance{font-size:12px;font-weight:500;margin-bottom:2px}
+.pos-sup{font-size:11px;color:var(--color-text-secondary)}
+.src-layout{display:grid;grid-template-columns:210px 1fr;flex:1;overflow:hidden}
+.src-list{border-right:0.5px solid var(--color-border-tertiary);overflow-y:auto;background:var(--color-background-secondary)}
+.src-item{padding:9px 11px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.src-item:hover{background:var(--color-background-primary)}
+.src-item.sel{background:var(--color-background-primary);border-left:2px solid #2d6cdf}
+.src-detail{overflow-y:auto;padding:14px 16px}
+.rv-layout{display:grid;grid-template-columns:1fr 148px;flex:1;overflow:hidden}
+.rv-main{overflow-y:auto;padding:14px 16px;border-right:0.5px solid var(--color-border-tertiary)}
+.rv-sb{overflow-y:auto;padding:10px;background:var(--color-background-secondary)}
+.rv-q-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:10px}
+.rv-q-hdr{padding:8px 13px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center}
+.rv-q-body{padding:18px 14px;text-align:center;font-size:14px;font-weight:500;line-height:1.45;min-height:70px;display:flex;align-items:center;justify-content:center}
+.conf-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.conf-btn{padding:8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:transparent;cursor:pointer;font-size:11px;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:2px}
+.conf-sure{border-color:rgba(14,140,107,.4)}
+.conf-unsure{border-color:rgba(180,105,14,.4)}
+.conf-guess{border-color:rgba(192,57,43,.4)}
+.conf-btn.picked{outline:2px solid #2d6cdf;outline-offset:2px}
+.ans-box{background:rgba(14,140,107,.06);border:0.5px solid rgba(14,140,107,.25);border-radius:var(--border-radius-md);padding:11px 13px;display:none;margin-bottom:10px}
+.ans-box.show{display:block}
+.ans-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#0e8c6b;margin-bottom:5px}
+.rate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.r-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:transparent;cursor:pointer;font-family:var(--font-sans)}
+.r-btn:hover{background:var(--color-background-secondary)}
+.wi-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);margin-bottom:8px}
+.wi-block{background:rgba(192,57,43,.06);border:0.5px solid rgba(192,57,43,.25);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;display:none}
+.wi-block.show{display:block}
+.exp-section{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-top:6px}
+.exp-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;cursor:pointer;background:var(--color-background-secondary);font-size:11px;font-weight:500}
+.exp-hdr:hover{background:var(--color-background-primary)}
+.exp-body{display:none;padding:10px;font-size:11px;line-height:1.6;color:var(--color-text-secondary);border-top:0.5px solid var(--color-border-tertiary)}
+.exp-body.open{display:block}
+.rv-q-item{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border-radius:var(--border-radius-md);color:var(--color-text-secondary);margin-bottom:3px}
+.rv-q-item.active{background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary)}
+.rv-q-item.done{opacity:.4;text-decoration:line-through}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.sig-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 11px}
+.sig-val{font-family:var(--font-mono);font-size:20px;font-weight:500;line-height:1;margin:2px 0}
+.sig-track{height:3px;border-radius:2px;background:var(--color-background-primary);overflow:hidden;margin-bottom:2px}
+.sig-fill{height:100%;border-radius:2px}
+.st-layout{display:grid;grid-template-columns:164px 1fr;flex:1;overflow:hidden}
+.st-nav{border-right:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);display:flex;flex-direction:column}
+.st-nav-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:none;background:transparent;width:100%;font-family:var(--font-sans);text-align:left;border-left:2px solid transparent}
+.st-nav-item:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.st-nav-item.on{background:var(--color-background-primary);color:var(--color-text-primary);border-left-color:#2d6cdf}
+.st-nav-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary);padding:8px 12px 3px;display:block}
+.st-panel{display:none;flex-direction:column;gap:14px;padding:16px;overflow-y:auto;flex:1}
+.st-panel.on{display:flex}
+.st-row{display:flex;flex-direction:column;gap:4px}
+.st-row-inline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.st-lbl{font-size:12px;font-weight:500}
+.st-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+.st-effect{font-size:11px;color:var(--color-text-secondary);padding:6px 8px;background:rgba(45,108,223,.05);border-left:2px solid #2d6cdf;margin-top:3px}
+select{font-family:var(--font-sans);font-size:12px;padding:6px 9px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;cursor:pointer}
+.toggle{position:relative;width:34px;height:19px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.tgl-slider{position:absolute;inset:0;border-radius:9px;background:var(--color-border-secondary);cursor:pointer;transition:background .2s}
+.toggle input:checked+.tgl-slider{background:#2d6cdf}
+.tgl-slider:before{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:var(--color-background-primary);top:3px;left:3px;transition:transform .2s}
+.toggle input:checked+.tgl-slider:before{transform:translateX(15px)}
+.seg-ctrl{display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;max-width:340px}
+.seg-btn{flex:1;padding:5px 8px;border:none;background:transparent;cursor:pointer;font-size:11px;font-family:var(--font-sans);color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-tertiary)}
+.seg-btn:last-child{border-right:none}
+.seg-btn.on{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+input[type=range]{flex:1;accent-color:#2d6cdf;cursor:pointer;height:4px}
+.code-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;font-family:var(--font-mono);font-size:11px;line-height:1.65;margin:10px 0;overflow-x:auto;color:var(--color-text-primary)}
+.pipe-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--color-border-secondary);background:transparent}
+.pipe-dot.active{border-color:#2d6cdf;background:#2d6cdf}
+.pipe-dot.done{border-color:#0e8c6b;background:#0e8c6b}
+.pipe-line{width:1.5px;height:16px;background:var(--color-border-tertiary);margin:2px 0 2px 5px}
+.pipe-line.done{background:#0e8c6b}
+.nt-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.goal-pill{font-size:11px;padding:3px 9px;border-radius:99px;border:0.5px solid var(--color-border-tertiary);background:transparent;cursor:pointer;font-family:var(--font-sans);color:var(--color-text-secondary)}
+.goal-pill:hover,.goal-pill.on{border-color:#2d6cdf;color:#2d6cdf;background:rgba(45,108,223,.07)}
+.conf-track{width:30px;height:2px;border-radius:1px;background:var(--color-border-tertiary);overflow:hidden;display:inline-block;vertical-align:middle}
+.conf-fill{height:100%;border-radius:1px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.pulse{animation:pulse 1.2s ease-in-out infinite}
+</style>
+
+<div class="vl">
+<div class="app">
+
+<nav class="rail">
+  <div class="rail-logo">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="white" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <button class="rbtn on" id="rb-library" onclick="nav('library')" aria-label="Library"><i class="ti ti-books" aria-hidden="true"></i></button>
+  <button class="rbtn" id="rb-new" onclick="nav('new')" aria-label="New topic"><i class="ti ti-plus" aria-hidden="true"></i></button>
+  <button class="rbtn" id="rb-review" onclick="nav('review')" aria-label="Reviews">
+    <i class="ti ti-refresh" aria-hidden="true"></i>
+    <span class="rbadge" id="bdg-rv" style="background:#c0392b;color:#fff">4</span>
+  </button>
+  <button class="rbtn" id="rb-conflicts" onclick="nav('conflicts')" aria-label="Conflicts">
+    <i class="ti ti-adjustments-alt" aria-hidden="true"></i>
+    <span class="rbadge" id="bdg-cq" style="background:#b4690e;color:#fff">2</span>
+  </button>
+  <button class="rbtn" id="rb-sources" onclick="nav('sources')" aria-label="Sources"><i class="ti ti-books" aria-hidden="true"></i></button>
+  <div class="rail-spacer"></div>
+  <button class="rbtn" id="rb-progress" onclick="nav('progress')" aria-label="Progress"><i class="ti ti-chart-line" aria-hidden="true"></i></button>
+  <button class="rbtn" id="rb-settings" onclick="nav('settings')" aria-label="Settings"><i class="ti ti-settings" aria-hidden="true"></i></button>
+</nav>
+
+<div class="content">
+
+<!-- LIBRARY -->
+<div class="scr on" id="scr-library">
+  <div class="topbar">
+    <div class="tb-l"><span style="font-size:13px;font-weight:500">Library</span></div>
+    <div class="tb-r"><button class="btn btn-blue" onclick="nav('new')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px"></i> New topic</button></div>
+  </div>
+  <div class="due-strip">
+    <div class="due-cell" onclick="nav('review')"><div class="due-lbl">Reviews due</div><div class="due-num" style="color:#c0392b" id="lib-rv">4</div></div>
+    <div class="due-cell" onclick="nav('conflicts')"><div class="due-lbl">Conflicts open</div><div class="due-num" style="color:#b4690e" id="lib-cq">2</div></div>
+    <div class="due-cell"><div class="due-lbl">Tasks pending</div><div class="due-num" style="color:var(--color-text-secondary)">1</div></div>
+  </div>
+  <div class="scroll p14" id="lib-cards"></div>
+</div>
+
+<!-- NEW TOPIC -->
+<div class="scr" id="scr-new">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">New topic</span></div>
+  </div>
+  <div class="nt-body">
+    <div><div style="font-size:12px;font-weight:500;margin-bottom:4px">What do you want to learn?</div><input type="text" id="nt-topic" placeholder="e.g. Dijkstra's algorithm, TCP/IP, binary trees…" oninput="checkNt()"></div>
+    <div><div style="font-size:12px;font-weight:500;margin-bottom:4px">Where are you starting from?</div><div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:5px">Be concrete — name what you know and what you don't</div><textarea id="nt-level" rows="3" placeholder="e.g. comfortable with Python and graphs; never used a priority queue…" oninput="checkNt()"></textarea></div>
+    <div><div style="font-size:12px;font-weight:500;margin-bottom:5px">What does success look like?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+      <button class="goal-pill" onclick="pickGoal(this,'Understand the intuition')">Understand the intuition</button>
+      <button class="goal-pill" onclick="pickGoal(this,'Implement it from scratch')">Implement it from scratch</button>
+      <button class="goal-pill" onclick="pickGoal(this,'Use it in practice')">Use it in practice</button>
+      <button class="goal-pill" onclick="pickGoal(this,'Pass an interview')">Pass an interview</button>
+    </div>
+    <input type="text" id="nt-goal" placeholder="or describe your own goal…" oninput="checkNt()"></div>
+    <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;color:var(--color-text-secondary)">
+      <div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Pipeline — what happens when you submit</div>
+      <div style="display:flex;flex-direction:column;gap:3px"><div>Triage → retrieve sources → teach → decompose claims</div><div>Verify claims (Tier 1+2) → Skeptic red-team → ready</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
+      <span style="font-size:11px;color:var(--color-text-secondary)" id="nt-hint">Fill in all three fields to continue</span>
+      <button class="btn btn-blue" id="nt-sbm" style="opacity:.4;pointer-events:none" onclick="submitTopic()"><i class="ti ti-player-play" aria-hidden="true" style="font-size:12px"></i> Start verifying</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="scr" id="scr-pipeline">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title" id="pipe-title">Verifying…</span></div>
+    <span style="font-family:var(--font-mono);font-size:11px;color:#2d6cdf" id="pipe-timer">0s</span>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:24px;text-align:center;gap:14px">
+    <div style="font-size:16px;font-weight:500" id="pipe-topic"></div>
+    <div style="font-size:12px;color:var(--color-text-secondary)" id="pipe-goal"></div>
+    <div style="display:flex;flex-direction:column;gap:0;width:100%;max-width:280px" id="pipe-steps"></div>
+    <div style="font-size:11px;color:var(--color-text-secondary);max-width:260px;line-height:1.55">The lecture will appear in your library when complete. You can close this — it runs in the background.</div>
+  </div>
+</div>
+
+<!-- TOPIC DETAIL -->
+<div class="scr" id="scr-topic">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title" id="topic-title">Dijkstra's algorithm</span></div>
+    <div class="tb-r"><span class="pill" style="color:#0e8c6b;border-color:rgba(14,140,107,.35)"><span class="sdot" style="background:#0e8c6b;display:inline-block;margin-right:3px"></span>ready</span></div>
+  </div>
+  <div class="tabs" id="topic-tabs">
+    <button class="tab on" onclick="topicTab('lecture',this)">Lecture</button>
+    <button class="tab" onclick="topicTab('tasks',this)">Tasks<span class="tbadge" style="background:#2d6cdf;color:#fff">3</span></button>
+    <button class="tab" onclick="topicTab('conflicts',this)">Conflicts<span class="tbadge" style="background:#c0392b;color:#fff" id="t-cq-bdg">2</span></button>
+    <button class="tab" onclick="topicTab('sources',this)">Sources</button>
+  </div>
+
+  <!-- Lecture -->
+  <div id="tp-lecture" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="progbar"><div class="progfill" id="lec-prog" style="width:25%"></div></div>
+    <div class="snav" id="lec-snav"></div>
+    <div class="lec-layout">
+      <div class="lec-main" id="lec-main"></div>
+      <div class="lec-sb">
+        <div class="sb-card">
+          <div class="ey" style="margin-bottom:4px">Trust — this section</div>
+          <div style="display:flex;height:5px;border-radius:3px;overflow:hidden;gap:1px;margin:4px 0 3px;background:var(--color-background-secondary)" id="lec-tbar"></div>
+          <div style="font-size:10px;color:var(--color-text-secondary)" id="lec-tlbl"></div>
+        </div>
+        <div class="sb-card" id="lec-stages"></div>
+        <div class="sb-card">
+          <div style="font-size:11px;color:var(--color-text-secondary);text-align:center;padding:10px 4px" id="lec-claim-empty">Click any underlined sentence to inspect</div>
+          <div id="lec-claim-detail" style="display:none;font-size:11px;line-height:1.5;color:var(--color-text-secondary)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks -->
+  <div id="tp-tasks" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+    <div class="tasks-layout">
+      <div class="task-list" id="task-list"></div>
+      <div class="task-detail" id="task-detail"><div style="font-size:12px;color:var(--color-text-secondary);text-align:center;padding:30px">Select a task to begin</div></div>
+    </div>
+  </div>
+
+  <!-- Conflicts tab -->
+  <div id="tp-conflicts" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+    <div class="cq-layout">
+      <div class="cq-list" id="tcq-list"></div>
+      <div class="cq-detail" id="tcq-detail"><div style="font-size:12px;color:var(--color-text-secondary);text-align:center;padding:30px">Select a conflict</div></div>
+    </div>
+  </div>
+
+  <!-- Sources tab -->
+  <div id="tp-sources" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+    <div class="src-layout">
+      <div class="src-list" id="tsrc-list"></div>
+      <div class="src-detail" id="tsrc-detail"><div style="font-size:12px;color:var(--color-text-secondary);text-align:center;padding:30px">Select a source</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="scr" id="scr-review">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">Review session</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary)" id="rv-ct">1 / 4</span><div style="width:56px;height:3px;border-radius:2px;background:var(--color-background-secondary);overflow:hidden"><div id="rv-prog" style="height:100%;background:#2d6cdf;width:0%;transition:width .3s"></div></div></div>
+  </div>
+  <div class="rv-layout">
+    <div class="rv-main" id="rv-main"></div>
+    <div class="rv-sb">
+      <div class="ey" style="margin-bottom:6px">Up next</div>
+      <div id="rv-queue"></div>
+      <div class="hd" style="margin:10px 0"></div>
+      <div class="ey" style="margin-bottom:5px">Blind-spot</div>
+      <div class="sb-card"><div style="font-family:var(--font-mono);font-size:17px;font-weight:500" id="bs-val">5/8</div><div style="font-size:10px;color:var(--color-text-secondary)">drills caught</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFLICTS GLOBAL -->
+<div class="scr" id="scr-conflicts">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">Conflicts</span><span class="pill" style="color:#c0392b;border-color:rgba(192,57,43,.35)" id="cq-pill">2 open</span></div>
+  </div>
+  <div class="cq-layout">
+    <div class="cq-list" id="gcq-list"></div>
+    <div class="cq-detail" id="gcq-detail"><div style="font-size:12px;color:var(--color-text-secondary);text-align:center;padding:30px">Select a conflict to adjudicate</div></div>
+  </div>
+</div>
+
+<!-- SOURCES GLOBAL -->
+<div class="scr" id="scr-sources">
+  <div class="topbar">
+    <div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">Sources — Dijkstra's algorithm</span></div>
+    <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary)">4 sources · 6 claims · 1 unsupported</span>
+  </div>
+  <div class="src-layout">
+    <div class="src-list" id="gsrc-list"></div>
+    <div class="src-detail" id="gsrc-detail"><div style="font-size:12px;color:var(--color-text-secondary);text-align:center;padding:30px">Select a source to inspect coverage</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="scr" id="scr-progress">
+  <div class="topbar"><div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">Progress</span></div></div>
+  <div class="scroll p14">
+    <div class="ey" style="margin-bottom:8px">Your signals</div>
+    <div class="sig-grid">
+      <div class="sig-card"><div class="ey">Retention</div><div class="sig-val" style="color:#2d6cdf">74%</div><div class="sig-track"><div class="sig-fill" style="width:74%;background:#2d6cdf"></div></div><div style="font-size:10px;color:var(--color-text-secondary)">recall over time</div></div>
+      <div class="sig-card"><div class="ey">Transfer</div><div class="sig-val" style="color:#0e8c6b">61%</div><div class="sig-track"><div class="sig-fill" style="width:61%;background:#0e8c6b"></div></div><div style="font-size:10px;color:var(--color-text-secondary)">novel task performance</div></div>
+      <div class="sig-card"><div class="ey">Calibration</div><div class="sig-val" style="color:#6d5bd0">82%</div><div class="sig-track"><div class="sig-fill" style="width:82%;background:#6d5bd0"></div></div><div style="font-size:10px;color:var(--color-text-secondary)">predicted vs actual</div></div>
+      <div class="sig-card"><div class="ey">Drill detection</div><div class="sig-val" style="color:#b4690e">63%</div><div class="sig-track"><div class="sig-fill" style="width:63%;background:#b4690e"></div></div><div style="font-size:10px;color:var(--color-text-secondary)">5 of 8 caught</div></div>
+    </div>
+    <div class="hd" style="margin:10px 0"></div>
+    <div class="ey" style="margin-bottom:8px">By topic</div>
+    ${[["Dijkstra's algorithm","3/6","68%","55%","71%","50%"],["Binary search","4/5","88%","80%","90%","75%"],["Merkle trees","6/8","72%","60%","78%","100%"]].map(([n,v,...bars])=>`<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:9px 10px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span style="font-weight:500">${n}</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary)">${v} verified</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">${bars.map((val,i)=>`<div><div style="height:3px;border-radius:2px;background:var(--color-background-primary);overflow:hidden"><div style="height:100%;width:${val};background:${['#2d6cdf','#0e8c6b','#6d5bd0','#b4690e'][i]}"></div></div><div style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">${['ret','trans','cal','drill'][i]} ${val}</div></div>`).join('')}</div></div>`).join('')}
+    <div class="hd" style="margin:10px 0"></div>
+    <div class="ey" style="margin-bottom:7px">Where to focus</div>
+    ${[["Graph complexity","2 lapses in last 5 reviews","overconfident","#c0392b"],["Relaxation invariant","Rating Good or Easy consistently","solid","#0e8c6b"],["Negative-edge condition","Drill missed once","watch","#b4690e"]].map(([n,s,l,c])=>`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:5px"><div style="font-size:12px;font-weight:500;margin-bottom:2px">${n}</div><div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px">${s}</div><span style="font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:99px;border:0.5px solid ${c}40;color:${c}">${l}</span></div>`).join('')}
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="scr" id="scr-settings">
+  <div class="topbar"><div class="tb-l"><button class="back" onclick="nav('library')"><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:13px"></i> Library</button><div class="vd"></div><span class="tb-title">Settings</span></div><button class="btn btn-green" onclick="alert('Settings saved.')"><i class="ti ti-check" aria-hidden="true" style="font-size:12px"></i> Save</button></div>
+  <div class="st-layout">
+    <div class="st-nav">
+      <span class="st-nav-lbl">Account</span>
+      <button class="st-nav-item on" onclick="stTab('profile',this)"><i class="ti ti-user" aria-hidden="true" style="font-size:14px"></i> Profile</button>
+      <button class="st-nav-item" onclick="stTab('plan',this)"><i class="ti ti-credit-card" aria-hidden="true" style="font-size:14px"></i> Plan</button>
+      <span class="st-nav-lbl">Learning</span>
+      <button class="st-nav-item" onclick="stTab('learning',this)"><i class="ti ti-brain" aria-hidden="true" style="font-size:14px"></i> Preferences</button>
+      <button class="st-nav-item" onclick="stTab('verification',this)"><i class="ti ti-shield-check" aria-hidden="true" style="font-size:14px"></i> Verification</button>
+      <button class="st-nav-item" onclick="stTab('al',this)"><i class="ti ti-ear" aria-hidden="true" style="font-size:14px"></i> Active listening</button>
+      <button class="st-nav-item" onclick="stTab('fsrs',this)"><i class="ti ti-refresh" aria-hidden="true" style="font-size:14px"></i> Review & FSRS</button>
+      <span class="st-nav-lbl">Data</span>
+      <button class="st-nav-item" onclick="stTab('privacy',this)"><i class="ti ti-lock" aria-hidden="true" style="font-size:14px"></i> Privacy</button>
+      <button class="st-nav-item" onclick="stTab('danger',this)" style="color:#c0392b"><i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:14px"></i> Danger</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;max-height:580px" id="st-content">
+      <div class="st-panel on" id="stp-profile">
+        <div><div style="font-size:15px;font-weight:500">Profile</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Your name appears in resolution records and the gap map history.</div></div>
+        <div class="hd"></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#2d6cdf,#6d5bd0);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:500;cursor:pointer">M</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px"><input type="text" value="Maya Chen" placeholder="Your name"><input type="text" value="maya@example.com" placeholder="Email"></div>
+        </div>
+        <div class="st-row"><div class="st-lbl">Language</div><select style="max-width:200px;margin-top:4px"><option>English</option><option>French</option><option>Arabic</option><option>Spanish</option></select></div>
+        <div class="st-row"><div class="st-lbl">Timezone</div><select style="max-width:240px;margin-top:4px"><option>UTC-5 — America/New_York</option><option>UTC+0 — Africa/Casablanca</option><option>UTC+1 — Europe/London</option></select><div class="st-desc" style="margin-top:3px">Used to schedule review reminders at sensible times.</div></div>
+      </div>
+      <div class="st-panel" id="stp-plan">
+        <div><div style="font-size:15px;font-weight:500">Plan & billing</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">You are on the Free plan.</div></div>
+        <div class="hd"></div>
+        <div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden">
+          <div style="padding:10px 13px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between"><span style="font-size:13px;font-weight:500">Free</span><span style="font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:99px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)">current</span></div>
+          <div style="padding:10px 13px;font-size:12px;display:flex;flex-direction:column;gap:5px"><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#0e8c6b;margin-right:5px"></i>Up to 5 active topics</div><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#0e8c6b;margin-right:5px"></i>Standard verification (Tier 1+2)</div><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#0e8c6b;margin-right:5px"></i>1 Skeptic pass per topic</div><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#0e8c6b;margin-right:5px"></i>3 sources per topic</div></div>
+        </div>
+        <div style="border:0.5px solid rgba(45,108,223,.3);border-radius:var(--border-radius-lg);overflow:hidden">
+          <div style="padding:10px 13px;background:rgba(45,108,223,.06);border-bottom:0.5px solid rgba(45,108,223,.2);display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:500;color:#2d6cdf">Pro · $12/mo</span><button class="btn btn-blue">Upgrade</button></div>
+          <div style="padding:10px 13px;font-size:12px;display:flex;flex-direction:column;gap:5px"><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#2d6cdf;margin-right:5px"></i>Unlimited topics + sources</div><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#2d6cdf;margin-right:5px"></i>Thorough verification (all tiers)</div><div><i class="ti ti-check" aria-hidden="true" style="font-size:12px;color:#2d6cdf;margin-right:5px"></i>Multiple Skeptic passes with debate</div></div>
+        </div>
+      </div>
+      <div class="st-panel" id="stp-learning">
+        <div><div style="font-size:15px;font-weight:500">Learning preferences</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Affects how the pipeline writes lectures for you.</div></div>
+        <div class="hd"></div>
+        <div class="st-row"><div class="st-lbl">Default level anchor</div><select style="margin-top:5px" onchange="document.getElementById('lvl-ef').textContent=this.options[this.selectedIndex].dataset.ef"><option data-ef="All terms defined from scratch. Analogies used heavily.">Beginner</option><option selected data-ef="Comfortable with fundamentals but new to this topic. Jargon introduced and defined.">Intermediate</option><option data-ef="Dense and precise. Technical notation used freely. Edge cases prioritised.">Advanced</option></select><div class="st-effect" id="lvl-ef" style="margin-top:5px">Comfortable with fundamentals but new to this topic. Jargon introduced and defined.</div></div>
+        <div class="st-row"><div class="st-lbl">Explanation style</div><div class="seg-ctrl" style="margin-top:5px"><button class="seg-btn" onclick="segCl(this)">Formal</button><button class="seg-btn on" onclick="segCl(this)">Plain + analogies</button><button class="seg-btn" onclick="segCl(this)">Socratic</button></div></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Show reading time</div><div class="st-desc">Estimated reading time per section.</div></div><label class="toggle" style="margin-top:2px"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Show prerequisite check</div><div class="st-desc">Show assumed/covered prerequisites before each lecture.</div></div><label class="toggle" style="margin-top:2px"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+      </div>
+      <div class="st-panel" id="stp-verification">
+        <div><div style="font-size:15px;font-weight:500">Verification settings</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Affects depth and speed of claim verification.</div></div>
+        <div class="hd"></div>
+        <div class="st-row"><div class="st-lbl">Verification depth</div><div class="seg-ctrl" style="margin-top:5px"><button class="seg-btn" onclick="segCl(this)">Minimal</button><button class="seg-btn on" onclick="segCl(this)">Standard</button><button class="seg-btn" onclick="segCl(this)">Thorough</button></div><div class="st-effect" style="margin-top:5px">Standard: Tier 1+2 fully verified. Tier 3 mapped not certified. Pipeline ~40s.</div></div>
+        <div class="st-row"><div class="st-lbl">Interpretive claims</div><div class="seg-ctrl" style="margin-top:5px"><button class="seg-btn on" onclick="segCl(this)">Visible inline</button><button class="seg-btn" onclick="segCl(this)">Collapsed</button><button class="seg-btn" onclick="segCl(this)">Hidden</button></div></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Notify on disputes</div><div class="st-desc">Alert when Skeptic raises a conflict.</div></div><label class="toggle" style="margin-top:2px"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Show confidence scores</div><div class="st-desc">Display numerical confidence values in the ledger.</div></div><label class="toggle" style="margin-top:2px"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+      </div>
+      <div class="st-panel" id="stp-al">
+        <div><div style="font-size:15px;font-weight:500">Active listening</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Control which mechanisms fire during lectures.</div></div>
+        <div class="hd"></div>
+        ${[["Predict before reading","Write a prediction before each section opens."],["Fill the blank","Pick the missing term in a critical sentence."],["Pause point","Raise a question mid-section."],["Connection prompt","Link a concept to something from a prior section."],["End-of-section close","Recall the key idea before advancing. Gates Next."]].map(([l,d])=>`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><div><div style="font-size:12px;font-weight:500">${l}</div><div class="st-desc">${d}</div></div><label class="toggle" style="margin-top:2px"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>`).join('')}
+        <div class="st-row-inline" style="margin-top:8px"><div><div class="st-lbl">Close gate required</div><div class="st-desc">Next is locked until close is submitted.</div></div><label class="toggle"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+      </div>
+      <div class="st-panel" id="stp-fsrs">
+        <div><div style="font-size:15px;font-weight:500">Review & FSRS</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Controls the spaced-repetition scheduler.</div></div>
+        <div class="hd"></div>
+        <div class="st-row"><div class="st-lbl">Target retention</div><div style="display:flex;align-items:center;gap:9px;margin-top:5px"><input type="range" min="70" max="99" value="90" oninput="document.getElementById('ret-v').textContent=this.value+'%'"><span style="font-family:var(--font-mono);font-size:11px;min-width:32px;text-align:right" id="ret-v">90%</span></div><div class="st-effect" style="margin-top:3px">At 90%, concepts return before a 1-in-10 chance of forgetting. Recommended default.</div></div>
+        <div class="st-row"><div class="st-lbl">Max interval</div><div style="display:flex;align-items:center;gap:9px;margin-top:5px"><input type="range" min="30" max="365" value="180" step="15" oninput="document.getElementById('int-v').textContent=this.value+'d'"><span style="font-family:var(--font-mono);font-size:11px;min-width:32px;text-align:right" id="int-v">180d</span></div></div>
+        <div class="st-row"><div class="st-lbl">Daily limit</div><div style="display:flex;align-items:center;gap:9px;margin-top:5px"><input type="range" min="5" max="100" value="20" step="5" oninput="document.getElementById('dlm-v').textContent=this.value"><span style="font-family:var(--font-mono);font-size:11px;min-width:32px;text-align:right" id="dlm-v">20</span></div></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Confidence gate</div><div class="st-desc">Require Sure/Unsure/Guessing before reveal.</div></div><label class="toggle"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Seeded drills</div><div class="st-desc">Include deliberate-error cards in sessions.</div></div><label class="toggle"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+      </div>
+      <div class="st-panel" id="stp-privacy">
+        <div><div style="font-size:15px;font-weight:500">Privacy & data</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">What VeriLearn stores and how to export it.</div></div>
+        <div class="hd"></div>
+        ${[["Learning objects","Topics, lectures, trust ledgers, claims."],["Review history","Every review event — used for FSRS scheduling."],["Gap map","Named gaps, statuses, discussion threads."],["Active listening responses","Predictions, closes, pause-point answers."]].map(([l,d])=>`<div style="padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)"><div style="font-size:12px;font-weight:500">${l}</div><div class="st-desc" style="margin-top:2px">${d}</div></div>`).join('')}
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn" onclick="alert('Preparing export…')"><i class="ti ti-download" aria-hidden="true" style="font-size:12px"></i> Export all data</button><button class="btn" onclick="alert('Preparing review history…')"><i class="ti ti-download" aria-hidden="true" style="font-size:12px"></i> Review history</button></div>
+        <div class="st-row-inline"><div><div class="st-lbl">Contribute anonymous usage data</div><div class="st-desc">Help improve the pipeline. No personal data.</div></div><label class="toggle"><input type="checkbox" checked><div class="tgl-slider"></div></label></div>
+      </div>
+      <div class="st-panel" id="stp-danger">
+        <div><div style="font-size:15px;font-weight:500;color:#c0392b">Danger zone</div><div class="st-desc" style="margin-top:2px">These actions are permanent. There is no undo.</div></div>
+        <div style="border:0.5px solid rgba(192,57,43,.3);border-radius:var(--border-radius-lg);overflow:hidden">
+          ${[["Reset review history","Clears all FSRS data. Topics remain."],["Reset gap map","Clears gaps and discussion threads."],["Delete all topics","Removes all learning objects and lectures."],["Delete account","Permanently deletes everything."]].map(([l,d])=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;border-bottom:0.5px solid rgba(192,57,43,.15)"><div><div style="font-size:12px;font-weight:500">${l}</div><div class="st-desc">${d}</div></div><button style="padding:5px 11px;border-radius:var(--border-radius-md);border:0.5px solid rgba(192,57,43,.4);background:transparent;cursor:pointer;font-size:11px;font-family:var(--font-sans);color:#c0392b" onclick="if(confirm('Are you sure? This cannot be undone.'))alert('Done.')">Action</button></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- content -->
+</div><!-- app -->
+</div><!-- vl -->
+
+<script>
+const TOPICS=[
+  {id:0,title:"Dijkstra's shortest-path algorithm",domain:"Algorithms",status:"ready",studied:"2 days ago",claims:6,exec:1,src:1,interp:1,unsup:1,disputed:2,conflicts:2,tasks:3},
+  {id:1,title:"Binary search",domain:"Algorithms",status:"ready",studied:"5 days ago",claims:5,exec:2,src:2,interp:1,unsup:0,disputed:0,conflicts:0,tasks:0},
+  {id:2,title:"TLS handshake",domain:"Networking",status:"running",stage:"verifying claims…",studied:"just now",claims:0},
+];
+
+const CONFLICTS=[
+  {id:0,topic:"Dijkstra's algorithm",claim:"This algorithm is always the best choice for shortest paths.",raiser:"Skeptic",desc:"Overreach — fails with negative weights. Bellman-Ford may be required.",pos:[{stance:"Best for non-negative weights",support:"Standard textbook result"},{stance:"Not universally optimal",support:"Negative edges require alternatives"}],resolved:false,res:"",selPos:null},
+  {id:1,topic:"Dijkstra's algorithm",claim:"This naive variant also handles negative edges correctly.",raiser:"Execution",desc:"AssertionError: dist[1] expected -4, got 4.",pos:[{stance:"Execution result — definitive",support:"Assertion failed on negative-edge graph"},{stance:"Teacher's claim is incorrect",support:"Single pass cannot reopen finalised nodes"}],resolved:false,res:"",selPos:null},
+];
+
+const SOURCES=[
+  {id:0,icon:"📘",title:"Introduction to Algorithms (Cormen et al.)",loc:"§24.3 — Dijkstra's algorithm",status:"verified",sc:"#0e8c6b",claims:[0,1,2],preferred:true},
+  {id:1,icon:"🔬",title:"Execution sandbox",loc:"3 test graphs — 6 assertions",status:"verified",sc:"#0e8c6b",claims:[0,1],preferred:false},
+  {id:2,icon:"📄",title:"Algorithm Design (Kleinberg & Tardos)",loc:"§4.4 — pp. 137–144",status:"retrieved",sc:"#2d6cdf",claims:[2],preferred:false},
+  {id:3,icon:"🌐",title:"Stanford CS161 lecture notes",loc:"https://web.stanford.edu/class/cs161/",status:"attached",sc:"#6d5bd0",claims:[],preferred:false},
+];
+
+const TASKS=[
+  {id:0,lbl:"The finalisation invariant",type:"Explain",passed:false,submitted:false,draft:"",result:null,fuDraft:"",fuResult:null,openMicro:false,
+   prompt:"Explain the finalisation invariant — what it says, why it holds, and what it guarantees.",
+   rubric:[{lbl:"States nodes are finalised exactly once",kw:["once","never revisit","single","one time"]},{lbl:"Says finalised distance is the true shortest",kw:["true","shortest","correct","guaranteed","exact"]},{lbl:"Links to non-negative edge weights",kw:["non-negative","nonnegative","positive","no negative"]},{lbl:"Explains the greedy choice",kw:["greedy","closest","minimum","priority","always pick"]}],
+   mc:"The finalisation invariant states that once a node is locked in by Dijkstra's algorithm, its recorded distance is the true shortest distance — permanently. This holds because all edge weights are non-negative: no future path through a more distant node can ever improve a finalised distance. The algorithm processes each node at most once.",
+   ma:"Once a node is finalised, its recorded distance is the true shortest distance from the source — not an estimate. The algorithm processes each node once, locks it in, and never revisits it. This is guaranteed by the greedy choice combined with the non-negative edge weight requirement."},
+  {id:1,lbl:"Why negative edges break it",type:"Explain",passed:false,submitted:false,draft:"",result:null,fuDraft:"",fuResult:null,openMicro:false,
+   prompt:"Explain why the algorithm produces wrong answers when a graph contains a negative edge weight.",
+   rubric:[{lbl:"Names the finalisation invariant as what breaks",kw:["finalise","invariant","locked","settled","assumption"]},{lbl:"Describes how a shorter path gets missed",kw:["missed","shorter","discover","reopen","find"]},{lbl:"States the result is wrong distances",kw:["wrong","incorrect","error","false"]},{lbl:"Notes the failure is silent",kw:["silent","no error","looks","normal","completes"]}],
+   mc:"A negative edge breaks the finalisation invariant — the assumption that a locked-in distance is permanently the true shortest. Once node u is finalised, a negative edge from a later node to u could provide a shorter path, but the algorithm never discovers it because u is already closed. The failure is silent: no exception, just wrong distances.",
+   ma:"The algorithm fails because a negative edge breaks the finalisation invariant. Once a node is locked in, it is never reconsidered — but a negative edge found later could provide a shorter path to that node that the algorithm permanently misses. The result is silent: the algorithm completes normally and returns distances that look valid but are factually wrong."},
+  {id:2,lbl:"Adjudicate the disputed claim",type:"Reason",passed:false,submitted:false,draft:"",result:null,fuDraft:"",fuResult:null,openMicro:false,
+   prompt:"The Skeptic flagged: 'Dijkstra's algorithm is always the best choice for shortest-path problems.' Explain why it's disputed and write a more accurate version.",
+   rubric:[{lbl:"Identifies 'always' as the overreach",kw:["always","not always","overstate","too broad","universal"]},{lbl:"States the condition under which Dijkstra is correct",kw:["non-negative","positive","when all","single-source"]},{lbl:"Names a counter-example or alternative",kw:["bellman","negative edge","counter","johnson","floyd"]},{lbl:"Proposes a more accurate version",kw:["better","more accurate","should say","revised","instead","optimal for"]}],
+   mc:"'Always the best' asserts universality — no exceptions. But Dijkstra's algorithm fails on graphs with negative edge weights, where Bellman-Ford is required. For all-pairs shortest paths, Johnson's or Floyd-Warshall are better suited. A more accurate claim: 'Dijkstra's algorithm is the most practical choice for single-source shortest paths when all edge weights are non-negative.'",
+   ma:"The claim fails on the word 'always' — which asserts no exceptions. Dijkstra breaks on negative edge weights, where Bellman-Ford is the correct choice. A defensible version: 'Dijkstra's algorithm is the most practical choice for single-source shortest paths when all edge weights are non-negative.' This drops 'always', specifies the problem type, and names the condition honestly."},
+];
+
+const LEC_SECS=[
+  {num:"Prereqs",title:"Before we start",claims:[],key:"Priority queue and relaxation step are covered in the lecture. Everything else assumed."},
+  {num:"§ 1",title:"The core idea",claims:[],key:"Always expand the closest unfinalised node. Once finalised, the distance is the true shortest — permanently. This is the finalisation invariant."},
+  {num:"§ 2",title:"Implementation",claims:[0,2,3],key:"A correct min-heap implementation runs in O((V+E) log V). The heap is what makes the greedy choice efficient."},
+  {num:"§ 3",title:"Limits",claims:[1,4,5],key:"Dijkstra requires non-negative edge weights. Negative edges silently break the finalisation invariant. Use Bellman-Ford for negative edges."},
+];
+
+const LEC_CLAIMS=[
+  {id:0,st:"ve",lbl:"verified by execution",conf:.95,ev:"All assertions passed on 3 test graphs."},
+  {id:1,st:"ve",lbl:"verified by execution",conf:.92,ev:"Confirmed — negative-edge graph showed incorrect distances."},
+  {id:2,st:"vs",lbl:"verified by source",conf:.80,ev:"Cormen et al., §24.3 — complexity analysis."},
+  {id:3,st:"us",lbl:"unsupported",conf:.20,ev:"No supporting source found — treat with scepticism."},
+  {id:4,st:"di",lbl:"disputed",conf:.15,ev:"Skeptic: overreach — fails with negative weights."},
+  {id:5,st:"in",lbl:"interpretive",conf:.0,ev:"Genuinely contested — positions mapped, not certified."},
+];
+
+const RV=[
+  {q:"What condition must hold for the finalisation invariant to be valid?",a:"All edge weights must be non-negative. The invariant — that a locked-in distance is permanently the true shortest — only holds when no edge can reduce a settled distance.",src:"Cormen et al., §24.3 · verified by source",isDrill:false},
+  {q:"Why does Dijkstra fail silently on negative edge weights?",a:"Once a node is finalised it is never reopened. A negative edge found later could provide a shorter path — permanently missed. No exception is raised; the output looks valid but contains wrong distances.",src:"Execution-verified · negative-edge test graph",isDrill:false},
+  {q:"What is O((V+E) log V) and where does it come from?",a:"V log V from extracting each vertex once from the heap; E log V from at most one heap push per edge. Binary min-heap makes both O(log V).",src:"Cormen et al., §24.3 · verified by source",isDrill:false},
+  {q:"True or false: Dijkstra works on graphs with negative edges as long as there are no negative cycles.",a:null,isDrill:true,drillAnswer:false,explanation:"False — a common trap. No-negative-cycles applies to Bellman-Ford. Dijkstra finalises nodes once; any negative edge (cycle or not) breaks the invariant."},
+];
+
+const ST={predict:["","","",""],predicted:[false,false,false,false],pauseDone:[false,false,false,false],connDone:[false,false,false,false],closeTxt:["","","",""],closeDone:[false,false,false,false],clozeDone:[false,false,false,false]};
+let curSec=0,selTask=null,selCQ=null,selSrc=null,rvCur=0,rvRev=[],confPicked=null,drillDone=false,pipeStage=0,pipeElapsed=0,pipeIv=null;
+const PIPE_STAGES=["Triage","Retrieve sources","Teach","Decompose claims","Verify claims","Skeptic"];
+const COL={ve:"#0e8c6b",vs:"#2d6cdf",di:"#c0392b",us:"#b4690e",in:"#6d5bd0"};
+const LBL={ve:"verified by execution",vs:"verified by source",di:"disputed",us:"unsupported",in:"interpretive"};
+
+function nav(s){
+  document.querySelectorAll('.scr').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.rbtn').forEach(e=>e.classList.remove('on'));
+  document.getElementById('scr-'+s).classList.add('on');
+  const rb=document.getElementById('rb-'+s);if(rb)rb.classList.add('on');
+  if(s==='library')renderLib();
+  if(s==='review'){rvCur=0;rvRev=[];confPicked=null;rvRender();}
+  if(s==='conflicts')renderGCQ();
+  if(s==='sources')renderGSrc();
+}
+
+function openTopic(id){
+  curSec=0;selTask=null;selCQ=null;selSrc=null;
+  document.getElementById('topic-title').textContent=TOPICS[id].title;
+  document.querySelectorAll('#topic-tabs .tab').forEach((t,i)=>{t.classList.toggle('on',i===0);});
+  showTopicPanel('lecture');
+  nav('topic');
+  buildLec();buildTasks();buildTCQ();buildTSrc();
+}
+
+function topicTab(name,btn){
+  document.querySelectorAll('#topic-tabs .tab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  showTopicPanel(name);
+}
+
+function showTopicPanel(name){
+  ['lecture','tasks','conflicts','sources'].forEach(n=>{
+    const el=document.getElementById('tp-'+n);
+    if(el){el.style.display='none';}
+  });
+  const el=document.getElementById('tp-'+name);
+  if(el){el.style.display='flex';el.style.flexDirection='column';el.style.flex='1';el.style.overflow='hidden';}
+}
+
+function renderLib(){
+  document.getElementById('lib-cards').innerHTML=TOPICS.map(t=>{
+    const segs=[[t.exec||0,'#0e8c6b'],[t.src||0,'#2d6cdf'],[t.interp||0,'#6d5bd0'],[t.unsup||0,'#b4690e'],[t.disputed||0,'#c0392b']].filter(s=>s[0]>0);
+    const ver=t.claims?Math.round(((t.exec||0)+(t.src||0))/t.claims*100):0;
+    const dc=t.status==='ready'?'#0e8c6b':t.status==='running'?'#2d6cdf':'#c0392b';
+    return`<div class="tc" onclick="${t.status==='ready'?`openTopic(${t.id})`:''}">
+      <div class="tc-head"><span class="tc-title">${t.title}</span><div class="tc-status"><span class="sdot" style="background:${dc};${t.status==='running'?'animation:pulse 1.2s ease-in-out infinite':''}"></span>${t.status}</div></div>
+      ${t.status==='running'?`<div style="font-family:var(--font-mono);font-size:10px;color:#2d6cdf">${t.stage}</div>`:
+        t.claims?`<div class="tbar">${segs.map(s=>`<div class="tbseg" style="flex:${s[0]};background:${s[1]}"></div>`).join('')}</div>
+        <div class="tc-foot"><span class="tc-meta">${t.domain} · ${t.studied}</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary)">${ver}% verified · ${t.claims} claims</span></div>`:''}
+      ${t.status==='ready'?`<div style="display:flex;justify-content:flex-end;margin-top:5px"><button class="btn btn-blue" onclick="event.stopPropagation();openTopic(${t.id})" style="font-size:11px">Open <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:11px"></i></button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function pickGoal(btn,goal){document.querySelectorAll('.goal-pill').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('nt-goal').value=goal;checkNt();}
+function checkNt(){const t=document.getElementById('nt-topic').value.trim(),l=document.getElementById('nt-level').value.trim(),g=document.getElementById('nt-goal').value.trim(),ok=t.length>2&&l.length>5&&g.length>2,s=document.getElementById('nt-sbm');s.style.opacity=ok?'1':'0.4';s.style.pointerEvents=ok?'auto':'none';document.getElementById('nt-hint').textContent=ok?'Ready — click to start verifying':'Fill in all three fields to continue';}
+function submitTopic(){const t=document.getElementById('nt-topic').value.trim(),g=document.getElementById('nt-goal').value.trim();if(!t)return;const nt={id:TOPICS.length,title:t,domain:"Custom",status:"running",stage:"teaching…",studied:"just now",claims:0};TOPICS.unshift(nt);document.getElementById('pipe-topic').textContent=t;document.getElementById('pipe-goal').textContent=g;startPipe(nt.id);nav('pipeline');setTimeout(()=>{nt.status="ready";nt.claims=5;nt.exec=2;nt.src=2;nt.interp=1;nt.stage="";},5000);}
+function startPipe(){pipeStage=0;pipeElapsed=0;clearInterval(pipeIv);renderPipe();pipeIv=setInterval(()=>{pipeElapsed++;document.getElementById('pipe-timer').textContent=pipeElapsed+'s';if(pipeElapsed%5===0&&pipeStage<PIPE_STAGES.length-1){pipeStage++;renderPipe();}if(pipeStage>=PIPE_STAGES.length-1&&pipeElapsed>25){clearInterval(pipeIv);document.getElementById('pipe-timer').textContent='done · '+pipeElapsed+'s';document.getElementById('pipe-title').textContent='Ready';}},1000);}
+function renderPipe(){document.getElementById('pipe-steps').innerHTML=PIPE_STAGES.map((s,i)=>{const st=i<pipeStage?'done':i===pipeStage?'active':'pending';return`<div style="display:flex;align-items:flex-start;gap:10px;text-align:left"><div style="display:flex;flex-direction:column;align-items:center"><div class="pipe-dot ${st}" style="${st==='active'?'animation:pulse 1s ease-in-out infinite':''}"></div>${i<PIPE_STAGES.length-1?`<div class="pipe-line ${i<pipeStage?'done':''}"></div>`:''}</div><div style="padding-bottom:${i<PIPE_STAGES.length-1?'14px':'0'}"><div style="font-size:12px;font-weight:500;color:${st==='done'?'#0e8c6b':st==='active'?'#2d6cdf':'var(--color-text-secondary)'}">${s}</div>${st==='active'?`<div style="font-family:var(--font-mono);font-size:10px;color:#2d6cdf">running…</div>`:''}</div></div>`;}).join('');}
+
+function glyph(st,sz=12){const c=COL[st]||'#888';if(st==='ve')return`<svg width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="${c}"/><path d="M4.5 8.5l2 2L11.5 6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;if(st==='vs')return`<svg width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="${c}" stroke-width="2"/><circle cx="8" cy="8" r="3" fill="${c}"/></svg>`;if(st==='di')return`<svg width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" transform="rotate(45 8 8)" fill="${c}"/><path d="M8 5.5V10M8 11.5h.01" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>`;if(st==='us')return`<svg width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l6.5 11H1.5z" fill="none" stroke="${c}" stroke-width="1.7" stroke-linejoin="round"/></svg>`;return`<svg width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="${c}" stroke-width="2"/><path d="M8 1.5a6.5 6.5 0 010 13z" fill="${c}"/></svg>`;}
+
+function buildLec(){buildLecNav();buildLecContent();buildLecSb();}
+function buildLecNav(){
+  document.getElementById('lec-snav').innerHTML=LEC_SECS.map((s,i)=>{const done=ST.closeDone[i]||(i===0),active=i===curSec;return`<button class="snav-btn ${active?'on':''} ${done&&!active?'done':''}" onclick="goLecSec(${i})"><span class="snav-dot" style="background:${done?'#0e8c6b':active?'#2d6cdf':'var(--color-border-secondary)'}"></span>${s.num} ${s.title}</button>`;}).join('');
+  document.getElementById('lec-prog').style.width=Math.round((curSec+1)/LEC_SECS.length*100)+'%';
+}
+function buildLecSb(){
+  const s=LEC_SECS[curSec],claims=LEC_CLAIMS.filter(c=>s.claims.includes(c.id)),total=claims.length,ver=claims.filter(c=>c.st==='ve'||c.st==='vs').length,flagged=claims.filter(c=>c.st==='di'||c.st==='us').length;
+  const segs=[{st:'ve',c:'#0e8c6b'},{st:'vs',c:'#2d6cdf'},{st:'in',c:'#6d5bd0'},{st:'us',c:'#b4690e'},{st:'di',c:'#c0392b'}].map(x=>({...x,n:claims.filter(c=>c.st===x.st).length})).filter(x=>x.n>0);
+  document.getElementById('lec-tbar').innerHTML=segs.map(x=>`<div class="tbseg" style="flex:${x.n};background:${x.c}"></div>`).join('')||'';
+  document.getElementById('lec-tlbl').textContent=total?Math.round(ver/total*100)+'% verified'+(flagged?' · '+flagged+' flagged':''):'No claims in this section';
+  const stages=[];
+  if(curSec>0)stages.push({lbl:"Predict",done:ST.predicted[curSec]});
+  if(curSec===1)stages.push({lbl:"Pause point",done:ST.pauseDone[1]});
+  if(curSec===2||curSec===3)stages.push({lbl:"Fill the blank",done:ST.clozeDone[curSec]});
+  if(curSec===2||curSec===3)stages.push({lbl:"Connection",done:ST.connDone[curSec]});
+  if(curSec>0)stages.push({lbl:"Close",done:ST.closeDone[curSec]});
+  document.getElementById('lec-stages').innerHTML=stages.length?`<div class="ey" style="margin-bottom:6px">Active listening</div>${stages.map(st=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:11px"><div style="width:6px;height:6px;border-radius:50%;background:${st.done?'#0e8c6b':'var(--color-border-secondary)'}"></div><span style="color:${st.done?'#0e8c6b':'var(--color-text-secondary)'}">${st.lbl}</span></div>`).join('')}`:'<div style="font-size:11px;color:var(--color-text-secondary)">Active listening starts from §1</div>';
+}
+function buildLecContent(){
+  const s=LEC_SECS[curSec],isFirst=curSec===0,isLast=curSec===LEC_SECS.length-1,nextOk=curSec===0||ST.closeDone[curSec];
+  let html=`<div style="margin-bottom:12px"><div class="ey" style="margin-bottom:3px">${s.num}</div><div style="font-size:17px;font-weight:500;line-height:1.25">${s.title}</div></div>`;
+  if(curSec>0){
+    const done=ST.predicted[curSec],txt=ST.predict[curSec];
+    html+=`<div class="al-card al-predict"><div class="al-hdr"><i class="ti ti-bulb" aria-hidden="true" style="font-size:13px;color:#6d5bd0"></i><span class="al-ey" style="color:#6d5bd0">Predict before reading</span><span style="font-size:9px;color:var(--color-text-secondary);margin-left:auto">shown back at end</span></div>
+    ${done?`<div style="font-size:11px;color:#6d5bd0">Saved — <em>${txt.slice(0,60)}${txt.length>60?'…':''}</em></div>`:
+    `<div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:5px">Before reading — what do you think "${s.title}" will establish?</div>
+    <textarea rows="2" placeholder="I think this section will explain…" oninput="predIn(${curSec},this)" id="pred-ta-${curSec}"></textarea>
+    <button class="al-sbm" id="pred-btn-${curSec}" onclick="submitPred(${curSec})">Save & read <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:11px"></i></button>`}
+    </div>`;
+  }
+  if(curSec===0){html+=`<div class="prose">Green items are assumed — if any feel shaky, revisit them first. Blue items are covered in the lecture.</div><div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:12px">${[["Graphs & weighted edges","assumed","#0e8c6b"],["Python basics","assumed","#0e8c6b"],["Shortest path concept","assumed","#0e8c6b"],["Priority queue / min-heap","covered in §2","#2d6cdf"],["The relaxation step","covered in §1","#2d6cdf"]].map(([n,t,c])=>`<div style="display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:4px"><span style="width:6px;height:6px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span><span style="flex:1;color:${c==='#0e8c6b'?'var(--color-text-secondary)':'var(--color-text-primary)'}">${n}</span><span style="font-family:var(--font-mono);font-size:9px;color:${c}">${t}</span></div>`).join('')}</div><div class="callout"><div class="cl-lbl">Active reading in this lecture</div><div style="font-size:12px;line-height:1.6">Before each section write a prediction. Mid-section a fill-in-the-blank or connection prompt appears. At the end close the section from memory — your prediction is shown back alongside the key claim.</div></div>`;}
+  if(curSec===1){html+=`<div class="prose">Dijkstra's algorithm answers one question: what is the cheapest path from a starting node to every other node? The central intuition is simple — <strong>always expand the node you are most confident about.</strong></div><div class="callout"><div class="cl-lbl">The finalisation invariant</div><div style="font-size:12px;line-height:1.6">Once a node is finalised, its recorded distance is the true shortest — permanently. The algorithm never revisits it. This holds because all edges are non-negative, so no future path can improve a finalised distance.</div></div>${makePause(1)}<div class="prose">The algorithm maintains a priority queue that always gives the smallest element first. At each step it pops the closest unfinalised node, finalises it, then relaxes its neighbours — updating any whose path through the current node is shorter than currently known. The algorithm terminates when the queue is empty.</div>`;}
+  if(curSec===2){html+=`<div class="prose"><span class="claim-span ve" onclick="showClaim(0)">A correct min-heap implementation returns the right distances on any weighted graph with non-negative edges.</span> Here is the standard Python version:</div><div class="code-block"><div><span style="color:#2d6cdf">def</span> dijkstra(n, edges, src):</div><div>    <span style="color:#2d6cdf">import</span> heapq; g = {i: [] <span style="color:#2d6cdf">for</span> i <span style="color:#2d6cdf">in</span> range(n)}</div><div>    <span style="color:#2d6cdf">for</span> u, v, w <span style="color:#2d6cdf">in</span> edges: g[u].append((v, w))</div><div>    dist = {i: float(<span style="color:#0e8c6b">'inf'</span>) <span style="color:#2d6cdf">for</span> i <span style="color:#2d6cdf">in</span> range(n)}; dist[src] = 0; pq = [(0, src)]</div><div>    <span style="color:#2d6cdf">while</span> pq:</div><div>        d, u = heapq.heappop(pq) <span style="color:var(--color-text-secondary)"># always pick closest</span></div><div>        <span style="color:#2d6cdf">if</span> d > dist[u]: <span style="color:#2d6cdf">continue</span> <span style="color:var(--color-text-secondary)"># skip stale</span></div><div>        <span style="color:#2d6cdf">for</span> v, w <span style="color:#2d6cdf">in</span> g[u]:</div><div>            <span style="color:#2d6cdf">if</span> d + w < dist[v]: dist[v]=d+w; heapq.heappush(pq,(dist[v],v))</div><div>    <span style="color:#2d6cdf">return</span> dist</div></div>${makeCloze(2,"The heap ensures we always process the node with the","smallest known distance",["smallest known distance","largest remaining edge","most neighbours","highest degree"],"This is the greedy choice — always expanding the closest unfinalised node, which is what makes the finalisation invariant hold.")}<div class="prose"><span class="claim-span vs" onclick="showClaim(2)">With a binary min-heap the time complexity is O((V + E) log V).</span> <span class="claim-span us" onclick="showClaim(3)">A rarely-cited micro-optimisation is said to halve the constant factor in all cases.</span></div>${makeConn(2,"How does the min-heap connect to the finalisation invariant from §1?","The heap ensures we always pop the closest unfinalised node — exactly the greedy choice the finalisation invariant requires. Without it maintaining that order, we might finalise a node before finding the true shortest path.")}`;}
+  if(curSec===3){html+=`<div class="prose"><span class="claim-span ve" onclick="showClaim(1)">The algorithm produces wrong answers when the graph contains a negative edge weight.</span> Once a node is finalised it is never reconsidered — but a negative edge could provide a shorter path to it that is permanently missed.</div><div class="callout callout-warn"><div class="cl-lbl">The negative-edge trap</div><div style="font-size:12px;line-height:1.6">If you run Dijkstra on a graph with a negative edge, it completes normally and returns distances that look valid — but some may be factually wrong. No exception is raised.</div></div>${makeCloze(3,"The algorithm fails silently — meaning it returns","wrong distances with no error",["wrong distances with no error","an exception","a warning message","an infinite loop"],"No exception is raised. The distances look plausible but may be incorrect — this is what makes the negative-edge failure particularly dangerous.")}<div class="prose"><span class="claim-span di" onclick="showClaim(4)">Dijkstra's algorithm is always the best choice for shortest-path problems.</span> <span class="claim-span in" onclick="showClaim(5)">Whether it is right depends on the graph's properties and constraints.</span></div><div style="font-size:12px;border-radius:var(--border-radius-md);overflow:hidden;border:0.5px solid var(--color-border-tertiary);margin:10px 0"><div style="display:grid;grid-template-columns:1fr 1fr;background:var(--color-background-secondary)"><div style="padding:5px 9px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;border-right:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)">Use Dijkstra when</div><div style="padding:5px 9px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--color-text-secondary)">Use something else when</div></div>${[["All edges non-negative","Negative edges → Bellman-Ford"],["Single-source paths","All-pairs → Floyd-Warshall"],["Sparse/medium graph","Negative cycles → Bellman-Ford"]].map(([a,b])=>`<div style="display:grid;grid-template-columns:1fr 1fr;border-top:0.5px solid var(--color-border-tertiary)"><div style="padding:6px 9px;border-right:0.5px solid var(--color-border-tertiary)">${a}</div><div style="padding:6px 9px;color:var(--color-text-secondary)">${b}</div></div>`).join('')}</div>${makeConn(3,"In §1 we said the greedy choice is 'safe'. What does this section tell us about when that safety breaks?","The greedy choice is only safe when all edge weights are non-negative. A negative edge breaks the finalisation invariant — the algorithm can no longer guarantee the closed distance is optimal.")}`;}
+  html+=makeClose(curSec);
+  html+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:13px;border-top:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="goLecSec(${curSec-1})" ${isFirst?'disabled':''}><i class="ti ti-arrow-left" aria-hidden="true" style="font-size:12px"></i> Previous</button><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary)">${curSec+1} / ${LEC_SECS.length}</span><button class="btn btn-blue" onclick="${isLast?'lecDone()':'goLecSec('+(curSec+1)+')'}" ${!nextOk&&curSec>0?'disabled':''}>  ${isLast?'All done':'Next'} <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:12px"></i></button></div>`;
+  document.getElementById('lec-main').innerHTML=html;
+}
+
+function makePause(i){const done=ST.pauseDone[i];return`<div class="al-card al-pause"><div class="al-hdr"><i class="ti ti-pause" aria-hidden="true" style="font-size:13px;color:#2d6cdf"></i><span class="al-ey" style="color:#2d6cdf">Pause point</span></div><div style="font-size:11px;font-weight:500;margin-bottom:4px">What question does the finalisation invariant raise for you?</div>${done?'<div style="font-size:11px;color:#0e8c6b"><i class="ti ti-check" aria-hidden="true" style="font-size:11px"></i> Logged</div>':`<textarea rows="2" placeholder="My question is…" oninput="pauseIn(${i},this)" id="pause-ta-${i}"></textarea><button class="al-sbm" id="pause-btn-${i}" onclick="submitPause(${i})">Log question <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:11px"></i></button>`}</div>`;}
+
+function makeCloze(i,before,correct,opts,expl){const done=ST.clozeDone[i];return`<div style="padding:9px 11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin:10px 0"><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#2d6cdf;margin-bottom:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-brackets" aria-hidden="true" style="font-size:11px"></i> Fill the blank</div><div style="font-size:13px;line-height:1.7">${before} <span id="cz-${i}" style="font-family:var(--font-mono);font-size:11px;color:${done?'#0e8c6b':'#2d6cdf'};border-bottom:2px solid ${done?'#0e8c6b':'#2d6cdf'};padding:0 3px">${done?correct:'___________'}</span>.</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px" id="cz-opts-${i}">${done?'':`${opts.map(o=>`<button style="font-size:11px;padding:3px 9px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-family:var(--font-sans)" onclick="czClick(${i},'${o.replace(/'/g,"\\'")}','${correct.replace(/'/g,"\\'")}',this,'${expl.replace(/'/g,"\\'")}')">${o}</button>`).join('')}`}</div><div id="cz-fb-${i}" style="display:${done?'block':'none'};margin-top:6px;font-size:11px;padding:6px 8px;border-radius:var(--border-radius-md);background:rgba(14,140,107,.08);border:0.5px solid rgba(14,140,107,.25);color:#085041"><i class="ti ti-check" aria-hidden="true" style="font-size:11px;margin-right:4px"></i>${expl}</div></div>`;}
+
+function makeConn(i,q,strongAnswer){const done=ST.connDone[i];return`<div class="al-card al-conn"><div class="al-hdr"><i class="ti ti-arrows-join" aria-hidden="true" style="font-size:13px;color:#0e8c6b"></i><span class="al-ey" style="color:#0e8c6b">Connection prompt</span></div><div style="font-size:11px;font-weight:500;margin-bottom:5px">${q}</div>${done?`<div style="font-size:11px;padding:6px 8px;background:rgba(14,140,107,.07);border-radius:var(--border-radius-md);border:0.5px solid rgba(14,140,107,.2);color:var(--color-text-secondary)"><strong style="color:#0e8c6b">Strong answer:</strong> ${strongAnswer}</div>`:`<textarea rows="2" placeholder="The connection is…" oninput="connIn(${i},this)" id="conn-ta-${i}"></textarea><button class="al-sbm" id="conn-btn-${i}" onclick="submitConn(${i})">Show strong answer</button>`}</div>`;}
+
+function makeClose(i){const done=ST.closeDone[i],txt=ST.closeTxt[i];return`<div class="al-card al-close" id="close-card-${i}"><div class="al-hdr"><i class="ti ti-rotate-clockwise" aria-hidden="true" style="font-size:13px;color:#2d6cdf"></i><span class="al-ey" style="color:#2d6cdf">Close the section</span><span style="font-size:9px;color:var(--color-text-secondary);margin-left:auto">unlocks Next</span></div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Without looking back — what was the one thing this section established?</div>${done?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px"><div><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:3px">Your close</div><div style="font-size:11px;padding:7px;background:var(--color-background-primary);border-radius:var(--border-radius-md);font-style:italic;color:var(--color-text-secondary)">${txt}</div></div><div><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:3px">Key claim</div><div style="font-size:11px;padding:7px;background:rgba(14,140,107,.06);border-radius:var(--border-radius-md);border:0.5px solid rgba(14,140,107,.2)">${LEC_SECS[i].key}</div></div></div>`:`<textarea rows="3" placeholder="This section established that…" id="close-ta-${i}" oninput="closeIn(${i},this)"></textarea><button class="al-sbm" id="close-btn-${i}" onclick="submitClose(${i})">Compare <i class="ti ti-eye" aria-hidden="true" style="font-size:11px"></i></button>`}</div>`;}
+
+function goLecSec(i){if(i<0||i>=LEC_SECS.length)return;curSec=i;document.getElementById('lec-main').scrollTop=0;document.getElementById('lec-claim-empty').style.display='block';document.getElementById('lec-claim-detail').style.display='none';buildLecNav();buildLecContent();buildLecSb();}
+function lecDone(){const m=document.getElementById('lec-main');if(m)m.insertAdjacentHTML('beforeend','<div style="margin-top:13px;padding:10px 12px;border-radius:var(--border-radius-md);background:rgba(14,140,107,.08);border:0.5px solid rgba(14,140,107,.3);font-size:12px;color:#085041;text-align:center"><i class="ti ti-check" aria-hidden="true" style="font-size:12px;margin-right:5px"></i>Lecture complete — proceed to Tasks</div>');}
+function predIn(i,el){ST.predict[i]=el.value;const btn=document.getElementById('pred-btn-'+i);if(btn)btn.className='al-sbm'+(el.value.trim().length>8?' go':'');}
+function submitPred(i){if((ST.predict[i]||'').trim().length<8)return;ST.predicted[i]=true;buildLecContent();buildLecSb();}
+function pauseIn(i,el){const btn=document.getElementById('pause-btn-'+i);if(btn)btn.className='al-sbm'+(el.value.trim().length>5?' go':'');}
+function submitPause(i){ST.pauseDone[i]=true;buildLecContent();buildLecSb();}
+function czClick(i,chosen,correct,btn,expl){if(ST.clozeDone[i])return;ST.clozeDone[i]=true;const isOk=chosen===correct;const opts=document.getElementById('cz-opts-'+i);if(opts)opts.innerHTML=`<button style="font-size:11px;padding:3px 9px;border-radius:99px;border:0.5px solid #0e8c6b;background:rgba(14,140,107,.1);color:#085041;font-family:var(--font-sans);pointer-events:none">${correct}</button>`;const cz=document.getElementById('cz-'+i);if(cz){cz.textContent=correct;cz.style.color='#0e8c6b';cz.style.borderBottomColor='#0e8c6b';}const fb=document.getElementById('cz-fb-'+i);if(fb){fb.style.display='block';fb.innerHTML=`<i class="ti ti-${isOk?'check':'info-circle'}" aria-hidden="true" style="font-size:11px;margin-right:4px"></i>${isOk?'Correct. ':'Not quite — "'+correct+'". '}${expl}`;fb.style.background=isOk?'rgba(14,140,107,.08)':'rgba(45,108,223,.08)';fb.style.borderColor=isOk?'rgba(14,140,107,.25)':'rgba(45,108,223,.25)';fb.style.color=isOk?'#085041':'#0C447C';}buildLecSb();}
+function connIn(i,el){const btn=document.getElementById('conn-btn-'+i);if(btn)btn.className='al-sbm'+(el.value.trim().length>10?' go':'');}
+function submitConn(i){ST.connDone[i]=true;buildLecContent();buildLecSb();}
+function closeIn(i,el){ST.closeTxt[i]=el.value;const btn=document.getElementById('close-btn-'+i);if(btn)btn.className='al-sbm'+(el.value.trim().length>15?' go':'');}
+function submitClose(i){if((ST.closeTxt[i]||'').trim().length<15)return;ST.closeDone[i]=true;buildLecContent();buildLecSb();buildLecNav();setTimeout(()=>{const r=document.getElementById('lec-main'),c=document.getElementById('close-card-'+i);if(r&&c)r.scrollTop=c.offsetTop-20;},100);}
+function showClaim(id){const c=LEC_CLAIMS[id],col=COL[c.st]||'#888';const txts=["A correct implementation returns right distances on non-negative graphs.","The algorithm produces wrong answers on negative-edge graphs.","O((V+E) log V) with a binary min-heap.","A micro-optimisation claimed to halve the constant factor — unsupported.","Dijkstra is always the best choice — disputed by Skeptic.","Whether it is right depends on the graph — interpretive."];document.getElementById('lec-claim-empty').style.display='none';const det=document.getElementById('lec-claim-detail');det.style.display='block';det.innerHTML=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">${glyph(c.st)}<span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:99px;border:0.5px solid ${col}40;color:${col}">${c.lbl}</span></div><div style="font-style:italic;margin-bottom:5px;padding-left:7px;border-left:2px solid var(--color-border-tertiary);font-size:11px">${txts[id]}</div><div style="font-size:10px;padding:5px 7px;border-radius:var(--border-radius-md);background:${col}12;border:0.5px solid ${col}40;color:${col}">${c.ev}</div><div style="display:flex;align-items:center;gap:4px;margin-top:5px"><div class="conf-track" style="width:36px"><div class="conf-fill" style="width:${Math.round(c.conf*100)}%;background:${col}"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">${c.conf.toFixed(2)}</span></div>`;}
+
+function grade(ti,text){const lower=text.toLowerCase(),r=TASKS[ti].rubric,rows=r.map(rr=>({...rr,hit:rr.kw.some(k=>lower.includes(k))})),hits=rows.filter(x=>x.hit).length;return{score:hits/rows.length,rows,missing:rows.filter(x=>!x.hit)};}
+function buildTasks(){
+  document.getElementById('task-list').innerHTML=TASKS.map(t=>{const isSel=selTask===t.id,sc=t.passed?'#0e8c6b':t.submitted?'#b4690e':'var(--color-text-secondary)';return`<div class="task-item ${isSel?'sel':''} ${t.passed?'passed':''}" onclick="selectTask(${t.id})"><div class="ti-lbl">${t.lbl}</div><div style="display:flex;justify-content:space-between;align-items:center"><span class="ti-type">${t.type}</span><span style="font-family:var(--font-mono);font-size:9px;color:${sc}">${t.passed?'passed':t.submitted?'revise':'to do'}</span></div></div>`;}).join('');
+}
+function selectTask(id){selTask=id;buildTasks();renderTaskDetail();}
+function renderTaskDetail(){
+  const t=TASKS[selTask],det=document.getElementById('task-detail');
+  let html=`<div><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin-bottom:4px">Task ${selTask+1} · ${t.type}</div><div style="font-size:15px;font-weight:500;line-height:1.4;margin-bottom:6px">${t.prompt}</div><div style="font-size:11px;color:var(--color-text-secondary);padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:10px;line-height:1.55">3–5 sentences in your own words. Graded against a source-derived rubric.</div></div>
+  <div class="hd"></div>
+  <textarea rows="5" placeholder="Write your answer here…" oninput="taskIn(${t.id},this)" ${t.passed?'disabled':''}>${t.draft||''}</textarea>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary)" id="tct-${t.id}">${(t.draft||'').length} chars</span>
+    <button class="btn btn-blue" id="tsb-${t.id}" onclick="submitTask(${t.id})" style="${(t.draft||'').trim().length>20&&!t.passed?'':'opacity:.4;pointer-events:none'}" ${t.passed?'disabled':''}>Submit for grading</button>
+  </div>`;
+  if(t.result){
+    const r=t.result,isP=r.score>=0.75,isPa=r.score>=0.4&&r.score<0.75,isF=r.score<0.4;
+    const gcls=isP?'grade-pass':isPa?'grade-partial':'grade-fail';
+    const col=isP?'#0e8c6b':isPa?'#b4690e':'#c0392b';
+    html+=`<div class="${gcls}"><div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><i class="ti ti-${isP?'check':isPa?'minus':'x'}" aria-hidden="true" style="font-size:14px;color:${col}"></i><span style="font-size:13px;font-weight:500;color:${col}">${isP?'Passes':'Partially correct'}</span><span style="font-family:var(--font-mono);font-size:11px;color:${col};margin-left:auto">${Math.round(r.score*100)}%</span></div>${r.rows.map(row=>`<div class="rr"><div class="rr-dot" style="background:${row.hit?'#0e8c6b':'var(--color-border-secondary)'}"></div><span style="font-size:12px;color:${row.hit?'var(--color-text-primary)':'var(--color-text-secondary)'}">${row.lbl}</span>${!row.hit?'<span style="font-family:var(--font-mono);font-size:9px;color:#b4690e;margin-left:auto">missing</span>':''}</div>`).join('')}</div>`;
+    if(!isP&&r.missing.length>0){
+      if(isPa){html+=`<div class="fu-block"><div class="fu-ey">Follow-up question</div><div style="font-size:12px;font-weight:500;margin-bottom:6px">${r.missing[0].lbl} — can you address this specifically?</div><textarea rows="2" placeholder="Your follow-up…" oninput="fuIn(${t.id},this)" ${t.fuResult&&t.fuResult.passed?'disabled':''}>${t.fuDraft||''}</textarea><div style="display:flex;justify-content:flex-end;margin-top:5px"><button class="btn btn-blue" style="${(t.fuDraft||'').trim().length>10&&!(t.fuResult&&t.fuResult.passed)?'':'opacity:.4;pointer-events:none'}" onclick="submitFu(${t.id})">Submit</button></div>${t.fuResult?`<div style="margin-top:6px;font-size:11px;padding:7px 9px;border-radius:var(--border-radius-md);background:${t.fuResult.passed?'rgba(14,140,107,.08)':'rgba(180,105,14,.08)'};border:0.5px solid ${t.fuResult.passed?'rgba(14,140,107,.25)':'rgba(180,105,14,.25)'};color:${t.fuResult.passed?'#085041':'#633806'}">${t.fuResult.passed?'<i class="ti ti-check" aria-hidden="true" style="font-size:11px;margin-right:4px"></i>Good — that covers it.':'<i class="ti ti-minus" aria-hidden="true" style="font-size:11px;margin-right:4px"></i>Not quite — try to be more specific.'}</div>`:''}
+      </div>`;}
+      if(!t.openMicro){html+=`<button class="btn" onclick="openMicro(${t.id})" style="font-size:11px"><i class="ti ti-chevron-down" aria-hidden="true" style="font-size:12px"></i> Why was this missing? Open micro-chapter</button>`;}
+      if(t.openMicro){html+=`<div class="mc-block"><div class="mc-hdr">${glyph('vs',12)}<span style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-secondary)">Micro-chapter</span><span style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:99px;border:0.5px solid rgba(45,108,223,.3);background:rgba(45,108,223,.08);color:#0C447C;margin-left:auto">source-grounded</span></div><div class="mc-body"><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin-bottom:5px">What you wrote</div><div class="mc-wrote">${(t.draft||'').slice(0,100)}${(t.draft||'').length>100?'…':''}</div>${t.mc.split('. ').filter(s=>s).map(s=>`<div class="mc-sent"><div style="display:flex;justify-content:center;padding-top:2px">${glyph('vs',11)}</div><div><div class="mc-sent-text">${s}.</div><div class="mc-sent-meta">Tier 2 · documented · Cormen §24.3</div></div></div>`).join('')}</div></div>`;}
+    }
+    if(isP||(t.fuResult&&t.fuResult.passed)){html+=`<div class="ma-block"><div class="ma-hdr">${glyph('vs',12)}<span style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#0e8c6b">Model answer</span><span style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:99px;border:0.5px solid rgba(14,140,107,.3);background:rgba(14,140,107,.1);color:#085041;margin-left:auto">source-grounded · 0.90</span></div><div class="ma-body">${t.ma}</div></div>`;if(selTask<TASKS.length-1){html+=`<button class="btn btn-blue" onclick="selectTask(${selTask+1})">Next task <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:12px"></i></button>`;}}
+  }
+  det.innerHTML=html;
+}
+function taskIn(id,el){TASKS[id].draft=el.value;const cc=document.getElementById('tct-'+id),sb=document.getElementById('tsb-'+id);if(cc)cc.textContent=el.value.length+' chars';if(sb){const ok=el.value.trim().length>20&&!TASKS[id].passed;sb.style.opacity=ok?'1':'0.4';sb.style.pointerEvents=ok?'auto':'none';}}
+function submitTask(id){const t=TASKS[id];if((t.draft||'').trim().length<20)return;t.submitted=true;t.result=grade(id,t.draft||'');if(t.result.score>=0.75){t.passed=true;updateBadges();}buildTasks();renderTaskDetail();}
+function fuIn(id,el){TASKS[id].fuDraft=el.value;renderTaskDetail();}
+function submitFu(id){const t=TASKS[id];if((t.fuDraft||'').trim().length<10)return;const miss=t.result.missing,hit=miss.length>0&&miss[0].kw.some(k=>t.fuDraft.toLowerCase().includes(k));t.fuResult={passed:hit};if(hit){miss[0].hit=true;const ns=t.result.rows.filter(r=>r.hit).length/t.result.rows.length;t.result.score=ns;t.result.missing=t.result.rows.filter(r=>!r.hit);if(ns>=0.75){t.passed=true;updateBadges();}}buildTasks();renderTaskDetail();}
+function openMicro(id){TASKS[id].openMicro=true;renderTaskDetail();}
+
+function renderCQDetail(id,det){
+  const c=CONFLICTS[id];
+  det.innerHTML=`<div><div style="font-family:var(--font-mono);font-size:10px;color:#c0392b;margin-bottom:4px">Raised by ${c.raiser}</div><div class="cq-claim-box">${c.claim}</div></div>
+  <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.55">${c.desc}</div>
+  <div><div class="ey" style="margin-bottom:6px">Competing positions</div><div class="positions">${c.pos.map((p,i)=>`<div class="pos-card ${c.selPos===i?'sel':''}" onclick="selPos(${id},${i},'${det.id}')"><div class="pos-stance">${p.stance}</div><div class="pos-sup">${p.support}</div></div>`).join('')}</div></div>
+  ${c.resolved?`<div style="padding:8px 10px;border-radius:var(--border-radius-md);background:rgba(14,140,107,.08);border:0.5px solid rgba(14,140,107,.25);font-size:11px;color:#085041"><i class="ti ti-check" aria-hidden="true" style="font-size:11px;margin-right:4px"></i>Resolved: ${c.res.slice(0,80)}${c.res.length>80?'…':''}</div>`:''}
+  <div><div class="ey" style="margin-bottom:5px">Your resolution</div>
+  <textarea rows="3" placeholder="Which position holds, and why?" oninput="cqIn(${id},this,'${det.id}')" ${c.resolved?'disabled':''}>${c.res}</textarea>
+  <div style="display:flex;justify-content:flex-end;margin-top:5px"><button class="btn ${c.resolved?'btn-green':c.res.trim().length>8?'btn-blue':''}" style="${!c.resolved&&c.res.trim().length<=8?'opacity:.4;pointer-events:none':''}" onclick="cqRecord(${id},'${det.id}')">${c.resolved?'<i class="ti ti-check" aria-hidden="true" style="font-size:12px"></i> Recorded':'Record resolution'}</button></div></div>`;
+}
+function buildTCQ(){document.getElementById('tcq-list').innerHTML=CONFLICTS.map(c=>`<div class="cq-item ${selCQ===c.id?'sel':''} ${c.resolved?'res':''}" onclick="selCQ_topic(${c.id})"><div class="cq-claim">${c.claim.length>55?c.claim.slice(0,55)+'…':c.claim}</div><div style="display:flex;gap:5px;align-items:center"><span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:99px;border:0.5px solid ${c.resolved?'rgba(14,140,107,.3)':'rgba(192,57,43,.3)'};color:${c.resolved?'#0e8c6b':'#c0392b'}">${c.resolved?'resolved':'open'}</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">${c.raiser}</span></div></div>`).join('');}
+function selCQ_topic(id){selCQ=id;buildTCQ();renderCQDetail(id,document.getElementById('tcq-detail'));}
+function renderGCQ(){document.getElementById('gcq-list').innerHTML=CONFLICTS.map(c=>`<div class="cq-item ${selCQ===c.id?'sel':''} ${c.resolved?'res':''}" onclick="selCQ_global(${c.id})"><div class="cq-claim">${c.claim.length>55?c.claim.slice(0,55)+'…':c.claim}</div><div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;padding:2px 6px;border-radius:99px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)">${c.topic}</span><span style="font-family:var(--font-mono);font-size:9px;color:${c.resolved?'#0e8c6b':'#c0392b'}">${c.resolved?'resolved':'open'}</span></div></div>`).join('');}
+function selCQ_global(id){selCQ=id;renderGCQ();renderCQDetail(id,document.getElementById('gcq-detail'));}
+function selPos(cid,idx,detId){const c=CONFLICTS[cid];if(c.resolved)return;c.selPos=idx;if(!c.res)c.res=c.pos[idx].stance+' — '+c.pos[idx].support;renderCQDetail(cid,document.getElementById(detId));}
+function cqIn(cid,el,detId){CONFLICTS[cid].res=el.value;const btn=el.closest('.cq-detail').querySelector('button:last-child');if(btn){const ok=el.value.trim().length>8&&!CONFLICTS[cid].resolved;btn.style.opacity=ok?'1':'0.4';btn.style.pointerEvents=ok?'auto':'none';}}
+function cqRecord(cid,detId){const c=CONFLICTS[cid];if(c.res.trim().length<8)return;c.resolved=true;updateBadges();renderCQDetail(cid,document.getElementById(detId));renderGCQ();buildTCQ();}
+
+function buildTSrc(){document.getElementById('tsrc-list').innerHTML=SOURCES.map(s=>`<div class="src-item ${selSrc===s.id?'sel':''}" onclick="selSrcFn(${s.id},'t')"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">${s.icon}</span><div><div style="font-size:11px;font-weight:500;line-height:1.3">${s.title.slice(0,28)}${s.title.length>28?'…':''}</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">${s.loc.slice(0,30)}${s.loc.length>30?'…':''}</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px"><div style="display:flex;gap:2px">${s.claims.map(cid=>`<div style="width:5px;height:5px;border-radius:50%;background:${['#0e8c6b','#0e8c6b','#2d6cdf'][cid]||'#888'}"></div>`).join('')}${!s.claims.length?'<span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">unused</span>':''}</div><span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:99px;border:0.5px solid ${s.sc}40;color:${s.sc}">${s.status}</span></div></div>`).join('');}
+function renderGSrc(){document.getElementById('gsrc-list').innerHTML=`<div style="padding:8px 11px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)"><div class="ey">Sources — 4 attached</div></div>`+SOURCES.map(s=>`<div class="src-item ${selSrc===s.id?'sel':''}" onclick="selSrcFn(${s.id},'g')"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">${s.icon}</span><div><div style="font-size:11px;font-weight:500;line-height:1.3">${s.title.slice(0,28)}${s.title.length>28?'…':''}</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">${s.loc.slice(0,30)}${s.loc.length>30?'…':''}</div></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px"><div style="display:flex;gap:2px">${s.claims.map(cid=>`<div style="width:5px;height:5px;border-radius:50%;background:${['#0e8c6b','#0e8c6b','#2d6cdf','#888'][cid]||'#888'}"></div>`).join('')}${!s.claims.length?'<span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">not yet used</span>':''}</div><span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:99px;border:0.5px solid ${s.sc}40;color:${s.sc}">${s.status}</span></div></div>`).join('');}
+function selSrcFn(id,ctx){
+  selSrc=id;const s=SOURCES[id];
+  const cTxts=["Correct implementation returns right distances on non-negative graphs.","Produces wrong answers on negative-edge graphs.","O((V+E) log V) with a binary min-heap.","Micro-optimisation — unsupported.","Always best choice — disputed.","Depends on the graph — interpretive."];
+  const cSts=['ve','ve','vs','us','di','in'];
+  const detHtml=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px;padding:12px 13px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)"><span style="font-size:22px">${s.icon}</span><div><div style="font-size:14px;font-weight:500;line-height:1.3">${s.title}</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">${s.loc}</div><div style="display:flex;gap:4px;margin-top:4px"><span style="font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:99px;border:0.5px solid ${s.sc}40;background:${s.sc}12;color:${s.sc}">${s.status}</span>${s.preferred?'<span style="font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:99px;border:0.5px solid rgba(14,140,107,.3);background:rgba(14,140,107,.08);color:#0e8c6b">preferred</span>':''}</div></div></div><div style="padding:10px 13px;font-size:12px;color:var(--color-text-secondary)">${{verified:"Verified — claims checked against this source and matched.",retrieved:"Retrieved — used by the system, partial match.",attached:"Attached by you — not yet used for verification."}[s.status]}</div><div style="display:flex;gap:6px;padding:8px 13px;border-top:0.5px solid var(--color-border-tertiary)">${!s.preferred?`<button class="btn btn-green" onclick="setPref(${s.id})"><i class="ti ti-star" aria-hidden="true" style="font-size:12px"></i> Set as preferred</button>`:''}<button class="btn" style="color:#c0392b;border-color:rgba(192,57,43,.3)"><i class="ti ti-trash" aria-hidden="true" style="font-size:12px"></i> Remove</button></div></div>
+  ${s.claims.length?`<div class="ey" style="margin-bottom:7px">Claims grounded by this source</div>${s.claims.map(cid=>`<div style="display:grid;grid-template-columns:18px 1fr;gap:0 8px;padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);margin-bottom:5px;align-items:start">${glyph(cSts[cid],12)}<div><div style="font-size:12px;line-height:1.4;margin-bottom:3px">${cTxts[cid]}</div><span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:99px;border:0.5px solid ${COL[cSts[cid]]||'#888'}40;color:${COL[cSts[cid]]||'#888'}">${LBL[cSts[cid]]}</span></div></div>`).join('')}`:''}
+  <div class="ey" style="margin-bottom:7px;margin-top:10px">Coverage map — all claims × all sources</div>
+  ${[0,1,2,3,4,5].map(cid=>{const st=cSts[cid],col=COL[st]||'#888',lbl=["Correct impl","Fails on neg edges","O((V+E)logV)","Micro-opt","Always best","Depends on graph"][cid];return`<div style="display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;margin-bottom:4px"><div style="display:flex;align-items:flex-start;gap:4px">${glyph(st,10)}<span style="font-size:10px;color:var(--color-text-secondary);line-height:1.3">${lbl}</span></div><div style="display:flex;gap:2px">${SOURCES.map(src=>{const cov=src.claims.includes(cid);return cov?`<div style="height:12px;border-radius:2px;background:${src.sc};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:0 3px;min-width:12px" title="${src.title.slice(0,20)}">${src.icon}</div>`:`<div style="width:12px;height:12px;border-radius:2px;background:var(--color-background-secondary);border:0.5px dashed var(--color-border-secondary)"></div>`;}).join('')}</div></div>`;}).join('')}`;
+  const detEl=document.getElementById(ctx==='g'?'gsrc-detail':'tsrc-detail');
+  detEl.innerHTML=detHtml;
+  if(ctx==='g')renderGSrc();else buildTSrc();
+}
+function setPref(id){SOURCES.forEach(s=>s.preferred=false);SOURCES[id].preferred=true;selSrcFn(id,document.getElementById('gsrc-detail').innerHTML.length>50?'g':'t');}
+
+function updateBadges(){
+  const open=CONFLICTS.filter(c=>!c.resolved).length;
+  document.getElementById('bdg-cq').textContent=open;
+  document.getElementById('bdg-cq').style.display=open>0?'flex':'none';
+  document.getElementById('cq-pill').textContent=open+' open';
+  document.getElementById('lib-cq').textContent=open;
+  document.getElementById('t-cq-bdg').textContent=open;
+}
+
+function rvRender(){
+  const main=document.getElementById('rv-main');
+  if(rvCur>=RV.length){main.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:30px;text-align:center"><div style="width:44px;height:44px;border-radius:50%;background:rgba(14,140,107,.1);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:20px">✅</div><div style="font-size:15px;font-weight:500">Session complete</div><div style="font-size:12px;color:var(--color-text-secondary)">4 reviewed · next due in 2 days</div><button class="btn" onclick="nav('library')">Back to library</button></div>`;document.getElementById('rv-ct').textContent='done';document.getElementById('rv-prog').style.width='100%';return;}
+  const item=RV[rvCur];document.getElementById('rv-ct').textContent=(rvCur+1)+' / '+RV.length;document.getElementById('rv-prog').style.width=Math.round(rvCur/RV.length*100)+'%';confPicked=null;drillDone=false;
+  if(item.isDrill){main.innerHTML=`<div class="rv-q-card"><div class="rv-q-hdr"><span class="ey">Seeded drill — spot the error</span></div><div class="rv-q-body">${item.q}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" id="drill-btns"><button class="btn" onclick="drillAns(true)">True</button><button class="btn" onclick="drillAns(false)">False — this is wrong</button></div><div id="drill-res" style="display:none"></div>`;}
+  else{main.innerHTML=`<div class="rv-q-card"><div class="rv-q-hdr"><span class="ey">Flashcard</span></div><div class="rv-q-body">${item.q}</div></div>
+  <div class="ey" style="margin-bottom:6px">Before you reveal — how confident are you?</div>
+  <div class="conf-btns"><button class="conf-btn conf-sure" onclick="pickConf('sure',this)"><span style="font-size:16px">🟢</span><span style="font-size:12px;font-weight:500;color:#0e8c6b">Sure</span></button><button class="conf-btn conf-unsure" onclick="pickConf('unsure',this)"><span style="font-size:16px">🟡</span><span style="font-size:12px;font-weight:500;color:#b4690e">Unsure</span></button><button class="conf-btn conf-guess" onclick="pickConf('guess',this)"><span style="font-size:16px">🔴</span><span style="font-size:12px;font-weight:500;color:#c0392b">Guessing</span></button></div>
+  <button id="reveal-btn" class="btn" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;margin-bottom:10px" onclick="rvReveal()">Show answer</button>
+  <div class="ans-box" id="rv-ans"><div class="ans-lbl"><i class="ti ti-book" aria-hidden="true" style="font-size:10px;margin-right:4px"></i>${item.src}</div><div style="font-size:13px;line-height:1.65;margin-top:4px">${item.a}</div></div>
+  <div class="wi-row" id="wi-row" style="display:none"><span style="font-size:11px;color:var(--color-text-secondary)">Had a misconception — not just forgot?</span><button class="btn" style="font-size:11px;border-color:rgba(192,57,43,.4);color:#c0392b" onclick="ackWI()"><i class="ti ti-x" aria-hidden="true" style="font-size:11px"></i> I had the wrong idea</button></div>
+  <div class="wi-block" id="wi-block"><div style="font-size:12px;font-weight:500;color:#c0392b;margin-bottom:6px"><i class="ti ti-x" aria-hidden="true" style="font-size:13px;margin-right:5px"></i>I had the wrong idea</div><div style="font-size:12px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:8px">A common misconception is confusing the no-negative-edges condition (Dijkstra) with the no-negative-cycles condition (Bellman-Ford). They are different algorithms with different preconditions.</div><div class="exp-section"><div class="exp-hdr" onclick="togExp('es-why')">Why this misconception happens <i class="ti ti-chevron-down" aria-hidden="true" id="es-why-ic" style="font-size:12px"></i></div><div class="exp-body" id="es-why">The two algorithms are often taught together. The no-negative-cycles condition sounds like a stronger requirement — making it tempting to assume Dijkstra handles the weaker case. It does not. <strong>Any single negative edge breaks the finalisation invariant.</strong></div></div><div class="exp-section"><div class="exp-hdr" onclick="togExp('es-full')">Full explanation — micro-chapter <i class="ti ti-chevron-down" aria-hidden="true" id="es-full-ic" style="font-size:12px"></i></div><div class="exp-body" id="es-full">The finalisation invariant states that a locked-in distance is permanently the true shortest. A negative edge breaks this: a path that looks longer now could become shorter after traversing it, reaching an already-finalised node via a better route the algorithm will never discover. The failure is silent — no exception, just wrong distances.</div></div><button class="btn btn-green" style="font-size:11px;margin-top:6px" onclick="this.innerHTML='<i class=\\'ti ti-check\\' aria-hidden=\\'true\\' style=\\'font-size:11px\\'></i> Added to gap map';this.className='btn';this.onclick=null"><i class="ti ti-plus" aria-hidden="true" style="font-size:11px"></i> Add to gap map</button></div>
+  <div class="rate-row" id="rate-row" style="display:none"><button class="r-btn" style="border-color:rgba(192,57,43,.35)" onclick="rate(1)"><span style="font-size:12px;font-weight:500;color:#c0392b">Again</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">forgot</span></button><button class="r-btn" style="border-color:rgba(180,105,14,.35)" onclick="rate(2)"><span style="font-size:12px;font-weight:500;color:#b4690e">Hard</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">struggled</span></button><button class="r-btn" onclick="rate(3)"><span style="font-size:12px;font-weight:500">Good</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">recalled</span></button><button class="r-btn" style="border-color:rgba(14,140,107,.35)" onclick="rate(4)"><span style="font-size:12px;font-weight:500;color:#0e8c6b">Easy</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--color-text-secondary)">solid</span></button></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);margin-top:8px" id="disagree-row" style="display:none"><span style="font-size:11px;color:var(--color-text-secondary)">Think the answer is wrong?</span><button class="btn" style="font-size:11px;border-color:rgba(192,57,43,.3);color:#c0392b"><i class="ti ti-message-circle" aria-hidden="true" style="font-size:12px"></i> Discuss</button></div>`;}
+  rvRenderQueue();
+}
+function pickConf(conf,btn){document.querySelectorAll('.conf-btn').forEach(b=>b.classList.remove('picked'));btn.classList.add('picked');confPicked=conf;const rb=document.getElementById('reveal-btn');if(rb){rb.style.opacity='1';rb.style.pointerEvents='auto';}}
+function rvReveal(){document.getElementById('rv-ans').classList.add('show');document.getElementById('rate-row').style.display='grid';const wr=document.getElementById('wi-row');if(wr)wr.style.display='flex';const dr=document.getElementById('disagree-row');if(dr)dr.style.display='flex';document.getElementById('reveal-btn').style.display='none';}
+function ackWI(){document.getElementById('wi-block').classList.add('show');document.getElementById('wi-row').style.display='none';}
+function togExp(id){const b=document.getElementById(id),ic=document.getElementById(id+'-ic');if(b){const open=b.classList.toggle('open');if(ic)ic.style.transform=open?'rotate(180deg)':'rotate(0deg)';}}
+function rate(r){if(r===1){const wb=document.getElementById('wi-block');if(wb)wb.classList.add('show');const wr=document.getElementById('wi-row');if(wr)wr.style.display='none';}else{rvRev.push(rvCur);rvCur++;setTimeout(()=>rvRender(),350);}}
+function drillAns(ans){if(drillDone)return;drillDone=true;const item=RV[rvCur],correct=ans===item.drillAnswer;document.querySelectorAll('#drill-btns button').forEach(b=>{b.disabled=true;b.style.opacity='.5';});const res=document.getElementById('drill-res');if(res){res.style.display='block';res.innerHTML=`<div style="margin-top:8px;font-size:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:${correct?'rgba(14,140,107,.08)':'rgba(192,57,43,.08)'};border:0.5px solid ${correct?'rgba(14,140,107,.25)':'rgba(192,57,43,.25)'};color:${correct?'#085041':'#791f1f'}">${correct?'<i class="ti ti-check" aria-hidden="true" style="font-size:12px;margin-right:4px"></i>You caught it.':'<i class="ti ti-x" aria-hidden="true" style="font-size:12px;margin-right:4px"></i>Missed.'} ${item.explanation}</div>`;}document.getElementById('bs-val').textContent=correct?'6/9':'5/9';setTimeout(()=>{rvRev.push(rvCur);rvCur++;rvRender();},2200);}
+function rvRenderQueue(){document.getElementById('rv-queue').innerHTML=RV.map((item,i)=>{const done=rvRev.includes(i),active=i===rvCur;return`<div class="rv-q-item ${active?'active':''} ${done?'done':''}"><div style="width:5px;height:5px;border-radius:50%;background:${done?'#0e8c6b':item.isDrill?'#6d5bd0':'#2d6cdf'}"></div><span style="font-size:10px">${item.isDrill?'Drill · negative edges':item.q.slice(0,32)+'…'}</span></div>`;}).join('');}
+
+function stTab(id,btn){document.querySelectorAll('.st-panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.st-nav-item').forEach(b=>b.classList.remove('on'));document.getElementById('stp-'+id).classList.add('on');if(btn)btn.classList.add('on');}
+function segCl(btn){btn.closest('.seg-ctrl').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+
+renderLib();
+</script>

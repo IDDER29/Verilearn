@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e9e4f5;font-family:'Nunito',system-ui,sans-serif;color:#221f2e;-webkit-font-smoothing:antialiased}
+  input:focus{outline:none;border-color:#6d5bd0 !important;box-shadow:0 0 0 3px rgba(109,91,208,.14)}
+  ::placeholder{color:#b6b1c4}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:26px;box-sizing:border-box;display:flex;justify-content:center">
+  <div style="width:1340px;flex-shrink:0;background:#f4f2f8;border-radius:30px;display:grid;grid-template-columns:248px 1fr;overflow:hidden;box-shadow:0 30px 80px -40px rgba(80,60,140,.4)">
+
+    <aside style="background:#fbfafd;padding:26px 18px;display:flex;flex-direction:column;gap:6px;border-right:1px solid #ece8f4">
+      <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 20px">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6d5bd0,#8b78e8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -4px rgba(109,91,208,.6)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.9 7.2 18.7l.9-5.4-3.9-3.8 5.4-.8z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.3 12l1.9 1.9L15 10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span style="font:900 21px 'Nunito';letter-spacing:-.02em">VeriLearn</span>
+      </div>
+      <a href="VeriLearn%20Dashboard.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Dashboard</a>
+      <a href="VeriLearn%20Topic%20Workspace.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg> Topics</a>
+      <a href="VeriLearn%20My%20Tasks.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg> My Tasks</a>
+      <a href="VeriLearn%20Community.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 6a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/></svg> Community</a>
+      <a href="VeriLearn%20Progress.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Reports</a>
+      <a href="VeriLearn%20Events.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg> Events</a>
+      <div style="height:1px;background:#ece8f4;margin:14px 8px"></div>
+      <a href="VeriLearn%20Settings.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#6d5bd0;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;box-shadow:0 10px 22px -8px rgba(109,91,208,.7)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg> Settings</a>
+      <a href="VeriLearn%20Support.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.5.8c0 1.9-2.8 2.5-2.8 2.5M12 17h.01"/></svg> Support</a>
+      <div style="margin-top:auto"></div>
+      <div style="background:linear-gradient(160deg,#ffffff,#f3f0fb);border:1px solid #ece8f4;border-radius:20px;padding:18px 16px;text-align:center;margin-top:16px">
+        <div style="width:60px;height:60px;border-radius:50%;margin:0 auto 12px;background:radial-gradient(circle at 40% 35%,#3a3550,#17141f);display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c4b8f5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 1.5 5 5 5 9l-2.5 2.5h-5L7 12c0-4 2-7.5 5-9z"/><circle cx="12" cy="9.5" r="1.6"/><path d="M9.5 17c-1 .5-1.8 1.6-2 3 1.4-.2 2.5-1 3-2M14.5 17c1 .5 1.8 1.6 2 3-1.4-.2-2.5-1-3-2"/></svg></div>
+        <div style="font:800 15px 'Nunito'">Go Verified Pro</div>
+        <div style="font:600 11.5px/1.5 'Nunito';color:#8b8699;margin:5px 0 14px">Deeper checks &amp; the Skeptic on hard mode.</div>
+        <a href="VeriLearn%20Upgrade.dc.html" style="display:block;text-align:center;text-decoration:none;padding:11px;border-radius:13px;background:#221f2e;color:#fff;font:800 13px 'Nunito'">Upgrade</a>
+      </div>
+    </aside>
+
+    <main style="padding:24px 26px 30px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:24px;align-items:start">
+      <div>
+        <div style="font:900 22px 'Nunito';letter-spacing:-.02em;margin-bottom:14px">Settings</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span style="font:800 10px 'Nunito';letter-spacing:.07em;text-transform:uppercase;color:#a7a1b8;padding:8px 12px 4px">Account</span>
+          <a href="VeriLearn%20Settings%20Profile.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#efe9ff;color:#6d5bd0;text-decoration:none;font:800 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0116 0"/></svg>Profile</a>
+          <a href="VeriLearn%20Settings%20Plan.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#6c6780;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M2 10h20"/></svg>Plan &amp; billing</a>
+          <span style="font:800 10px 'Nunito';letter-spacing:.07em;text-transform:uppercase;color:#a7a1b8;padding:12px 12px 4px">Learning</span>
+          <a href="VeriLearn%20Settings.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#6c6780;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 2 6.5 2 8 1.5V12c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V4.5C5.5 5 8 5 12 3z"/><path d="M9 12l2 2 4-4"/></svg>Verification</a>
+          <a href="VeriLearn%20Settings%20Active%20Listening.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#6c6780;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a7 7 0 00-4 12.7V18h8v-2.3A7 7 0 0012 3zM9.5 21h5"/></svg>Active listening</a>
+          <a href="VeriLearn%20Settings%20Review.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#6c6780;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5"/></svg>Review &amp; FSRS</a>
+          <span style="font:800 10px 'Nunito';letter-spacing:.07em;text-transform:uppercase;color:#a7a1b8;padding:12px 12px 4px">Data</span>
+          <a href="VeriLearn%20Settings%20Privacy.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#6c6780;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>Privacy</a>
+          <a href="VeriLearn%20Settings%20Danger.dc.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:#c0392b;text-decoration:none;font:700 13px 'Nunito'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>Danger zone</a>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:13px"><div style="width:46px;height:46px;border-radius:15px;background:#efe9ff;display:flex;align-items:center;justify-content:center"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0116 0"/></svg></div><div><div style="font:900 20px 'Nunito'">Profile</div><div style="font:600 12.5px 'Nunito';color:#8b8699">Your identity across VeriLearn</div></div></div>
+
+        <!-- avatar row -->
+        <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28);display:flex;align-items:center;gap:18px">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f6d8e8,#efe4ff);display:flex;align-items:center;justify-content:center;font-size:34px;border:3px solid #f3eefc;flex-shrink:0">🧑‍🎨</div>
+          <div style="flex:1;min-width:0"><div style="font:900 16px 'Nunito'">Adeline Watson</div><div style="font:600 12.5px 'Nunito';color:#8b8699">Verified Learner · joined Mar 2026</div></div>
+          <button style="border:1.5px solid #ece8f4;background:#fbfafd;color:#4a4560;font:800 12.5px 'Nunito';padding:10px 16px;border-radius:12px;cursor:pointer">Change photo</button>
+        </div>
+
+        <!-- fields -->
+        <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Full name</div><input type="text" value="Adeline Watson" style="width:100%;box-sizing:border-box;font:600 14px 'Nunito';padding:11px 13px;border:1.5px solid #ece8f4;border-radius:12px;background:#fbfafd"></div>
+            <div><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Display name</div><input type="text" value="Adeline" style="width:100%;box-sizing:border-box;font:600 14px 'Nunito';padding:11px 13px;border:1.5px solid #ece8f4;border-radius:12px;background:#fbfafd"></div>
+          </div>
+          <div style="margin-bottom:16px"><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Email</div><input type="text" value="adeline@example.com" style="width:100%;box-sizing:border-box;font:600 14px 'Nunito';padding:11px 13px;border:1.5px solid #ece8f4;border-radius:12px;background:#fbfafd"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Language</div><div style="display:flex;align-items:center;justify-content:space-between;font:600 14px 'Nunito';padding:11px 13px;border:1.5px solid #ece8f4;border-radius:12px;background:#fbfafd">English (US)<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a7a1b8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+            <div><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Timezone</div><div style="display:flex;align-items:center;justify-content:space-between;font:600 14px 'Nunito';padding:11px 13px;border:1.5px solid #ece8f4;border-radius:12px;background:#fbfafd">GMT+3 · Riyadh<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a7a1b8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- save bar -->
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#fff;border-radius:20px;padding:16px 24px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+          <button style="border:1.5px solid #ece8f4;background:#fbfafd;color:#6c6780;font:800 13.5px 'Nunito';padding:11px 20px;border-radius:13px;cursor:pointer">Cancel</button>
+          <button style="border:none;background:#6d5bd0;color:#fff;font:800 13.5px 'Nunito';padding:11px 24px;border-radius:13px;cursor:pointer;box-shadow:0 10px 22px -8px rgba(109,91,208,.7)">Save changes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1392,&quot;height&quot;:820}}"></script>
+</body>
+</html>

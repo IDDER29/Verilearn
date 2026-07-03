@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#b4690e;color:#fff;border-color:#b4690e}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#b4690e;background:#fff;border:1px solid rgba(180,105,14,.35);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#b4690e}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .ribbon{display:flex;gap:0;margin:26px 0 8px;background:#fbfaf7;border:1px solid #e2ddd3;border-radius:12px;padding:14px 8px;flex-wrap:wrap}
+  .rstep{flex:1;min-width:150px;display:flex;flex-direction:column;gap:3px;padding:4px 14px;position:relative}
+  .rstep:not(:last-child):after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:rgba(180,105,14,.4);font-size:17px}
+  .rk{font:600 9px ui-monospace,Menlo,monospace;color:#fff;background:#b4690e;min-width:24px;padding:0 5px;height:19px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .rt{font:600 13px system-ui;letter-spacing:-.005em}
+  .rd{font:11.5px/1.4 system-ui;color:#837d73}
+  .loop{font:11px/1.4 system-ui;color:#9a948a;margin:9px 0 0;padding-left:6px}
+  .loop b{color:#b4690e;font-weight:600}
+  .screen{display:flex;gap:34px;align-items:flex-start;margin-top:34px;padding-top:30px;border-top:1px dashed #cdc7bb}
+  .screen:first-of-type{border-top:none}
+  .scap{width:392px;flex-shrink:0}
+  .schd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .snum{min-width:24px;height:24px;padding:0 6px;border-radius:7px;background:#b4690e;color:#fff;font:600 12px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 17px system-ui;letter-spacing:-.005em}
+  .sid{font:600 9px ui-monospace,Menlo,monospace;color:#b4690e;border:1px solid rgba(180,105,14,.35);background:#fff;padding:2px 6px;border-radius:5px}
+  .wf{width:392px;background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;flex-direction:column}
+  .wftop{height:32px;flex-shrink:0;background:#f4f2ec;border-bottom:1px solid #e7e2d8;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+  .wtt{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#8a8478;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .chev{color:#b3aca0;font-size:12px}
+  .btng{height:20px;border-radius:6px;border:1px solid rgba(14,140,107,.4);background:#fff;color:#0e8c6b;display:flex;align-items:center;justify-content:center;font:600 9px system-ui;padding:0 9px}
+  .wfrow{display:flex;flex:1;min-height:0}
+  .rail{width:26px;flex-shrink:0;background:#f4f2ec;border-right:1px solid #e7e2d8;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 0}
+  .rdd{width:8px;height:8px;border-radius:50%;background:#d0cbc0}
+  .rdd.on{background:#b4690e}
+  .pane{flex:1;padding:12px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .cap{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:#a49e92}
+  .region{position:relative}
+  .pin{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#b4690e;color:#fff;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:2}
+  .pin.right{left:auto;right:-7px}
+  .b{background:#e8e5de;border-radius:4px;display:block}
+  .bl{background:#e8e5de;border-radius:3px;height:8px;display:block}
+  .siggrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .sigcard{background:#faf9f6;border:1px solid #e7e2d8;border-radius:8px;padding:8px 9px;display:flex;flex-direction:column;gap:4px}
+  .sigval{font:600 18px ui-monospace,Menlo,monospace;line-height:1}
+  .sigtrack{height:3px;border-radius:2px;background:#e8e5de;overflow:hidden}
+  .sigfill{height:100%;border-radius:2px}
+  .barrow{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .bcol{display:flex;flex-direction:column;gap:2px}
+  .btrack{height:3px;border-radius:2px;background:#e8e5de;overflow:hidden}
+  .cols2{display:grid;flex:1;min-height:0}
+  .lcol{border-right:1px solid #eee7dd;overflow:hidden;display:flex;flex-direction:column;background:#faf9f6}
+  .snavlbl{font:600 7.5px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;padding:8px 9px 3px}
+  .snavit{display:flex;align-items:center;gap:6px;padding:5px 9px;font:600 10px system-ui;color:#847e73}
+  .snavit.on{color:#b4690e;background:#fff;box-shadow:inset 2px 0 0 #b4690e}
+  .snavit.dng{color:#c0392b}
+  .snavic{width:11px;height:11px;border-radius:3px;background:#d8d2c6}
+  .snavit.on .snavic{background:#b4690e}
+  .dcol{padding:11px;display:flex;flex-direction:column;gap:9px;min-width:0}
+  .row-inline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .toggle{width:26px;height:15px;border-radius:8px;flex-shrink:0;position:relative}
+  .toggle:after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:2px}
+  .toggle.on{background:#2d6cdf}.toggle.on:after{right:2px}
+  .toggle.off{background:#cfcabf}.toggle.off:after{left:2px}
+  .seg{display:flex;border:1px solid #e2ddd3;border-radius:6px;overflow:hidden}
+  .segb{flex:1;padding:4px 6px;font:600 8.5px system-ui;color:#847e73;text-align:center;border-right:1px solid #e2ddd3}
+  .segb:last-child{border-right:none}
+  .segb.on{background:#f0eee8;color:#2a2722}
+  .slider{height:4px;border-radius:2px;background:#e8e5de;position:relative}
+  .slider:after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:#b4690e;top:-3.5px;left:55%}
+  .notes{flex:1;min-width:0;padding-top:6px}
+  .nlead{font:12.5px/1.55 system-ui;color:#6a655c;margin:0 0 15px;max-width:520px}
+  .anote{display:flex;gap:11px;padding:11px 0;border-top:1px solid #e4dfd5}
+  .anote:first-of-type{border-top:none}
+  .an{width:20px;height:20px;border-radius:50%;background:rgba(180,105,14,.1);border:1px solid rgba(180,105,14,.35);color:#b4690e;font:600 10px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .anb{display:flex;flex-direction:column;gap:2px}
+  .anh{font:600 13px system-ui;letter-spacing:-.003em}
+  .and{font:12px/1.5 system-ui;color:#837d73}
+  .and .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:44px 0 0}
+  .sectlead .cap{color:#b4690e}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+  .panels{margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .pc{background:#fff;border:1px solid #e2ddd3;border-radius:10px;padding:11px 13px}
+  .pch{font:600 12px system-ui;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+  .pcg{font:600 9px ui-monospace,Menlo,monospace;color:#a49e92;text-transform:uppercase;letter-spacing:.05em}
+  .pcd{font:11px/1.42 system-ui;color:#837d73}
+  .states{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stt{background:#fff;border:1px solid #e2ddd3;border-radius:9px;padding:9px 12px;min-width:150px;flex:1}
+  .sth{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#a49e92;margin-bottom:4px}
+  .std{font:12px/1.45 system-ui;color:#6a655c}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a class="on" href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a style="border-style:dashed" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a style="border-style:dashed" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a style="border-style:dashed" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Area 5 · Insight &amp; config</div>
+  <h1 class="title">Reflect on the signals, tune the machine</h1>
+  <p class="subttl">The two rail-footer destinations. Progress turns a learner's behaviour into four honest signals; Settings exposes the knobs that shape how the pipeline teaches, verifies, and schedules. One reads the system, the other reconfigures it.</p>
+
+  <div class="ribbon">
+    <div class="rstep"><span class="rk">Rail</span><span class="rt">Footer icons</span><span class="rd">Progress &amp; Settings sit apart from the daily loop.</span></div>
+    <div class="rstep"><span class="rk">PR</span><span class="rt">Progress</span><span class="rd">Signals from reviews, tasks &amp; drills.</span></div>
+    <div class="rstep"><span class="rk">SE</span><span class="rt">Settings</span><span class="rd">8 panels that feed the pipeline &amp; FSRS.</span></div>
+  </div>
+  <p class="loop"><b>Closed feedback:</b> the outcomes measured in Progress are produced by behaviours the learner tunes in Settings — depth of verification, active-listening prompts, target retention. Read, adjust, repeat.</p>
+
+  <!-- PR PROGRESS -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">PR</span><span class="sname">Progress</span><span class="sid">scr-progress</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Progress</span></div>
+        <div class="wfrow">
+          <div class="rail"><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd"></span><span class="rdd on"></span></div>
+          <div class="pane">
+            <div class="region"><span class="pin">1</span><span class="cap">Your signals</span>
+              <div class="siggrid" style="margin-top:5px">
+                <div class="sigcard"><span class="cap">Retention</span><span class="sigval" style="color:#2d6cdf">74%</span><div class="sigtrack"><span class="sigfill" style="width:74%;background:#2d6cdf"></span></div></div>
+                <div class="sigcard"><span class="cap">Transfer</span><span class="sigval" style="color:#0e8c6b">61%</span><div class="sigtrack"><span class="sigfill" style="width:61%;background:#0e8c6b"></span></div></div>
+                <div class="sigcard"><span class="cap">Calibration</span><span class="sigval" style="color:#6d5bd0">82%</span><div class="sigtrack"><span class="sigfill" style="width:82%;background:#6d5bd0"></span></div></div>
+                <div class="sigcard"><span class="cap">Drill detect</span><span class="sigval" style="color:#b4690e">63%</span><div class="sigtrack"><span class="sigfill" style="width:63%;background:#b4690e"></span></div></div>
+              </div>
+            </div>
+            <div class="region"><span class="pin">2</span><span class="cap">By topic</span>
+              <div class="b" style="background:#faf9f6;border:1px solid #e7e2d8;border-radius:7px;padding:8px;margin-top:5px;display:flex;flex-direction:column;gap:6px">
+                <div class="row-inline"><span class="bl" style="width:44%;height:6px"></span><span class="bl" style="width:26%;height:5px;background:#efece5"></span></div>
+                <div class="barrow"><div class="bcol"><div class="btrack"><span style="display:block;height:100%;width:68%;background:#2d6cdf"></span></div></div><div class="bcol"><div class="btrack"><span style="display:block;height:100%;width:55%;background:#0e8c6b"></span></div></div><div class="bcol"><div class="btrack"><span style="display:block;height:100%;width:71%;background:#6d5bd0"></span></div></div><div class="bcol"><div class="btrack"><span style="display:block;height:100%;width:50%;background:#b4690e"></span></div></div></div>
+              </div>
+            </div>
+            <div class="region"><span class="pin">3</span><span class="cap">Where to focus</span><div style="display:flex;gap:5px;margin-top:5px;align-items:center"><span class="bl" style="width:52%;height:6px"></span><span class="btng" style="border-color:rgba(192,57,43,.4);color:#c0392b;height:16px">overconfident</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">Four signals, no vanity metrics. Each one maps to a specific behaviour the app already captures — nothing invented to pad a dashboard.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">The four signals</span><span class="and"><b>Retention</b> (recall over time) · <b>Transfer</b> (novel-task performance) · <b>Calibration</b> (predicted vs actual) · <b>Drill detection</b> (errors caught).</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">By topic</span><span class="and">The same four bars per topic, plus a "verified" ratio — so strength is legible per subject, not just overall.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Where to focus</span><span class="and">Named weak spots tagged <span class="fk">overconfident</span> / <span class="fk">watch</span> / <span class="fk">solid</span>, derived from recent review behaviour.</span></div></div>
+    </div>
+  </div>
+
+  <!-- SE SETTINGS -->
+  <div class="screen">
+    <div class="scap">
+      <div class="schd"><span class="snum">SE</span><span class="sname">Settings</span><span class="sid">scr-settings</span></div>
+      <div class="wf">
+        <div class="wftop"><span class="wtt"><span class="chev">‹</span> Settings</span><span class="btng">✓ Save</span></div>
+        <div class="cols2" style="grid-template-columns:118px 1fr">
+          <div class="lcol">
+            <div class="region"><span class="pin">1</span>
+              <span class="snavlbl">Account</span>
+              <div class="snavit"><span class="snavic"></span>Profile</div>
+              <div class="snavit"><span class="snavic"></span>Plan</div>
+              <span class="snavlbl">Learning</span>
+              <div class="snavit on"><span class="snavic"></span>Verification</div>
+              <div class="snavit"><span class="snavic"></span>Active list.</div>
+              <div class="snavit"><span class="snavic"></span>Review · FSRS</div>
+              <span class="snavlbl">Data</span>
+              <div class="snavit dng"><span class="snavic" style="background:#c0392b"></span>Danger</div>
+            </div>
+          </div>
+          <div class="dcol">
+            <div class="region"><span class="pin">2</span><span class="bl" style="width:60%;height:8px"></span><span class="bl" style="width:88%;height:5px;background:#efece5;margin-top:3px"></span></div>
+            <div class="region"><span class="pin">3</span><span class="cap">Verification depth</span><div class="seg" style="margin-top:4px"><span class="segb">Minimal</span><span class="segb on">Standard</span><span class="segb">Thorough</span></div></div>
+            <div class="row-inline"><span class="bl" style="width:46%;height:6px"></span><span class="toggle on"></span></div>
+            <div class="row-inline"><span class="bl" style="width:52%;height:6px"></span><span class="toggle off"></span></div>
+            <div class="region"><span class="pin">4</span><span class="cap">Target retention · slider</span><div class="slider" style="margin-top:8px"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="nlead">The control room. Everything that shapes how the pipeline behaves lives here, grouped so the consequential knobs aren't buried.</p>
+      <div class="anote"><span class="an">1</span><div class="anb"><span class="anh">8 panels, 3 groups</span><span class="and"><b>Account</b>, <b>Learning</b>, <b>Data</b> — with the destructive panel isolated at the bottom.</span></div></div>
+      <div class="anote"><span class="an">2</span><div class="anb"><span class="anh">Panel content</span><span class="and">Each panel opens on the right with a short description of what it affects.</span></div></div>
+      <div class="anote"><span class="an">3</span><div class="anb"><span class="anh">Segmented + toggles</span><span class="and">Depth/style choices as segmented controls; behaviours as toggles — many show an "effect" line explaining the trade-off.</span></div></div>
+      <div class="anote"><span class="an">4</span><div class="anb"><span class="anh">Sliders</span><span class="and">FSRS knobs — target retention, max interval, daily limit — as ranges with live values.</span></div></div>
+    </div>
+  </div>
+
+  <!-- 8 PANELS -->
+  <div class="sectlead">
+    <span class="cap">Settings map</span>
+    <h2>All 8 panels</h2>
+  </div>
+  <div class="panels">
+    <div class="pc"><div class="pcg">Account</div><div class="pch">Profile</div><div class="pcd">Name, email, language, timezone. Appears in resolution records.</div></div>
+    <div class="pc"><div class="pcg">Account</div><div class="pch">Plan</div><div class="pcd">Free vs Pro — topic limits, verification depth, Skeptic passes.</div></div>
+    <div class="pc"><div class="pcg">Learning</div><div class="pch">Preferences</div><div class="pcd">Level anchor, explanation style, reading time, prereq check.</div></div>
+    <div class="pc"><div class="pcg">Learning</div><div class="pch">Verification</div><div class="pcd">Depth (minimal→thorough), interpretive claims, dispute alerts.</div></div>
+    <div class="pc"><div class="pcg">Learning</div><div class="pch">Active listening</div><div class="pcd">Toggle predict / cloze / pause / connection / close-gate.</div></div>
+    <div class="pc"><div class="pcg">Learning</div><div class="pch">Review &amp; FSRS</div><div class="pcd">Target retention, max interval, daily limit, drills.</div></div>
+    <div class="pc"><div class="pcg">Data</div><div class="pch">Privacy</div><div class="pcd">What's stored, data export, anonymous usage opt-in.</div></div>
+    <div class="pc" style="border-color:rgba(192,57,43,.3)"><div class="pcg" style="color:#c0392b">Data</div><div class="pch" style="color:#c0392b">Danger</div><div class="pcd">Reset history / gap map, delete topics or account.</div></div>
+  </div>
+
+  <div class="sectlead">
+    <span class="cap">Reference</span>
+    <h2>How this area connects</h2>
+  </div>
+  <div class="states">
+    <div class="stt"><div class="sth">Signals → source</div><div class="std">Retention/transfer/calibration/drill come from reviews, tasks &amp; drills.</div></div>
+    <div class="stt"><div class="sth">Settings → pipeline</div><div class="std">Verification &amp; preferences change how future lectures are written.</div></div>
+    <div class="stt"><div class="sth">Settings → FSRS</div><div class="std">Retention target &amp; limits reshape the review schedule.</div></div>
+    <div class="stt"><div class="sth">Danger zone</div><div class="std">Permanent resets, isolated &amp; confirmation-gated.</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

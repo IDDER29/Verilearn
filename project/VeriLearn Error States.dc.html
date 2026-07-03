@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e4e1da;font-family:'Nunito',system-ui,sans-serif;color:#221f2e;-webkit-font-smoothing:antialiased}
+  .board{padding:44px 52px 80px}
+  .hd{margin-bottom:6px}
+  .kick{font:800 11px 'Nunito';letter-spacing:.09em;text-transform:uppercase;color:#c0392b;margin-bottom:7px}
+  .title{font:900 27px/1.1 'Nunito';letter-spacing:-.02em;margin:0}
+  .subttl{font:600 13.5px/1.55 'Nunito';color:#7a746a;margin:8px 0 0;max-width:620px}
+  .grid{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px;align-items:flex-start}
+  .cell{flex:none;width:520px;display:flex;flex-direction:column;gap:11px}
+  .clabel{display:flex;align-items:center;gap:9px;font:800 12.5px 'Nunito';color:#4a4560}
+  .cnum{width:22px;height:22px;border-radius:7px;background:#c0392b;color:#fff;font:800 11px ui-monospace,monospace;display:flex;align-items:center;justify-content:center}
+  .frame{width:520px;background:#f4f2f8;border-radius:22px;overflow:hidden;box-shadow:0 20px 50px -28px rgba(40,30,70,.5);border:1px solid #d7d1c7}
+  .bar{height:44px;background:#fbfafd;border-bottom:1px solid #ece8f4;display:flex;align-items:center;gap:8px;padding:0 16px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .body{padding:34px 30px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;min-height:290px;justify-content:center}
+  .eicon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center}
+  .eh{font:900 19px 'Nunito';letter-spacing:-.01em}
+  .ed{font:600 12.5px/1.6 'Nunito';color:#8b8699;max-width:340px}
+  .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:800 13px 'Nunito';padding:12px 22px;border-radius:13px;cursor:pointer;border:none}
+  .btnp{background:#6d5bd0;color:#fff;box-shadow:0 12px 26px -10px rgba(109,91,208,.7)}
+  .btng{background:#fff;color:#4a4560;border:1.5px solid #ece8f4}
+  .note{margin-top:8px;font:12.5px/1.5 'Nunito';color:#6a655c}
+</style>
+</helmet>
+
+<div class="board">
+  <div class="hd">
+    <div class="kick">Error &amp; edge states</div>
+    <h1 class="title">When things don't go to plan</h1>
+    <p class="subttl">The states a learner should never hit a blank wall on — each stays on-brand, explains what happened, and offers exactly one way forward. Pan around to see them all.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 · OFFLINE -->
+    <div class="cell">
+      <div class="clabel"><span class="cnum">1</span>Offline · lost connection</div>
+      <div class="frame">
+        <div class="bar"><span class="dot" style="background:#f0a99f"></span><span class="dot" style="background:#f0d9a0"></span><span class="dot" style="background:#b7dcc4"></span><span style="margin-left:8px;font:700 11px 'Nunito';color:#a7a1b8">verilearn.app</span></div>
+        <div class="body">
+          <div class="eicon" style="background:#f3f1f9"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b8699" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22M8.5 8.5a11 11 0 00-3.5 2M12 5c3 0 5.8 1.1 8 3M4 12a16 16 0 013-2.3M2 8.8A19 19 0 016 6.4M16.7 12.3A8 8 0 0119 14M9 16a5 5 0 015-1"/><path d="M12 20h.01"/></svg></div>
+          <div class="eh">You're offline</div>
+          <div class="ed">We can't reach VeriLearn right now. Your progress is saved locally and will sync the moment you're back.</div>
+          <button class="btn btnp"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9M4 4v5h5"/></svg>Try again</button>
+          <div class="note">Reviews you complete offline still count.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · FAILED VERIFICATION -->
+    <div class="cell">
+      <div class="clabel"><span class="cnum">2</span>Verification failed</div>
+      <div class="frame">
+        <div class="bar"><span class="dot" style="background:#f0a99f"></span><span class="dot" style="background:#f0d9a0"></span><span class="dot" style="background:#b7dcc4"></span><span style="margin-left:8px;font:700 11px 'Nunito';color:#a7a1b8">Pipeline · Merkle trees</span></div>
+        <div class="body">
+          <div class="eicon" style="background:#fbeceb"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9 15.5H3z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+          <div class="eh">We couldn't finish verifying</div>
+          <div class="ed">The Skeptic stalled while checking sources for <b>Merkle trees</b>. Nothing unverified was shown to you — we'd rather stop than guess.</div>
+          <div style="display:flex;gap:10px"><button class="btn btnp">Retry verification</button><a href="VeriLearn%20Dashboard.dc.html" class="btn btng">Back to library</a></div>
+          <div class="note">Error VL-503 · sources timed out. <span style="color:#6d5bd0;font-weight:800">Contact support</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · TIMED OUT TEST -->
+    <div class="cell">
+      <div class="clabel"><span class="cnum">3</span>Test · time ran out</div>
+      <div class="frame">
+        <div class="bar"><span class="dot" style="background:#f0a99f"></span><span class="dot" style="background:#f0d9a0"></span><span class="dot" style="background:#b7dcc4"></span><span style="margin-left:8px;font:700 11px 'Nunito';color:#a7a1b8">Checkpoint · Dijkstra</span></div>
+        <div class="body">
+          <div class="eicon" style="background:#fbf3e4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg></div>
+          <div class="eh">Time's up ⏱️</div>
+          <div class="ed">The 20-minute limit ended. We auto-submitted your <b>9 answered</b> questions — the 3 unanswered are marked incorrect.</div>
+          <div style="display:flex;gap:10px"><a href="VeriLearn%20Test%20Results.dc.html" class="btn btnp">See your results</a><a href="VeriLearn%20Test%20Retake.dc.html" class="btn btng">Retake</a></div>
+          <div class="note">Tip: flag hard questions and move on to beat the clock next time.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · 404 -->
+    <div class="cell">
+      <div class="clabel"><span class="cnum">4</span>Page not found</div>
+      <div class="frame">
+        <div class="bar"><span class="dot" style="background:#f0a99f"></span><span class="dot" style="background:#f0d9a0"></span><span class="dot" style="background:#b7dcc4"></span><span style="margin-left:8px;font:700 11px 'Nunito';color:#a7a1b8">verilearn.app/…</span></div>
+        <div class="body">
+          <div style="font:900 52px 'Nunito';color:#6d5bd0;line-height:1">404</div>
+          <div class="eh">This page wandered off</div>
+          <div class="ed">The topic or link you followed doesn't exist anymore. Let's get you back to solid ground.</div>
+          <a href="VeriLearn%20Dashboard.dc.html" class="btn btnp">Back to dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 · inline error patterns -->
+    <div class="cell">
+      <div class="clabel"><span class="cnum">5</span>Inline patterns (in-context)</div>
+      <div class="frame">
+        <div class="bar"><span class="dot" style="background:#f0a99f"></span><span class="dot" style="background:#f0d9a0"></span><span class="dot" style="background:#b7dcc4"></span><span style="margin-left:8px;font:700 11px 'Nunito';color:#a7a1b8">Reusable</span></div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px">
+          <!-- inline banner -->
+          <div style="display:flex;align-items:center;gap:11px;background:#fbeceb;border:1px solid #f3d9d6;border-radius:13px;padding:13px 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 4l9 15.5H3z"/><path d="M12 10v4M12 17h.01"/></svg><div style="flex:1;min-width:0;font:700 12.5px/1.4 'Nunito';color:#8a5a56">Couldn't save your answer — check your connection.</div><span style="font:800 11px 'Nunito';color:#c0392b">Retry</span></div>
+          <!-- field error -->
+          <div><div style="font:700 12px 'Nunito';color:#6c6780;margin-bottom:6px">Topic</div><div style="border:1.5px solid #d9534f;border-radius:12px;padding:11px 13px;font:600 13px 'Nunito';color:#221f2e;background:#fff">a</div><div style="display:flex;align-items:center;gap:5px;font:700 11px 'Nunito';color:#c0392b;margin-top:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>Add a bit more detail (3+ characters)</div></div>
+          <!-- toast -->
+          <div style="display:flex;align-items:center;gap:10px;background:#221f2e;border-radius:12px;padding:12px 15px;box-shadow:0 12px 26px -12px rgba(0,0,0,.5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f0a99f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><span style="flex:1;min-width:0;font:700 12.5px 'Nunito';color:#fff">Something went wrong. We're on it.</span><span style="font:800 11px 'Nunito';color:#b3a7f0">Dismiss</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e4e1da;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .board{padding:44px 52px 80px}
+  .hd{margin-bottom:4px}
+  .kick{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#2d6cdf;margin-bottom:7px}
+  .title{font:600 27px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:620px}
+  .film{display:flex;align-items:flex-start;gap:0;margin-top:34px}
+  .step{flex:none;width:352px;display:flex;flex-direction:column}
+  .sbadge{display:flex;align-items:center;gap:8px;margin-bottom:11px;height:22px}
+  .snum{width:22px;height:22px;border-radius:6px;background:#2a2722;color:#fff;font:600 11px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center}
+  .sname{font:600 13px system-ui}
+  .sstate{font:600 9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:#a49e92;border:1px solid #d8d2c6;border-radius:99px;padding:2px 7px}
+  /* device frame */
+  .frame{width:352px;height:452px;background:#f6f4ef;border:1px solid #d7d1c7;border-radius:14px;overflow:hidden;display:grid;grid-template-columns:46px 1fr;box-shadow:0 12px 34px -18px rgba(40,36,32,.4)}
+  .rail{background:#fbfaf7;border-right:1px solid #e6e1d7;display:flex;flex-direction:column;align-items:center;padding:9px 0;gap:2px}
+  .logo{width:26px;height:26px;border-radius:7px;background:#2d6cdf;display:flex;align-items:center;justify-content:center;margin-bottom:7px;flex-shrink:0}
+  .ri{position:relative;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#a49e92;flex-shrink:0}
+  .ri.on{background:#eaf1fd;color:#2d6cdf}
+  .rbadge{position:absolute;top:0;right:0;min-width:13px;height:13px;border-radius:99px;color:#fff;font:600 8px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box}
+  .rsp{flex:1}
+  .content{display:flex;flex-direction:column;overflow:hidden}
+  .tbar{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#fbfaf7;border-bottom:1px solid #e6e1d7;flex-shrink:0;min-height:19px}
+  .tbl{display:flex;align-items:center;gap:7px}
+  .ttl{font:600 13px system-ui}
+  .back{display:flex;align-items:center;gap:3px;color:#8a8478;font:11.5px system-ui}
+  .sep{width:1px;height:12px;background:#ddd8ce}
+  .newbtn{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;border:1px solid #2d6cdf;color:#2d6cdf;font:600 11px system-ui}
+  .due{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#e6e1d7;flex-shrink:0}
+  .duec{background:#fbfaf7;padding:9px 12px}
+  .duel{font:10px system-ui;color:#8a8478;margin-bottom:2px}
+  .duev{font:600 19px ui-monospace,Menlo,monospace;line-height:1}
+  .body{padding:13px;overflow:hidden;flex:1;display:flex;flex-direction:column;gap:8px}
+  .seclbl{font:600 8px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#a49e92}
+  .tcard{background:#fff;border:1px solid #e6e1d7;border-radius:10px;padding:10px 12px}
+  .tchd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .tname{font:600 12.5px/1.3 system-ui;flex:1}
+  .pill{display:flex;align-items:center;gap:4px;font:600 9px ui-monospace,Menlo,monospace;padding:2px 8px;border-radius:99px}
+  .dot{width:5px;height:5px;border-radius:50%}
+  .tbar6{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px;margin-bottom:6px}
+  .tmeta{display:flex;align-items:center;justify-content:space-between;font:10px ui-monospace,Menlo,monospace;color:#8a8478}
+  /* form */
+  .flabel{font:600 12px system-ui;margin-bottom:5px}
+  .field{width:100%;box-sizing:border-box;border:1px solid #ddd8ce;border-radius:8px;background:#fff;padding:8px 10px;font:12px system-ui;color:#2a2722}
+  .field.ph{color:#b6b0a4}
+  .pills{display:flex;flex-wrap:wrap;gap:5px}
+  .gp{font:600 10.5px system-ui;padding:5px 10px;border-radius:99px;border:1px solid #ddd8ce;background:#fff;color:#6a655c}
+  .gp.on{border-color:#2d6cdf;background:#eaf1fd;color:#2d6cdf}
+  .ffoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:9px;border-top:1px solid #e6e1d7;margin-top:auto}
+  .hint{font:11px system-ui}
+  .startbtn{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:8px;font:600 11px system-ui}
+  /* pipeline */
+  .pipe{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;text-align:center;padding:16px}
+  .pipet{font:600 15px system-ui}
+  .pipeg{font:11px system-ui;color:#8a8478;max-width:220px}
+  .stepper{display:flex;flex-direction:column;width:100%;max-width:210px;margin-top:2px}
+  .stp{display:flex;align-items:flex-start;gap:9px;text-align:left}
+  .stpc{display:flex;flex-direction:column;align-items:center}
+  .sdot{width:11px;height:11px;border-radius:50%;box-sizing:border-box}
+  .sline{width:2px;height:13px;margin:2px 0}
+  .stpn{font:600 11px system-ui;padding-bottom:11px}
+  .pipenote{font:10px/1.55 system-ui;color:#8a8478;max-width:220px;margin-top:4px}
+  /* connector + caption */
+  .arrow{flex:none;width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:center;gap:5px;padding-top:33px}
+  .arrow .g{font:400 24px system-ui;color:#b3aca0;line-height:1}
+  .arrow .l{font:600 8px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:#a49e92;text-align:center;max-width:52px}
+  .cap{margin-top:12px;display:flex;gap:8px}
+  .capd{width:3px;border-radius:2px;background:#2d6cdf;flex-shrink:0}
+  .capt{font:11.5px/1.5 system-ui;color:#6a655c}
+  .capt b{color:#2a2722;font-weight:600}
+  .legend{margin-top:40px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;font:11px system-ui;color:#7a746a}
+  .lg{display:flex;align-items:center;gap:6px}
+  .lgd{width:9px;height:9px;border-radius:3px}
+  /* ===== elevated chrome ===== */
+  .board{max-width:none;padding:0}
+  .masthead{padding:58px 60px 36px;border-bottom:1px solid #d5d0c6;background:linear-gradient(#eeece5,#e4e1da)}
+  .eyebrow{display:flex;align-items:center;gap:11px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8478;margin-bottom:20px}
+  .eyebrow .ei{font-weight:600;color:#2d6cdf;background:#2d6cdf14;border:1px solid #2d6cdf40;border-radius:5px;padding:2px 8px;letter-spacing:.08em}
+  .eyebrow .eline{flex:1;height:1px;background:#d5d0c6;max-width:160px}
+  .title{font-family:'Newsreader',Georgia,serif !important;font-weight:500 !important;font-size:47px !important;line-height:1.02 !important;letter-spacing:-.021em !important;margin:0 !important;max-width:770px;color:#221f1b}
+  .title em{font-style:italic;color:#2d6cdf}
+  .thesis{font:14px/1.62 system-ui;color:#67625a;margin:17px 0 0;max-width:568px}
+  .metarow{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .mpill{display:flex;align-items:center;gap:8px;background:#fbfaf7;border:1px solid #ddd8ce;border-radius:8px;padding:7px 13px;font:12.5px system-ui;color:#4a453d}
+  .mpill .mk{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:#a49e92}
+  .mpill b{font-weight:600;color:#221f1b}
+  .film{padding:46px 60px 8px !important}
+  .frame{box-shadow:0 28px 54px -22px rgba(40,36,32,.55),0 3px 8px rgba(40,36,32,.10) !important;border:1px solid #d3cdc3 !important}
+  .sbadge .sname{font-family:'Newsreader',Georgia,serif;font-weight:500;font-size:15px}
+  .arrow .l{background:#fbfaf7;border:1px solid #ddd8ce;border-radius:6px;padding:3px 7px;color:#6a655c}
+  .arrow .g{color:#c3bcae}
+  /* caption cards */
+  .cap{margin-top:15px !important;display:flex !important;flex-direction:column;gap:7px;background:#fbfaf7;border:1px solid #e0dbd1;border-radius:12px;padding:14px 16px;align-items:stretch}
+  .capk{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a8478}
+  .capaccent{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+  .captt{font-family:'Newsreader',Georgia,serif;font-weight:500;font-size:16.5px;letter-spacing:-.005em;color:#221f1b}
+  .capb{font:11.7px/1.55 system-ui;color:#67625a}
+  .capb b{color:#221f1b;font-weight:600}
+  .delta{align-self:flex-start;display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.02em;color:#2d6cdf;background:#2d6cdf10;border:1px solid #2d6cdf33;border-radius:99px;padding:3px 9px;margin-top:1px}
+  /* state model footer */
+  .footer{margin:24px 60px 22px;padding-top:28px;border-top:1px solid #d5d0c6}
+  .foothd{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#a49e92;margin-bottom:17px}
+  .smachine{display:flex;align-items:center;flex-wrap:wrap;gap:11px}
+  .snode{display:flex;flex-direction:column;gap:3px;background:#fbfaf7;border:1px solid #ddd8ce;border-radius:10px;padding:11px 15px;min-width:92px}
+  .snode .sn-s{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#a49e92}
+  .snode .sn-n{font:600 13.5px system-ui;color:#221f1b}
+  .sedge{display:flex;flex-direction:column;align-items:center;gap:1px}
+  .sedge .se-a{font-size:17px;color:#b3aca0;line-height:1}
+  .sedge .se-l{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:#a49e92;white-space:nowrap}
+  .legend{margin:0 60px 70px !important;padding-top:22px;border-top:1px solid #e0dbd1}
+</style>
+</helmet>
+
+<div class="board">
+
+  <div class="masthead">
+    <div class="eyebrow"><span class="ei">Flow 01</span> Create &amp; onboard <span class="eline"></span> VeriLearn · flow spec</div>
+    <h1 class="title">From a blank slate to a <em>verified</em> lecture.</h1>
+    <p class="thesis">The complete create-and-onboard journey, screen by screen — a learner names what they want to know, hands it to the verification pipeline, and returns to a source-checked lecture. Each frame is the full app shell; the card beneath names the single change.</p>
+    <div class="metarow">
+      <div class="mpill"><span class="mk">screens</span><b>6</b></div>
+      <div class="mpill"><span class="mk">form states</span><b>3</b></div>
+      <div class="mpill"><span class="mk">verify</span><b>6 stages · ~6s</b></div>
+      <div class="mpill"><span class="mk">entry</span><b>Library</b></div>
+      <div class="mpill"><span class="mk">exit</span><b>Library · +1 ready</b></div>
+    </div>
+  </div>
+
+  <div class="film">
+
+    <!-- 1 · LIBRARY start -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">1</span><span class="sname">Library</span><span class="sstate">start</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><span class="ttl">Library</span><span class="newbtn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New topic</span></div>
+          <div class="due">
+            <div class="duec"><div class="duel">Reviews due</div><div class="duev" style="color:#c0392b">4</div></div>
+            <div class="duec"><div class="duel">Conflicts</div><div class="duev" style="color:#b4690e">2</div></div>
+            <div class="duec"><div class="duel">Tasks</div><div class="duev" style="color:#8a8478">1</div></div>
+          </div>
+          <div class="body">
+            <div class="seclbl">Your topics · 2</div>
+            <div class="tcard">
+              <div class="tchd"><span class="tname">Dijkstra's shortest-path algorithm</span><span class="pill" style="color:#0e8c6b;border:1px solid #0e8c6b59"><span class="dot" style="background:#0e8c6b"></span>ready</span></div>
+              <div class="tbar6"><span style="flex:3;background:#0e8c6b"></span><span style="flex:2;background:#2d6cdf"></span><span style="flex:1;background:#6d5bd0"></span><span style="flex:1;background:#c0392b"></span></div>
+              <div class="tmeta"><span>Algorithms · 2 days ago</span><span>83% · 6 claims</span></div>
+            </div>
+            <div class="tcard">
+              <div class="tchd"><span class="tname">Binary search</span><span class="pill" style="color:#0e8c6b;border:1px solid #0e8c6b59"><span class="dot" style="background:#0e8c6b"></span>ready</span></div>
+              <div class="tbar6"><span style="flex:3;background:#0e8c6b"></span><span style="flex:2;background:#2d6cdf"></span></div>
+              <div class="tmeta"><span>Algorithms · 5 days ago</span><span>88% · 5 claims</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#2d6cdf"></span>01 — Library · start</div><div class="captt">Two topics, one clear action</div><div class="capb">The hub opens on the due-strip and existing topics; the single forward move is <b>New topic</b>.</div><div class="delta">Δ&nbsp; entry point</div></div>
+    </div>
+
+    <div class="arrow"><span class="g">→</span><span class="l">Tap New topic</span></div>
+
+    <!-- 2 · NEW empty -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">2</span><span class="sname">New topic</span><span class="sstate">empty</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><div class="tbl"><span class="back"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Library</span><span class="sep"></span><span class="ttl">New topic</span></div></div>
+          <div class="body" style="gap:12px">
+            <div><div class="flabel">What do you want to learn?</div><div class="field ph">e.g. Dijkstra's algorithm, TCP/IP…</div></div>
+            <div><div class="flabel">Where are you starting from?</div><div class="field ph" style="height:38px">name what you know and what you don't…</div></div>
+            <div><div class="flabel">What does success look like?</div><div class="pills"><span class="gp">Intuition</span><span class="gp">Implement</span><span class="gp">Use it</span><span class="gp">Interview</span></div></div>
+            <div class="ffoot"><span class="hint" style="color:#8a8478">Fill in all three fields to continue</span><span class="startbtn" style="background:#2d6cdf;color:#fff;opacity:.4"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Start verifying</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#8a8478"></span>02 — New topic · empty</div><div class="captt">Three questions, gate locked</div><div class="capb">Topic, level and goal all blank. <b>Start verifying</b> is dimmed and the hint states exactly what's missing.</div><div class="delta" style="color:#8a8478;background:#8a847812;border-color:#8a847840">Δ&nbsp; CTA disabled</div></div>
+    </div>
+
+    <div class="arrow"><span class="g">→</span><span class="l">Fill it in</span></div>
+
+    <!-- 3 · NEW filled -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">3</span><span class="sname">New topic</span><span class="sstate">valid</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><div class="tbl"><span class="back"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Library</span><span class="sep"></span><span class="ttl">New topic</span></div></div>
+          <div class="body" style="gap:12px">
+            <div><div class="flabel">What do you want to learn?</div><div class="field">Merkle trees</div></div>
+            <div><div class="flabel">Where are you starting from?</div><div class="field" style="height:38px;font-size:11px;line-height:1.5">comfortable with hashing; new to tree structures &amp; proofs</div></div>
+            <div><div class="flabel">What does success look like?</div><div class="pills"><span class="gp on">Intuition</span><span class="gp">Implement</span><span class="gp">Use it</span><span class="gp">Interview</span></div></div>
+            <div class="ffoot"><span class="hint" style="color:#0e8c6b">Ready — click to start verifying</span><span class="startbtn" style="background:#2d6cdf;color:#fff"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Start verifying</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#0e8c6b"></span>03 — New topic · valid</div><div class="captt">All three answered — gate opens</div><div class="capb">With every field filled the hint turns <b style="color:#0e8c6b">green</b> and the button activates. Ready to submit.</div><div class="delta" style="color:#0e8c6b;background:#0e8c6b12;border-color:#0e8c6b40">Δ&nbsp; gate → unlocked</div></div>
+    </div>
+
+    <div class="arrow"><span class="g">→</span><span class="l">Start verifying</span></div>
+
+    <!-- 4 · PIPELINE running -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">4</span><span class="sname">Pipeline</span><span class="sstate" style="color:#2d6cdf;border-color:#2d6cdf59">running</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><div class="tbl"><span class="back"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Library</span><span class="sep"></span><span class="ttl" style="color:#2d6cdf">Verifying…</span></div><span style="font:600 11px ui-monospace,Menlo,monospace;color:#2d6cdf">4s</span></div>
+          <div class="pipe">
+            <div class="pipet">Merkle trees</div>
+            <div class="pipeg">Understand the intuition</div>
+            <div class="stepper">
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Triage</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Retrieve sources</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #2d6cdf;background:#2d6cdf"></div><div class="sline" style="background:#e2ddd3"></div></div><div class="stpn" style="color:#2d6cdf;padding-bottom:2px">Teach<div style="font:9px ui-monospace,Menlo,monospace;color:#2d6cdf">running…</div></div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #cfc9bd"></div><div class="sline" style="background:#e2ddd3"></div></div><div class="stpn" style="color:#a49e92">Decompose claims</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #cfc9bd"></div><div class="sline" style="background:#e2ddd3"></div></div><div class="stpn" style="color:#a49e92">Verify claims</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #cfc9bd"></div></div><div class="stpn" style="color:#a49e92;padding-bottom:0">Skeptic</div></div>
+            </div>
+            <div class="pipenote">Appears in your library when complete. You can close this — it runs in the background.</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#2d6cdf"></span>04 — Pipeline · running</div><div class="captt">Verification runs in the open</div><div class="capb">Six stages advance live — <b>done in green</b>, the current one pulsing blue. Closable; it keeps running in the background.</div><div class="delta">Δ&nbsp; topic → running</div></div>
+    </div>
+
+    <div class="arrow"><span class="g">→</span><span class="l">~6s later</span></div>
+
+    <!-- 5 · PIPELINE done -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">5</span><span class="sname">Pipeline</span><span class="sstate" style="color:#0e8c6b;border-color:#0e8c6b59">done</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><div class="tbl"><span class="back"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Library</span><span class="sep"></span><span class="ttl" style="color:#0e8c6b">Ready</span></div><span style="font:600 11px ui-monospace,Menlo,monospace;color:#0e8c6b">done · 6s</span></div>
+          <div class="pipe">
+            <div style="width:38px;height:38px;border-radius:50%;background:#0e8c6b14;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0e8c6b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipet">Merkle trees</div>
+            <div class="stepper">
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Triage</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Retrieve sources</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Teach</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Decompose claims</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div><div class="sline" style="background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b">Verify claims</div></div>
+              <div class="stp"><div class="stpc"><div class="sdot" style="border:2px solid #0e8c6b;background:#0e8c6b"></div></div><div class="stpn" style="color:#0e8c6b;padding-bottom:0">Skeptic</div></div>
+            </div>
+            <div class="pipenote" style="color:#0e8c6b">Complete — it's now in your library, ready to open.</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#0e8c6b"></span>05 — Pipeline · done</div><div class="captt">All six stages pass</div><div class="capb">The header flips to <b style="color:#0e8c6b">Ready</b> and the timer freezes at the elapsed time. The lecture is fully source-checked.</div><div class="delta" style="color:#0e8c6b;background:#0e8c6b12;border-color:#0e8c6b40">Δ&nbsp; verifying → ready</div></div>
+    </div>
+
+    <div class="arrow"><span class="g">→</span><span class="l">Back to library</span></div>
+
+    <!-- 6 · LIBRARY end -->
+    <div class="step">
+      <div class="sbadge"><span class="snum">6</span><span class="sname">Library</span><span class="sstate">updated</span></div>
+      <div class="frame">
+        <div class="rail">
+          <div class="logo"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5"/><path d="M5 8.5l2 2L11 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ri on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 004.6 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0015.4 2"/><path d="M20 20v-5h-5"/></svg><span class="rbadge" style="background:#c0392b">4</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><path d="M19 18h1"/><circle cx="17" cy="18" r="2"/></svg><span class="rbadge" style="background:#b4690e">2</span></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1H5a1 1 0 01-1-1z"/><path d="M9 5a1 1 0 011-1h3a1 1 0 011 1v13a1 1 0 00-1-1h-3a1 1 0 00-1 1z"/><path d="M14 6l3.3-.6a1 1 0 011.2.8l2 11a1 1 0 01-.8 1.1l-2.7.5"/></svg></div>
+          <div class="rsp"></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15a1 1 0 001 1h15"/><path d="M7 14l3.5-4 3 2.5L18 7"/></svg></div>
+          <div class="ri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v2.2M12 18.8V21M4.5 7.5l1.6 1.6M17.9 17.9l1.6 1.6M3 12h2.2M18.8 12H21M4.5 16.5l1.6-1.6M17.9 6.1l1.6-1.6"/></svg></div>
+        </div>
+        <div class="content">
+          <div class="tbar"><span class="ttl">Library</span><span class="newbtn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New topic</span></div>
+          <div class="due">
+            <div class="duec"><div class="duel">Reviews due</div><div class="duev" style="color:#c0392b">4</div></div>
+            <div class="duec"><div class="duel">Conflicts</div><div class="duev" style="color:#b4690e">2</div></div>
+            <div class="duec"><div class="duel">Tasks</div><div class="duev" style="color:#8a8478">1</div></div>
+          </div>
+          <div class="body">
+            <div class="seclbl">Your topics · 3</div>
+            <div class="tcard" style="border-color:#0e8c6b59;box-shadow:0 0 0 2px #0e8c6b1a">
+              <div class="tchd"><span class="tname">Merkle trees</span><span class="pill" style="color:#0e8c6b;border:1px solid #0e8c6b59"><span class="dot" style="background:#0e8c6b"></span>ready</span></div>
+              <div class="tbar6"><span style="flex:2;background:#0e8c6b"></span><span style="flex:2;background:#2d6cdf"></span><span style="flex:1;background:#6d5bd0"></span><span style="flex:1;background:#b4690e"></span></div>
+              <div class="tmeta"><span style="color:#0e8c6b">just now · new</span><span>82% · 5 claims</span></div>
+            </div>
+            <div class="tcard">
+              <div class="tchd"><span class="tname">Dijkstra's shortest-path algorithm</span><span class="pill" style="color:#0e8c6b;border:1px solid #0e8c6b59"><span class="dot" style="background:#0e8c6b"></span>ready</span></div>
+              <div class="tbar6"><span style="flex:3;background:#0e8c6b"></span><span style="flex:2;background:#2d6cdf"></span><span style="flex:1;background:#6d5bd0"></span><span style="flex:1;background:#c0392b"></span></div>
+              <div class="tmeta"><span>Algorithms · 2 days ago</span><span>83% · 6 claims</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="capk"><span class="capaccent" style="background:#0e8c6b"></span>06 — Library · updated</div><div class="captt">The loop closes</div><div class="capb"><b>Merkle trees</b> lands as a ready card at the top; the topic count goes 2 → <b>3</b>. Tap it to open the Learn workspace.</div><div class="delta" style="color:#0e8c6b;background:#0e8c6b12;border-color:#0e8c6b40">Δ&nbsp; +1 verified topic</div></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="foothd">State model — the form &amp; topic lifecycle</div>
+    <div class="smachine">
+      <div class="snode"><span class="sn-s">form</span><span class="sn-n">Empty</span></div>
+      <div class="sedge"><span class="se-a">→</span><span class="se-l">fill 3 fields</span></div>
+      <div class="snode"><span class="sn-s">form</span><span class="sn-n">Valid</span></div>
+      <div class="sedge"><span class="se-a">→</span><span class="se-l">start verifying</span></div>
+      <div class="snode" style="border-color:#2d6cdf59;background:#2d6cdf0a"><span class="sn-s" style="color:#2d6cdf">topic</span><span class="sn-n">Verifying</span></div>
+      <div class="sedge"><span class="se-a">→</span><span class="se-l">6 stages · ~6s</span></div>
+      <div class="snode" style="border-color:#0e8c6b59;background:#0e8c6b0a"><span class="sn-s" style="color:#0e8c6b">topic</span><span class="sn-n">Ready</span></div>
+      <div class="sedge"><span class="se-a">→</span><span class="se-l">returns to</span></div>
+      <div class="snode"><span class="sn-s">hub</span><span class="sn-n">Library · +1</span></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span style="font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#a49e92">Trust bar</span>
+    <span class="lg"><span class="lgd" style="background:#0e8c6b"></span>Verified</span>
+    <span class="lg"><span class="lgd" style="background:#2d6cdf"></span>Sourced</span>
+    <span class="lg"><span class="lgd" style="background:#6d5bd0"></span>Interpretive</span>
+    <span class="lg"><span class="lgd" style="background:#b4690e"></span>Unsupported</span>
+    <span class="lg"><span class="lgd" style="background:#c0392b"></span>Disputed</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

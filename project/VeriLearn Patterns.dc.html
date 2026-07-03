@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body{margin:0;background:#ece9e3;font-family:system-ui,-apple-system,sans-serif;color:#2a2722;-webkit-font-smoothing:antialiased}
+  .wrap{padding:40px 52px 90px;max-width:1180px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+  .nav a{font:600 11px system-ui;text-decoration:none;color:#7a746a;background:#fff;border:1px solid #ddd8cf;border-radius:99px;padding:5px 12px}
+  .nav a:hover{border-color:#b9b3a7;color:#3a362f}
+  .nav a.on{background:#44403c;color:#fff;border-color:#44403c}
+  .nav a.prop{border-style:dashed}
+  .nav a .n{font:600 9px ui-monospace,Menlo,monospace;opacity:.6;margin-right:4px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#44403c;background:#fff;border:1px solid rgba(68,64,60,.3);border-radius:99px;padding:5px 11px 5px 8px;margin-bottom:16px}
+  .kick .sw{width:9px;height:9px;border-radius:3px;background:#44403c}
+  .title{font:600 28px/1.1 system-ui;letter-spacing:-.01em;margin:0}
+  .subttl{font:13px/1.55 system-ui;color:#7a746a;margin:8px 0 0;max-width:640px}
+  .grid{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:#fff;border:1px solid #dcd7ce;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;flex-direction:column}
+  .chd{display:flex;align-items:baseline;gap:8px;padding:12px 13px 0}
+  .cid{font:600 9px ui-monospace,Menlo,monospace;color:#a49e92}
+  .cname{font:600 13.5px system-ui;letter-spacing:-.003em}
+  .demo{margin:11px 13px;background:#faf9f6;border:1px solid #e7e2d8;border-radius:9px;min-height:96px;display:flex;align-items:center;justify-content:center;padding:12px;gap:8px}
+  .cbody{padding:0 13px 13px;display:flex;flex-direction:column;gap:8px}
+  .cdesc{font:11.5px/1.5 system-ui;color:#6a655c}
+  .usedin{display:flex;flex-wrap:wrap;gap:4px}
+  .ui-lbl{font:600 8px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#b0a99d;width:100%;margin-bottom:1px}
+  .chip{font:600 9px system-ui;color:#6a655c;background:#f0eee8;border:1px solid #e2ddd3;border-radius:99px;padding:2px 8px}
+  /* demo primitives */
+  .b{background:#e6e3dc;border-radius:3px;display:block}
+  .bl{background:#e6e3dc;border-radius:2px;height:6px;display:block}
+  .md{display:flex;width:100%;height:74px;border:1px solid #e2ddd3;border-radius:7px;overflow:hidden;background:#fff}
+  .md-list{width:38%;border-right:1px solid #eee7dd;display:flex;flex-direction:column}
+  .md-row{padding:6px 7px;border-bottom:1px solid #f0ece3;display:flex;flex-direction:column;gap:3px}
+  .md-row.sel{background:#f4f2ec;box-shadow:inset 2px 0 0 #44403c}
+  .md-det{flex:1;padding:8px;display:flex;flex-direction:column;gap:5px}
+  .glyphs{display:flex;gap:9px;align-items:center}
+  .railbadge{position:relative;width:30px;height:30px;border-radius:8px;background:#f0ece3;display:flex;align-items:center;justify-content:center}
+  .railbadge .bg{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:99px;background:#c0392b;color:#fff;font:600 9px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;padding:0 3px}
+  .pill{font:600 8.5px ui-monospace,Menlo,monospace;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .trustbar{display:flex;height:7px;width:100%;border-radius:4px;overflow:hidden;gap:1px}
+  .alc{width:100%;border-radius:7px;padding:8px 9px;display:flex;flex-direction:column;gap:5px}
+  .aley{font:600 8px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em}
+  .fieldm{border:1px dashed #d5cfc3;background:#fff;border-radius:5px;height:20px}
+  .gate{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center}
+  .gatebtn{width:80%;height:22px;border-radius:6px;background:#efece5;color:#b0a99d;border:1px solid #e2ddd3;display:flex;align-items:center;justify-content:center;font:600 9px system-ui}
+  .seg{display:flex;border:1px solid #e2ddd3;border-radius:6px;overflow:hidden;width:100%}
+  .segb{flex:1;padding:4px;text-align:center;font:600 8.5px system-ui;color:#847e73;border-right:1px solid #e2ddd3}
+  .segb:last-child{border-right:none}.segb.on{background:#f0ece3;color:#2a2722}
+  .toggle{width:26px;height:15px;border-radius:8px;position:relative;flex-shrink:0}
+  .toggle:after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:2px}
+  .toggle.on{background:#2d6cdf}.toggle.on:after{right:2px}.toggle.off{background:#cfcabf}.toggle.off:after{left:2px}
+  .slider{width:100%;height:4px;border-radius:2px;background:#e6e3dc;position:relative}
+  .slider:after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:#44403c;top:-3.5px;left:58%}
+  .topbar{width:100%;height:24px;border:1px solid #e2ddd3;border-radius:6px;background:#fff;display:flex;align-items:center;gap:6px;padding:0 8px}
+  .rec{margin-top:34px;background:#fff;border:1px solid #e2ddd3;border-left:3px solid #b4690e;border-radius:0 10px 10px 0;padding:14px 16px;max-width:760px}
+  .rec h3{font:600 13px system-ui;margin:0 0 4px;display:flex;align-items:center;gap:7px}
+  .rec p{font:12px/1.55 system-ui;color:#6a655c;margin:0}
+  .rec .fk{font:600 10px ui-monospace,Menlo,monospace;background:#efece5;color:#524d45;padding:1px 5px;border-radius:4px}
+  .sectlead{margin:40px 0 0}
+  .sectlead .cap{font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#44403c}
+  .sectlead h2{font:600 15px system-ui;margin:5px 0 0}
+</style>
+</helmet>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="VeriLearn%20Screen%20Map.dc.html"><span class="n">◆</span>Map</a>
+    <a href="VeriLearn%20Create%20%26%20Onboard.dc.html"><span class="n">1</span>Create</a>
+    <a href="VeriLearn%20Learn.dc.html"><span class="n">2</span>Learn</a>
+    <a href="VeriLearn%20Verify%20%26%20Trust.dc.html"><span class="n">3</span>Verify</a>
+    <a href="VeriLearn%20Retain.dc.html"><span class="n">4</span>Retain</a>
+    <a href="VeriLearn%20Insight%20%26%20Config.dc.html"><span class="n">5</span>Insight</a>
+    <a class="prop" href="VeriLearn%20Gap%20Map.dc.html"><span class="n">＋</span>Gaps</a>
+    <a class="prop" href="VeriLearn%20Empty%20States.dc.html"><span class="n">◇</span>Empty</a>
+    <a class="on prop" href="VeriLearn%20Patterns.dc.html"><span class="n">◇</span>Patterns</a>
+  </div>
+
+  <div class="kick"><span class="sw"></span>Cross-cutting patterns</div>
+  <h1 class="title">The vocabulary that repeats everywhere</h1>
+  <p class="subttl">The prototype is built from a small set of UI patterns reused across almost every screen. Naming them keeps the product coherent as it grows — and makes the one inconsistency easy to spot. These are components, not screens.</p>
+
+  <div class="grid">
+
+    <!-- P1 master-detail -->
+    <div class="card">
+      <div class="chd"><span class="cid">P1</span><span class="cname">Master → detail</span></div>
+      <div class="demo">
+        <div class="md">
+          <div class="md-list"><div class="md-row sel"><span class="bl" style="width:80%"></span><span class="bl" style="width:50%;background:#efece5"></span></div><div class="md-row"><span class="bl" style="width:70%"></span></div><div class="md-row"><span class="bl" style="width:75%"></span></div></div>
+          <div class="md-det"><span class="bl" style="width:90%"></span><span class="bl" style="width:96%;height:5px"></span><span class="bl" style="width:60%;height:5px"></span><span class="b" style="width:40%;height:14px;background:#44403c;border-radius:4px;margin-top:auto"></span></div>
+        </div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">A scrollable list on the left, a working detail pane on the right. The app's dominant layout.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Tasks</span><span class="chip">Conflicts</span><span class="chip">Sources</span><span class="chip">Settings</span><span class="chip">Gap map</span></div>
+      </div>
+    </div>
+
+    <!-- P2 trust glyphs -->
+    <div class="card">
+      <div class="chd"><span class="cid">P2</span><span class="cname">Trust glyphs</span></div>
+      <div class="demo">
+        <div class="glyphs">
+          <svg width="22" height="22" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#0e8c6b"/><path d="M4.5 8.5l2 2L11.5 6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="22" height="22" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#2d6cdf" stroke-width="2"/><circle cx="8" cy="8" r="3" fill="#2d6cdf"/></svg>
+          <svg width="22" height="22" viewBox="0 0 16 16"><path d="M8 2l6.5 11H1.5z" fill="none" stroke="#b4690e" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <svg width="22" height="22" viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" transform="rotate(45 8 8)" fill="#c0392b"/></svg>
+          <svg width="22" height="22" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#6d5bd0" stroke-width="2"/><path d="M8 1.5a6.5 6.5 0 010 13z" fill="#6d5bd0"/></svg>
+        </div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">One shape + colour per trust state. The single most load-bearing visual language in the app.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Lecture claims</span><span class="chip">Sources</span><span class="chip">Reviews</span><span class="chip">Micro-chapter</span></div>
+      </div>
+    </div>
+
+    <!-- P3 rail badges -->
+    <div class="card">
+      <div class="chd"><span class="cid">P3</span><span class="cname">Rail count badge</span></div>
+      <div class="demo" style="gap:16px">
+        <div class="railbadge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a655c" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 8a8 8 0 00-14-3M4 16a8 8 0 0014 3"/></svg><span class="bg">4</span></div>
+        <div class="railbadge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a655c" stroke-width="2"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg><span class="bg" style="background:#b4690e">2</span></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">A live count on a rail icon turns "something needs you" into an ambient signal. Syncs on every resolution.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Reviews</span><span class="chip">Conflicts</span><span class="chip">Gaps (proposed)</span></div>
+      </div>
+    </div>
+
+    <!-- P4 status pills -->
+    <div class="card">
+      <div class="chd"><span class="cid">P4</span><span class="cname">Status pill + dot</span></div>
+      <div class="demo" style="flex-direction:column;gap:7px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"><span class="pill" style="color:#0e8c6b;border:1px solid rgba(14,140,107,.35)"><span class="dot" style="background:#0e8c6b"></span>ready</span><span class="pill" style="color:#2d6cdf;border:1px solid rgba(45,108,223,.35)"><span class="dot" style="background:#2d6cdf"></span>running</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"><span class="pill" style="color:#c0392b;border:1px solid rgba(192,57,43,.35)"><span class="dot" style="background:#c0392b"></span>open</span><span class="pill" style="color:#b4690e;border:1px solid rgba(180,105,14,.35)"><span class="dot" style="background:#b4690e"></span>revise</span><span class="pill" style="color:#0e8c6b;border:1px solid rgba(14,140,107,.35)"><span class="dot" style="background:#0e8c6b"></span>passed</span></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">Mono-cased pill + coloured dot for object state. Same recipe for every lifecycle in the app.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Topics</span><span class="chip">Tasks</span><span class="chip">Conflicts</span><span class="chip">Sources</span></div>
+      </div>
+    </div>
+
+    <!-- P5 trust bar -->
+    <div class="card">
+      <div class="chd"><span class="cid">P5</span><span class="cname">Trust bar</span></div>
+      <div class="demo" style="flex-direction:column;gap:8px;align-items:stretch">
+        <div class="trustbar"><span style="flex:3;background:#0e8c6b"></span><span style="flex:2;background:#2d6cdf"></span><span style="flex:1;background:#6d5bd0"></span><span style="flex:1;background:#b4690e"></span><span style="flex:1;background:#c0392b"></span></div>
+        <span class="bl" style="width:55%;height:5px;background:#efece5;margin:0 auto"></span>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">A stacked bar showing the claim mix at a glance — proportion verified vs flagged, no numbers needed.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Library cards</span><span class="chip">Lecture section</span></div>
+      </div>
+    </div>
+
+    <!-- P6 active listening card -->
+    <div class="card">
+      <div class="chd"><span class="cid">P6</span><span class="cname">Active-listening card</span></div>
+      <div class="demo">
+        <div class="alc" style="background:rgba(109,91,208,.07);border:1px solid rgba(109,91,208,.25)"><span class="aley" style="color:#6d5bd0">◇ Predict before reading</span><div class="fieldm"></div></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">One coloured card shape — eyebrow + prompt + input — reused for predict, pause, cloze, connection, close.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Lecture</span><span class="chip">Tasks (follow-up)</span></div>
+      </div>
+    </div>
+
+    <!-- P7 gate -->
+    <div class="card">
+      <div class="chd"><span class="cid">P7</span><span class="cname">Gate before progress</span></div>
+      <div class="demo">
+        <div class="gate"><div style="display:flex;gap:5px"><span class="pill" style="color:#0e8c6b;border:1px solid rgba(14,140,107,.35)">Sure</span><span class="pill" style="color:#b4690e;border:1px solid rgba(180,105,14,.35)">Unsure</span><span class="pill" style="color:#c0392b;border:1px solid rgba(192,57,43,.35)">Guess</span></div><div class="gatebtn">🔒 Continue · locked</div></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">A commit-before-you-proceed lock. Forces a metacognitive step; the button stays disabled until answered.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Review · confidence</span><span class="chip">Lecture · close</span></div>
+      </div>
+    </div>
+
+    <!-- P8 settings controls -->
+    <div class="card">
+      <div class="chd"><span class="cid">P8</span><span class="cname">Config controls</span></div>
+      <div class="demo" style="flex-direction:column;gap:9px;align-items:stretch">
+        <div class="seg"><span class="segb">Minimal</span><span class="segb on">Standard</span><span class="segb">Thorough</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="bl" style="width:46%"></span><span class="toggle on"></span><span class="toggle off"></span></div>
+        <div class="slider"></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">Segmented control · toggle · slider — the three-piece kit for every preference, most with an "effect" line.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Settings (8 panels)</span></div>
+      </div>
+    </div>
+
+    <!-- P9 topbar -->
+    <div class="card">
+      <div class="chd"><span class="cid">P9</span><span class="cname">Top bar + back</span></div>
+      <div class="demo">
+        <div class="topbar"><span style="color:#b3aca0;font-size:11px">‹</span><span class="bl" style="width:26px;height:5px"></span><span style="width:1px;height:12px;background:#e2ddd3"></span><span class="bl" style="width:60px;height:6px"></span><span class="pill" style="margin-left:auto;color:#0e8c6b;border:1px solid rgba(14,140,107,.35)">ready</span></div>
+      </div>
+      <div class="cbody">
+        <div class="cdesc">Back-to-Library + title + optional status/action. The consistent frame on every non-hub screen.</div>
+        <div class="usedin"><span class="ui-lbl">Used in</span><span class="chip">Every detail screen</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RECOMMENDATION -->
+  <div class="sectlead">
+    <span class="cap">Consistency note</span>
+    <h2>The one thing to fix</h2>
+  </div>
+  <div class="rec">
+    <h3><span style="width:9px;height:9px;border-radius:3px;background:#b4690e;display:inline-block"></span>Mixed icon languages</h3>
+    <p>Everything uses clean line icons (Tabler) — except <b>Sources</b>, which uses emoji (<span class="fk">📘 🔬 📄 🌐</span>). It's the one place the visual language breaks. Either commit to line icons for source types, or make emoji an intentional, consistent accent. Small fix, noticeably more finished.</p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

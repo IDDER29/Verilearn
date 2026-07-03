@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e9e4f5;font-family:'Nunito',system-ui,sans-serif;color:#221f2e;-webkit-font-smoothing:antialiased}
+  @keyframes vlpop{0%{opacity:0;transform:scale(.5)}70%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:26px;box-sizing:border-box;display:flex;justify-content:center">
+  <div style="width:1340px;flex-shrink:0;background:#f4f2f8;border-radius:30px;display:grid;grid-template-columns:248px 1fr;overflow:hidden;box-shadow:0 30px 80px -40px rgba(80,60,140,.4)">
+
+    <aside style="background:#fbfafd;padding:26px 18px;display:flex;flex-direction:column;gap:6px;border-right:1px solid #ece8f4">
+      <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 20px">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6d5bd0,#8b78e8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -4px rgba(109,91,208,.6)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.9 7.2 18.7l.9-5.4-3.9-3.8 5.4-.8z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.3 12l1.9 1.9L15 10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span style="font:900 21px 'Nunito';letter-spacing:-.02em">VeriLearn</span>
+      </div>
+      <a href="VeriLearn%20Dashboard.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg> Dashboard</a>
+      <a href="VeriLearn%20Topic%20Workspace.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z"/></svg> Topics</a>
+      <a href="VeriLearn%20My%20Tasks.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg> My Tasks</a>
+      <a href="VeriLearn%20Tests.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#6d5bd0;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;box-shadow:0 10px 22px -8px rgba(109,91,208,.7)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 3H8zM8 6h8l1 14a1 1 0 01-1 1H8a1 1 0 01-1-1z"/><path d="M10 12h4M10 16h4"/></svg> Tests</a>
+      <a href="VeriLearn%20Community.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 6a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/></svg> Community</a>
+      <a href="VeriLearn%20Progress.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Reports</a>
+      <a href="VeriLearn%20Events.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg> Events</a>
+      <div style="height:1px;background:#ece8f4;margin:14px 8px"></div>
+      <a href="VeriLearn%20Settings.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg> Settings</a>
+      <a href="VeriLearn%20Support.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:#6c6780;text-decoration:none;font-weight:600;font-size:14.5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.5.8c0 1.9-2.8 2.5-2.8 2.5M12 17h.01"/></svg> Support</a>
+      <div style="margin-top:auto"></div>
+      <div style="background:linear-gradient(160deg,#ffffff,#f3f0fb);border:1px solid #ece8f4;border-radius:20px;padding:18px 16px;text-align:center;margin-top:16px">
+        <div style="width:60px;height:60px;border-radius:50%;margin:0 auto 12px;background:radial-gradient(circle at 40% 35%,#3a3550,#17141f);display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c4b8f5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 1.5 5 5 5 9l-2.5 2.5h-5L7 12c0-4 2-7.5 5-9z"/><circle cx="12" cy="9.5" r="1.6"/><path d="M9.5 17c-1 .5-1.8 1.6-2 3 1.4-.2 2.5-1 3-2M14.5 17c1 .5 1.8 1.6 2 3-1.4-.2-2.5-1-3-2"/></svg></div>
+        <div style="font:800 15px 'Nunito'">Go Verified Pro</div>
+        <div style="font:600 11.5px/1.5 'Nunito';color:#8b8699;margin:5px 0 14px">Deeper checks &amp; the Skeptic on hard mode.</div>
+        <a href="VeriLearn%20Upgrade.dc.html" style="display:block;text-align:center;text-decoration:none;padding:11px;border-radius:13px;background:#221f2e;color:#fff;font:800 13px 'Nunito'">Upgrade</a>
+      </div>
+    </aside>
+
+    <main style="padding:24px 26px 30px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <!-- pass hero -->
+        <div style="position:relative;background:linear-gradient(150deg,#2e9c6a,#3fb37e);border-radius:24px;padding:30px 34px;overflow:hidden;color:#fff;display:flex;align-items:center;gap:24px">
+          <div style="position:absolute;inset:0;background:radial-gradient(90% 130% at 15% 10%,rgba(255,255,255,.25),transparent 50%)"></div>
+          <div style="position:relative;width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:vlpop .5s cubic-bezier(.34,1.56,.64,1)"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div style="position:relative;flex:1;min-width:0">
+            <div style="font:800 10px 'Nunito';letter-spacing:.12em;text-transform:uppercase;color:#d6f2e4;margin-bottom:6px">Checkpoint · Dijkstra's algorithm</div>
+            <div style="font:900 27px/1.15 'Nunito'">Passed! You scored 83% 🎉</div>
+            <div style="font:600 13px 'Nunito';color:#e4f7ee;margin-top:6px">10 of 12 correct · finished in 14m 12s · beat the 75% bar</div>
+          </div>
+        </div>
+
+        <!-- section breakdown -->
+        <div style="background:#fff;border-radius:22px;padding:24px 26px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+          <div style="font:900 17px 'Nunito';margin-bottom:16px">How you did, by section</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0"><span style="width:120px;font:800 13px 'Nunito';flex-shrink:0">§1 Core idea</span><div style="flex:1;height:9px;border-radius:5px;background:#eee9f7;overflow:hidden"><div style="width:100%;height:100%;background:#2e9c6a"></div></div><span style="font:800 12px 'Nunito';color:#2e9c6a;width:44px;text-align:right">3/3</span></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #f5f3fa"><span style="width:120px;font:800 13px 'Nunito';flex-shrink:0">§2 Implementation</span><div style="flex:1;height:9px;border-radius:5px;background:#eee9f7;overflow:hidden"><div style="width:80%;height:100%;background:#2e9c6a"></div></div><span style="font:800 12px 'Nunito';color:#2e9c6a;width:44px;text-align:right">4/5</span></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #f5f3fa"><span style="width:120px;font:800 13px 'Nunito';flex-shrink:0">§3 Limits</span><div style="flex:1;height:9px;border-radius:5px;background:#eee9f7;overflow:hidden"><div style="width:75%;height:100%;background:#c99a2b"></div></div><span style="font:800 12px 'Nunito';color:#b4830f;width:44px;text-align:right">3/4</span></div>
+        </div>
+
+        <!-- missed questions -->
+        <div style="background:#fff;border-radius:22px;padding:24px 26px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font:900 17px 'Nunito'">The 2 you missed</span><span style="font:800 10px 'Nunito';color:#6d5bd0;background:#efe9ff;padding:4px 10px;border-radius:8px">Added to gap map</span></div>
+          <div style="font:600 12.5px 'Nunito';color:#8b8699;margin-bottom:16px">Each shows the verified claim it tested — review these before your next test.</div>
+
+          <div style="border:1px solid #f3d9d6;background:#fdf2f1;border-radius:15px;padding:15px 17px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:22px;height:22px;border-radius:7px;background:#c0392b;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span><span style="font:800 11px 'Nunito';color:#c0392b">§3 · Limits</span></div>
+            <div style="font:700 14px/1.5 'Nunito';margin-bottom:8px">"Dijkstra's O((V+E) log V) bound assumes a binary heap." — you chose the Fibonacci-heap bound.</div>
+            <div style="display:flex;align-items:center;gap:8px;font:700 11.5px 'Nunito';color:#3d8763"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 015.5 4H11v15H5.5A1.5 1.5 0 014 17.5z"/><path d="M20 5.5A1.5 1.5 0 0018.5 4H13v15h5.5a1.5 1.5 0 001.5-1.5z"/></svg>Verified · CLRS §24.3</div>
+          </div>
+          <div style="border:1px solid #f3d9d6;background:#fdf2f1;border-radius:15px;padding:15px 17px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:22px;height:22px;border-radius:7px;background:#c0392b;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span><span style="font:800 11px 'Nunito';color:#c0392b">§2 · Implementation</span></div>
+            <div style="font:700 14px/1.5 'Nunito';margin-bottom:8px">"Decrease-key is what keeps the heap consistent after relaxation." — you skipped this one.</div>
+            <div style="display:flex;align-items:center;gap:8px;font:700 11.5px 'Nunito';color:#3d8763"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 015.5 4H11v15H5.5A1.5 1.5 0 014 17.5z"/><path d="M20 5.5A1.5 1.5 0 0018.5 4H13v15h5.5a1.5 1.5 0 001.5-1.5z"/></svg>Verified · CLRS §24.3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: score + actions -->
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div style="background:#fff;border-radius:22px;padding:22px;text-align:center;box-shadow:0 10px 30px -18px rgba(80,60,140,.28)">
+          <div style="position:relative;width:140px;height:140px;margin:0 auto 6px">
+            <div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(#2e9c6a 299deg,#eee9f7 0)"></div>
+            <div style="position:absolute;inset:15px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font:900 32px 'Nunito';color:#2e9c6a">83%</div><div style="font:700 10px 'Nunito';color:#8b8699">10 / 12</div></div>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:6px;font:800 12px 'Nunito';color:#2e9c6a;background:#e4f4ec;padding:6px 14px;border-radius:10px;margin-top:8px">✓ Passed · bar 75%</div>
+        </div>
+
+        <div style="background:#fff;border-radius:22px;padding:20px;box-shadow:0 10px 30px -18px rgba(80,60,140,.28);display:flex;flex-direction:column;gap:10px">
+          <a href="VeriLearn%20Gap%20Map.dc.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;background:#f2effc;border-radius:13px;padding:13px 15px"><div style="width:34px;height:34px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div><div style="flex:1;min-width:0"><div style="font:800 13px 'Nunito';color:#6d5bd0">Review your 2 gaps</div><div style="font:600 11px 'Nunito';color:#948ab5">Now tracked in your gap map</div></div></a>
+          <a href="VeriLearn%20Tests.dc.html" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:13px;background:#6d5bd0;color:#fff;font:800 14px 'Nunito';box-shadow:0 12px 26px -10px rgba(109,91,208,.7)">Back to tests</a>
+          <a href="VeriLearn%20Dashboard.dc.html" style="display:block;text-align:center;text-decoration:none;padding:13px;border-radius:13px;border:1.5px solid #ece8f4;background:#fbfafd;color:#4a4560;font:800 13.5px 'Nunito'">Back to dashboard</a>
+        </div>
+
+        <div style="background:linear-gradient(160deg,#221d2e,#3a3550);border-radius:22px;padding:20px;color:#fff">
+          <div style="font:900 14px 'Nunito';margin-bottom:8px">📈 Signals updated</div>
+          <div style="font:600 12px/1.6 'Nunito';color:#c9c3d8">This result nudged your <b style="color:#fff">retention</b> +3% and <b style="color:#fff">transfer</b> +5% on Progress.</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1392,&quot;height&quot;:900}}"></script>
+</body>
+</html>
