@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { Avatar, Card, SpotlightCard, StatusPill } from "@/components/ui";
 
 export const metadata = { title: "Community · VeriLearn" };
 
@@ -149,45 +150,18 @@ export default function CommunityPage() {
           {/* thread list */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {THREADS.map((t, i) => (
-              <Link
-                key={i}
-                href={t.href}
-                style={{
-                  background: "#fff",
-                  borderRadius: 18,
-                  padding: "16px 18px",
-                  boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)",
-                  display: "flex",
-                  gap: 14,
-                  textDecoration: "none",
-                  color: "inherit",
-                }}
-              >
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background: t.avatarBg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 20,
-                    flexShrink: 0,
-                  }}
-                >
-                  {t.emoji}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ font: "800 14.5px var(--font-nunito)" }}>{t.title}</div>
-                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 3 }}>{t.meta}</div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
-                    <span style={{ font: "800 10px var(--font-nunito)", color: t.tag.color, background: t.tag.bg, padding: "4px 9px", borderRadius: 8 }}>
-                      {t.tag.label}
-                    </span>
-                    <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>💬 {t.replies}</span>
+              <Link key={i} href={t.href} style={{ textDecoration: "none", color: "inherit" }}>
+                <Card radius={18} padding="16px 18px" boxShadow="0 8px 22px -16px rgba(80,60,140,.3)" style={{ display: "flex", gap: 14 }}>
+                  <Avatar emoji={t.emoji} size={44} background={t.avatarBg} fontSize={20} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: "800 14.5px var(--font-nunito)" }}>{t.title}</div>
+                    <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 3 }}>{t.meta}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 9, alignItems: "center" }}>
+                      <StatusPill label={t.tag.label} color={t.tag.color} bg={t.tag.bg} />
+                      <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>💬 {t.replies}</span>
+                    </div>
                   </div>
-                </div>
+                </Card>
               </Link>
             ))}
           </div>
@@ -195,7 +169,7 @@ export default function CommunityPage() {
 
         {/* right rail */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: 20, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+          <Card padding={20}>
             <div style={{ font: "900 15px var(--font-nunito)", marginBottom: 14 }}>Top contributors</div>
             {CONTRIBUTORS.map((c, i) => (
               <div
@@ -208,21 +182,7 @@ export default function CommunityPage() {
                   ...(i > 0 ? { borderTop: "1px solid #f5f3fa" } : {}),
                 }}
               >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: c.bg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 17,
-                    flexShrink: 0,
-                  }}
-                >
-                  {c.emoji}
-                </div>
+                <Avatar emoji={c.emoji} size={36} background={c.bg} fontSize={17} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ font: "800 13px var(--font-nunito)" }}>{c.name}</div>
                   <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{c.answers}</div>
@@ -230,14 +190,14 @@ export default function CommunityPage() {
                 <span style={{ font: "900 13px var(--font-nunito)", color: c.medalColor }}>{c.medal}</span>
               </div>
             ))}
-          </div>
+          </Card>
 
-          <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 20, padding: 20, color: "#fff" }}>
+          <SpotlightCard padding={20}>
             <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>🛡️ Verified answers only</div>
             <div style={{ font: "600 12px/1.55 var(--font-nunito)", color: "#c9c3d8" }}>
               Community answers can be promoted to a topic&apos;s sources — once the Skeptic checks them.
             </div>
-          </div>
+          </SpotlightCard>
         </div>
       </main>
     </AppShell>

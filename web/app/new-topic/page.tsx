@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
+import { BackButton } from "@/components/ui";
 
 type Goal = { label: string; icon: React.ReactNode };
 
@@ -104,11 +104,7 @@ export default function NewTopicPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
           {/* header */}
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Link href="/" style={{ width: 42, height: 42, borderRadius: 13, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", boxShadow: "0 6px 18px -10px rgba(80,60,140,.25)", flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </Link>
+            <BackButton href="/" />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>New topic</div>
               <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>What do you want to learn? ✨</div>

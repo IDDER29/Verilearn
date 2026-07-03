@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AppShell from "@/components/AppShell";
+import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
 
 type Card = { q: string; a: string; source: string };
 
@@ -47,17 +48,12 @@ const RATINGS = [
 const TOTAL = CARDS.length;
 
 function SessionRing({ reviewed }: { reviewed: number }) {
-  const C = 339; // r=54
   return (
-    <div style={{ position: "relative", width: 128, height: 128, margin: "0 auto 10px" }}>
-      <svg width="128" height="128" viewBox="0 0 128 128" style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="64" cy="64" r="54" fill="none" stroke="#eee9f7" strokeWidth="13" />
-        <circle cx="64" cy="64" r="54" fill="none" stroke="#6d5bd0" strokeWidth="13" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - reviewed / TOTAL)} style={{ transition: "stroke-dashoffset .5s ease" }} />
-      </svg>
-      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ margin: "0 auto 10px", width: 128 }}>
+      <ProgressRing size={128} stroke={13} r={54} pct={(reviewed / TOTAL) * 100} animate>
         <div style={{ font: "900 26px var(--font-nunito)" }}>{reviewed}/{TOTAL}</div>
         <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>reviewed</div>
-      </div>
+      </ProgressRing>
     </div>
   );
 }
@@ -90,11 +86,7 @@ export default function ReviewPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
           {/* header */}
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Link href="/" style={{ width: 42, height: 42, borderRadius: 13, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", boxShadow: "0 6px 18px -10px rgba(80,60,140,.25)", flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </Link>
+            <BackButton href="/" />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Spaced review · today</div>
               <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Review session</div>
@@ -386,7 +378,7 @@ export default function ReviewPage() {
               </div>
 
               {/* blind-spot */}
-              <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 22, color: "#fff", boxShadow: "0 16px 34px -16px rgba(40,30,70,.7)" }}>
+              <SpotlightCard radius={22} padding={22} raised>
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 13, background: "rgba(255,255,255,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b3a7f0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -409,7 +401,7 @@ export default function ReviewPage() {
                 <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginTop: 10 }}>
                   Drills salt false claims into your reviews — catching them sharpens judgment.
                 </div>
-              </div>
+              </SpotlightCard>
             </>
           ) : (
             <button

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
+import { BackButton, ProgressRing } from "@/components/ui";
 
 type Stage = {
   title: string;
@@ -89,9 +90,6 @@ function PipelineInner() {
   }, [done]);
 
   const pct = Math.min(100, Math.round((stage / STAGES.length) * 100));
-  const R = 32;
-  const C = 2 * Math.PI * R; // ~201
-  const dashoffset = C * (1 - pct / 100);
 
   return (
     <AppShell active="topics">
@@ -100,11 +98,7 @@ function PipelineInner() {
 
         {/* header */}
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Link href="/" style={{ width: 42, height: 42, borderRadius: 13, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", boxShadow: "0 6px 18px -10px rgba(80,60,140,.25)", flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
+          <BackButton href="/" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>New topic · {done ? "ready" : "verifying"}</div>
             <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{topic}</div>
@@ -127,12 +121,10 @@ function PipelineInner() {
         {/* hero verifying banner */}
         <div style={{ position: "relative", background: "#211d2e", borderRadius: 24, padding: "32px 36px", overflow: "hidden", display: "flex", alignItems: "center", gap: 26 }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 150% at 88% 15%,rgba(139,120,232,.42),transparent 55%)" }} />
-          <div style={{ position: "relative", width: 78, height: 78, flexShrink: 0 }}>
-            <svg width="78" height="78" viewBox="0 0 78 78" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="39" cy="39" r={R} fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="9" />
-              <circle cx="39" cy="39" r={R} fill="none" stroke={done ? "#4fd0a0" : "#8b78e8"} strokeWidth="9" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={dashoffset} style={{ transition: "stroke-dashoffset .6s ease, stroke .3s" }} />
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", font: "900 17px var(--font-nunito)", color: "#fff" }}>{pct}%</div>
+          <div style={{ flexShrink: 0 }}>
+            <ProgressRing size={78} stroke={9} r={32} pct={pct} trackColor="rgba(255,255,255,.14)" ringColor={done ? "#4fd0a0" : "#8b78e8"} animate>
+              <div style={{ font: "900 17px var(--font-nunito)", color: "#fff" }}>{pct}%</div>
+            </ProgressRing>
           </div>
           <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
             <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".12em", textTransform: "uppercase", color: "#b3a7f0", marginBottom: 6 }}>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { StatCard, TrustBar } from "@/components/ui";
 
 export const metadata = { title: "Dashboard · VeriLearn" };
 
@@ -174,41 +175,41 @@ export default function DashboardPage() {
 
           {/* stat cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-            <div style={{ background: "#fdf3d0", borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 15, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <StatCard
+              bg="#fdf3d0"
+              labelColor="#9a7f3a"
+              value="24"
+              label="Verified topics"
+              icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#d19a2b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z" />
                 </svg>
-              </div>
-              <div>
-                <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>24</div>
-                <div style={{ font: "700 12.5px var(--font-nunito)", color: "#9a7f3a" }}>Verified topics</div>
-              </div>
-            </div>
-            <div style={{ background: "#dcefe4", borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 15, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              }
+            />
+            <StatCard
+              bg="#dcefe4"
+              labelColor="#3d8763"
+              value="128"
+              label="Claims checked"
+              icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M8 12.5l2.5 2.5L16 9.5" />
                 </svg>
-              </div>
-              <div>
-                <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>128</div>
-                <div style={{ font: "700 12.5px var(--font-nunito)", color: "#3d8763" }}>Claims checked</div>
-              </div>
-            </div>
-            <div style={{ background: "#dce8fb", borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 15, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              }
+            />
+            <StatCard
+              bg="#dce8fb"
+              labelColor="#3a63b0"
+              value="10"
+              label="Certificates"
+              icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#3a6fd4" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="9" r="5" />
                   <path d="M8.5 13.5L7 21l5-2.5L17 21l-1.5-7.5" />
                 </svg>
-              </div>
-              <div>
-                <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>10</div>
-                <div style={{ font: "700 12.5px var(--font-nunito)", color: "#3a63b0" }}>Certificates</div>
-              </div>
-            </div>
+              }
+            />
           </div>
 
           {/* class list */}
@@ -257,9 +258,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>83% verified</div>
-                <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden", display: "flex", gap: 1 }}>
-                  <span style={{ width: "83%", background: "#0e8c6b" }} />
-                </div>
+                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 83 }]} />
               </div>
               <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "6px 12px", borderRadius: 10 }}>● On track</span>
             </div>
@@ -274,11 +273,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>82% verified</div>
-                <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden", display: "flex", gap: 1 }}>
-                  <span style={{ width: "52%", background: "#0e8c6b" }} />
-                  <span style={{ width: "20%", background: "#2d6cdf" }} />
-                  <span style={{ width: "10%", background: "#b4690e" }} />
-                </div>
+                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 52 }, { color: "#2d6cdf", pct: 20 }, { color: "#b4690e", pct: 10 }]} />
               </div>
               <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#b4690e", background: "#fbefdd", padding: "6px 12px", borderRadius: 10 }}>● 1 dispute</span>
             </div>
@@ -293,10 +288,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>100% verified</div>
-                <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden", display: "flex", gap: 1 }}>
-                  <span style={{ width: "70%", background: "#0e8c6b" }} />
-                  <span style={{ width: "30%", background: "#2d6cdf" }} />
-                </div>
+                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 70 }, { color: "#2d6cdf", pct: 30 }]} />
               </div>
               <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#3a63b0", background: "#e3ecfb", padding: "6px 12px", borderRadius: 10 }}>✓ Verified</span>
             </div>
