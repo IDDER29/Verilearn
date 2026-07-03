@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  /* Surfaces */
+  --vl-bg: #e9e4f5;
+  --vl-shell: #f4f2f8;
+  --vl-sidebar: #fbfafd;
+  --vl-card: #ffffff;
+  --vl-border: #ece8f4;
+  --vl-hairline: #f5f3fa;
+
+  /* Text */
+  --vl-ink: #221f2e;
+  --vl-ink-soft: #3a3550;
+  --vl-muted: #6c6780;
+  --vl-muted-2: #8b8699;
+  --vl-muted-3: #9a95a8;
+  --vl-faint: #b6b1c4;
+
+  /* Brand */
+  --vl-purple: #6d5bd0;
+  --vl-purple-2: #8b78e8;
+  --vl-purple-tint: #f1eefb;
+
+  /* Dark surfaces */
+  --vl-dark: #211d2e;
+  --vl-dark-2: #3a3550;
+
+  /* Trust palette */
+  --vl-verified: #2e9c6a;
+  --vl-sourced: #3a63b0;
+  --vl-disputed: #c0392b;
+}
+
+@theme inline {
+  --font-nunito: var(--font-nunito);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--vl-bg);
+  color: var(--vl-ink);
+  font-family: var(--font-nunito), "Nunito", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::placeholder {
+  color: var(--vl-faint);
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+  border-color: var(--vl-purple) !important;
+  box-shadow: 0 0 0 3px rgba(109, 91, 208, 0.14);
+}
+
+a {
+  color: inherit;
+}
