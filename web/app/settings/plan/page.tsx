@@ -1,10 +1,19 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
 
 export const metadata = { title: "Plan & billing · Settings · VeriLearn" };
 
-export default function SettingsPlanPage() {
+const PLAN_LABEL: Record<string, string> = { free: "Free", pro: "Pro", team: "Teams" };
+
+export default async function SettingsPlanPage() {
+  const user = await requireUser();
+  const topicCount = listTopicSummaries(user.id).length;
+  const cap = user.plan === "free" ? 3 : Infinity;
+  const planLabel = PLAN_LABEL[user.plan] ?? "Free";
+  const atLimit = topicCount >= cap;
   return (
     <AppShell active="settings">
       <main
@@ -38,8 +47,10 @@ export default function SettingsPlanPage() {
             <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: "800 10px var(--font-nunito)", letterSpacing: ".1em", textTransform: "uppercase", color: "#b3a7f0", marginBottom: 6 }}>Current plan</div>
-                <div style={{ font: "900 22px var(--font-nunito)" }}>Free</div>
-                <div style={{ font: "600 12.5px var(--font-nunito)", color: "#c9c3d8", marginTop: 4 }}>3 active topics · standard verification</div>
+                <div style={{ font: "900 22px var(--font-nunito)" }}>{planLabel}</div>
+                <div style={{ font: "600 12.5px var(--font-nunito)", color: "#c9c3d8", marginTop: 4 }}>
+                  {topicCount} active topic{topicCount === 1 ? "" : "s"} · {user.plan === "pro" ? "hard-mode verification" : "standard verification"}
+                </div>
               </div>
               <Link href="/upgrade" style={{ textDecoration: "none", background: "#fff", color: "#221f2e", font: "800 13.5px var(--font-nunito)", padding: "12px 22px", borderRadius: 13, whiteSpace: "nowrap" }}>
                 Upgrade to Pro
@@ -52,10 +63,10 @@ export default function SettingsPlanPage() {
             <div style={{ font: "800 15px var(--font-nunito)", marginBottom: 14 }}>This month&apos;s usage</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", font: "700 12.5px var(--font-nunito)", marginBottom: 7 }}>
               <span>Active topics</span>
-              <span style={{ color: "#8b8699" }}>3 of 3</span>
+              <span style={{ color: "#8b8699" }}>{topicCount} of {cap === Infinity ? "∞" : cap}</span>
             </div>
             <div style={{ height: 8, borderRadius: 5, background: "#eee9f7", overflow: "hidden", marginBottom: 16 }}>
-              <div style={{ width: "100%", height: "100%", background: "#c0392b" }} />
+              <div style={{ width: `${cap === Infinity ? 6 : Math.min(100, Math.round((topicCount / cap) * 100))}%`, height: "100%", background: atLimit ? "#c0392b" : "#6d5bd0" }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", font: "700 12.5px var(--font-nunito)", marginBottom: 7 }}>
               <span>Verification runs</span>
@@ -64,10 +75,12 @@ export default function SettingsPlanPage() {
             <div style={{ height: 8, borderRadius: 5, background: "#eee9f7", overflow: "hidden" }}>
               <div style={{ width: "60%", height: "100%", background: "#6d5bd0" }} />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", borderRadius: 12, background: "#fbeceb", font: "700 12px/1.5 var(--font-nunito)", color: "#c0392b" }}>
-              <span>⚠️</span>
-              You&apos;ve hit your topic limit — upgrade for unlimited topics.
-            </div>
+            {atLimit && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", borderRadius: 12, background: "#fbeceb", font: "700 12px/1.5 var(--font-nunito)", color: "#c0392b" }}>
+                <span>⚠️</span>
+                You&apos;ve hit your topic limit — upgrade for unlimited topics.
+              </div>
+            )}
           </div>
 
           {/* payment method */}

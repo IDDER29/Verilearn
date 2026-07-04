@@ -1,7 +1,11 @@
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
+import { requireUser } from "@/lib/auth/current";
 
 export const metadata = { title: "Profile · Settings · VeriLearn" };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const ROLE_LABEL: Record<string, string> = { learner: "Verified Learner", instructor: "Instructor", sme_reviewer: "Subject-Matter Expert" };
 
 const inputStyle = {
   width: "100%",
@@ -32,7 +36,11 @@ const chevron = (
   </svg>
 );
 
-export default function SettingsProfilePage() {
+export default async function SettingsProfilePage() {
+  const user = await requireUser();
+  const joined = new Date(user.createdAt);
+  const joinedLabel = `${MONTHS[joined.getUTCMonth()]} ${joined.getUTCFullYear()}`;
+  const roleLabel = ROLE_LABEL[user.role] ?? "Learner";
   return (
     <AppShell active="settings">
       <main
@@ -66,8 +74,8 @@ export default function SettingsProfilePage() {
               🧑‍🎨
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "900 16px var(--font-nunito)" }}>Adeline Watson</div>
-              <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699" }}>Verified Learner · joined Mar 2026</div>
+              <div style={{ font: "900 16px var(--font-nunito)" }}>{user.displayName}</div>
+              <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699" }}>{roleLabel} · joined {joinedLabel}</div>
             </div>
             <button style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#4a4560", font: "800 12.5px var(--font-nunito)", padding: "10px 16px", borderRadius: 12, cursor: "pointer" }}>
               Change photo
@@ -79,16 +87,16 @@ export default function SettingsProfilePage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
               <div>
                 <div style={labelStyle}>Full name</div>
-                <input type="text" defaultValue="Adeline Watson" style={inputStyle} />
+                <input type="text" defaultValue={user.displayName} style={inputStyle} />
               </div>
               <div>
                 <div style={labelStyle}>Display name</div>
-                <input type="text" defaultValue="Adeline" style={inputStyle} />
+                <input type="text" defaultValue={user.displayName} style={inputStyle} />
               </div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <div style={labelStyle}>Email</div>
-              <input type="text" defaultValue="adeline@example.com" style={inputStyle} />
+              <input type="text" defaultValue={user.email} style={inputStyle} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
