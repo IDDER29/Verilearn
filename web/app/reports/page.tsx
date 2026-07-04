@@ -100,6 +100,15 @@ export default async function ReportsPage() {
                 <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>{disp.text}</div>
                 <div style={{ font: "800 13px var(--font-nunito)", color: card.labelColor, marginTop: 4 }}>{card.label}</div>
                 <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: card.subColor, marginTop: 5 }}>{card.sub}</div>
+                {/* Explainability drill-in (ANALYTICS-02): the engine's real provenance trace. */}
+                <details style={{ marginTop: 10 }}>
+                  <summary style={{ cursor: "pointer", font: "800 10px var(--font-nunito)", letterSpacing: ".03em", textTransform: "uppercase", color: card.labelColor }}>
+                    Where this comes from
+                  </summary>
+                  <div style={{ font: "600 11px/1.55 var(--font-nunito)", color: card.subColor, marginTop: 6 }}>
+                    {card.s.provenance}
+                  </div>
+                </details>
               </div>
             );
           })}

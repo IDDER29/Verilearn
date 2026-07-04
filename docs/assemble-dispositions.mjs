@@ -18,7 +18,7 @@ const ROWS = [
   ["COMM", "Community, Contributions & Reputation", 24, 0, 14, 10],
   ["EVENT", "Events: Workshops, Groups & Challenges", 25, 0, 18, 7],
   ["NOTIF", "Notifications, Reminders & Messaging", 24, 4, 11, 9],
-  ["ANALYTICS", "Progress, Reports & Analytics", 21, 6, 6, 9],
+  ["ANALYTICS", "Progress, Reports & Analytics", 21, 7, 5, 9],
   ["SETTINGS", "Settings, Profile & Privacy", 23, 11, 9, 3],
   ["BILL", "Billing, Plans & Subscriptions", 23, 5, 6, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
