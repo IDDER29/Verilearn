@@ -3,6 +3,7 @@ import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { listNotifications, markAllNotificationsRead, unreadNotificationCount } from "./notifications";
+import { updatePrefs } from "./prefs";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -159,6 +160,14 @@ describe("notifications service", () => {
     expect(listNotifications(USER).some((i) => i.kind === "gap")).toBe(true);
     db.users.get(USER)!.prefs.notifications.gap = false;
     expect(listNotifications(USER).some((i) => i.kind === "gap")).toBe(false);
+  });
+
+  it("NOTIF-04/REVIEW-14: the Settings › Review 'Daily reminder' toggle genuinely gates the review-due item", () => {
+    expect(listNotifications(USER).some((i) => i.id === "notif_review_due")).toBe(true);
+    updatePrefs(USER, "review", { reminders: false });
+    expect(listNotifications(USER).some((i) => i.id === "notif_review_due")).toBe(false);
+    updatePrefs(USER, "review", { reminders: true });
+    expect(listNotifications(USER).some((i) => i.id === "notif_review_due")).toBe(true);
   });
 
   it("read-state is per-user", () => {
