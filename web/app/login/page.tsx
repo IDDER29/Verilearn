@@ -38,6 +38,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div style={{ font: "600 11.5px var(--font-nunito)", color: "#a7a1b8", textAlign: "center", marginTop: 12 }}>
         Demo account is pre-filled — just press Sign in.
       </div>
+      <div style={{ textAlign: "center", marginTop: 10 }}>
+        <Link href="/demo" style={{ color: "#6d5bd0", fontWeight: 800, font: "800 12px var(--font-nunito)", textDecoration: "none" }}>
+          Or try the live demo — no account needed →
+        </Link>
+      </div>
     </AuthShell>
   );
 }

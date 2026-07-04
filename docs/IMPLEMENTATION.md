@@ -126,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after a real, password-confirmed change-email action (SETTINGS-03), on top of feeding missed seeded error-drills into the Gap Map (GAP-07) and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 148 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after linking the real no-account `/demo` guest path (HOME-12) from the Login redirect target, a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 148 Done; remainder is field-polish or deferred-with-justification._
