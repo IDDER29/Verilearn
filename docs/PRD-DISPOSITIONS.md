@@ -21,7 +21,7 @@ justification** — nothing is silently dropped.
 | HOME — Learner Home / Dashboard & Discovery | 22 | 8 | 13 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 11 | 11 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
-| TASK — Tasks & Rubric Assessment | 24 | 7 | 14 | 3 |
+| TASK — Tasks & Rubric Assessment | 24 | 8 | 13 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 8 | 15 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 11 | 10 | 2 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **93** | **244** | **125** |
+| **TOTAL** | **462** | **94** | **243** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -197,7 +197,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-11 | 🟡 Partial | Conflict machinery exists (`lib/services/conflicts.ts`: list disputed + `resolveConflict` → re-verify via system verifier, firewall-respecting) and grades are conceptually contestable. But there is **no path from a graded task to raise a dispute on a specific criterion**; task grading does not open a criterion-tied Conflict object, and no dispute rate-limiting exists. |
 | TASK-12 | 🟡 Partial | RBAC has SME/reviewer roles and the epistemic firewall (only a system verifier / SME dual-control can set trust; `lib/domain/rbac.ts`, tested), and conflict adjudication re-verifies via the system verifier. But there is no grade-dispute adjudication surface, no correct/retire-criterion flow, and no post-correction grade recompute. |
 | TASK-13 | 🟡 Partial | Tasks and Tests share the same verified/sourced eligibility (`isTestEligible`) and the same ≥75% bar concept; the Tests hub excludes disputed claims (`lib/domain/tests-engine.ts`, wired). But the explicit linkage — passing tasks feeding a test predicted-readiness score, and per-task excluded-from-test flagging on open Conflicts — is not wired between the two services. |
-| TASK-14 | 🟡 Partial | The Gap Map supports `origin: "task"` and the full Open→Watching→Closed→Reopened lifecycle (`lib/domain/gap.ts`, tested), and Review already emits gap auto-reopen. But `lib/services/tasks.ts` emits **no** gap event on a criterion miss or a pass — the task→gap wiring is absent. |
+| TASK-14 | ✅ Done | `gradeSubmission` now feeds per-criterion outcomes into the Gap Map (`lib/services/tasks.ts`, `applyTaskGapOutcomes`): a **missed** claim-anchored criterion opens a gap tagged `origin: "task"` (severity `med`) or regresses a tracked one via `onLapse`; a **hit** criterion advances a tracked gap toward closure (open/reopened → watching, like a correct recall). Gaps never touch trust state, criteria without a `claimId` (or anchored outside the topic) are skipped, and the count is returned as `gapsOpened`. Covered by `tasks.test.ts` (a thin answer opens task-origin gaps on the two anchored claims; a later full pass advances them to watching). Uses the same append-only lifecycle Review drives, so a task and a review agree on a claim's gap. |
 | TASK-15 | 🟡 Partial | The submitted answer is persisted server-side (`task.submittedAnswer`) and grading is synchronous/deterministic (in-memory), so nothing is lost on the happy path. Missing: no async job model, no idempotency key/queue, no "grading…/retry" state on a real backend error, and no "grade ready" notification. The transient "Grading…" label is client-only. Real async grading arrives with the LLM verifier. |
 | TASK-16 | 🟡 Partial | Not implemented: the in-progress answer lives only in React state (`useState`) and is lost on reload; there is no localStorage draft persistence, no offline-disabled submit state, and no reconnect queue. Not blocked by external infra — a client-side feature that is simply unbuilt. |
 | TASK-17 | ⏭️ Deferred | The pipeline has injection + hallucination guards for its own surface (`lib/domain/pipeline.ts`), but the task grader (`keywordMatcher`) performs no answer prompt-injection screening, no model-answer/lecture copy-through detection, and no pass-farming rate limiting. Meaningful hardening requires the real LLM grader (the guard pattern in the pipeline is the design precedent). |

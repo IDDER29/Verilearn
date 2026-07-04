@@ -56,6 +56,28 @@ describe("tasks service (produce step)", () => {
     expect(gradeSubmission("intruder", "task_dijkstra_1", "x").ok).toBe(false);
   });
 
+  it("TASK-14: a missed claim-anchored criterion opens a task-origin gap; a later hit advances it", () => {
+    const db = globalThis.__verilearnDb!;
+    const before = [...db.gaps.values()].filter((g) => g.userId === USER).length;
+
+    // A thin answer misses every criterion → opens gaps on the anchored claims
+    // (c2 and c5; c2's second criterion is a no-op on the now-open gap).
+    const thin = gradeSubmission(USER, "task_dijkstra_1", "dunno");
+    expect(thin.gapsOpened).toBe(2);
+    const gaps = [...db.gaps.values()].filter((g) => g.userId === USER);
+    expect(gaps.length).toBe(before + 2);
+    const g2 = gaps.find((g) => g.gap.claimId === "topic_dijkstra_c2")!;
+    expect(g2.gap.origin).toBe("task");
+    expect(g2.gap.status).toBe("open");
+
+    // A full pass hits every criterion → advances the tracked gaps toward closure.
+    const good = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(good.passed).toBe(true);
+    expect(good.gapsOpened).toBe(0); // hits open nothing
+    const g2b = [...db.gaps.values()].find((g) => g.userId === USER && g.gap.claimId === "topic_dijkstra_c2")!;
+    expect(g2b.gap.status).toBe("watching");
+  });
+
   it("TASK-04: refuses to grade when a criterion anchors to a non-eligible claim", () => {
     // Point a criterion at the disputed claim → the rubric is no longer gradeable.
     const db = globalThis.__verilearnDb!;
