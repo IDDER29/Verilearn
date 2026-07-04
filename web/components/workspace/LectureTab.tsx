@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BackButton } from "@/components/ui";
 import WorkspaceTabs from "./WorkspaceTabs";
-import type { TabKey } from "./types";
+import type { TabKey, WorkspaceData } from "./types";
 
 type Trust = "verified" | "sourced" | "disputed";
 
@@ -61,10 +61,20 @@ const TRUST_BADGE: Record<Trust, { label: string; color: string; bg: string }> =
   disputed: { label: "⚠️ Disputed claim", color: "#c0392b", bg: "#fbeceb" },
 };
 
-export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
+export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
   const [selected, setSelected] = useState<string>("correct");
   const claim = CLAIMS[selected];
   const badge = TRUST_BADGE[claim.trust];
+
+  // Ledger-computed aggregates (fall back to the illustrative Dijkstra numbers).
+  const bd = data?.breakdown;
+  const execCount = bd?.verified_execution ?? 3;
+  const backedCount = (bd?.verified_source ?? 2) + (bd?.sourced ?? 0);
+  const disputedCount = bd?.disputed ?? 1;
+  const verifiedCount = (bd?.verified_execution ?? 3) + (bd?.verified_source ?? 0);
+  const sourcedCount = bd?.sourced ?? 2;
+  const title = data?.title ?? "Dijkstra's algorithm";
+  const verifiedPct = data?.verifiedPercent ?? 83;
 
   // A render helper (not a nested component) so the same span can be reused inline
   // without creating a new component type each render.
@@ -100,11 +110,11 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <BackButton href="/" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Topics / Algorithms</div>
-            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Dijkstra&apos;s algorithm</div>
+            <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Topics / {data?.level ?? "Algorithms"}</div>
+            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{title}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 12.5px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "9px 15px", borderRadius: 12 }}>
-            ✓ 83% verified
+            ✓ {verifiedPct}% verified
           </div>
         </div>
 
@@ -113,9 +123,9 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 48, height: 48, borderRadius: 15, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🧭</div>
             <div>
-              <div style={{ font: "800 13px var(--font-nunito)", color: "#8b8699" }}>Beginner · 6 claims · 4 sources</div>
+              <div style={{ font: "800 13px var(--font-nunito)", color: "#8b8699" }}>{data?.level ?? "Beginner"} · {data?.claimCount ?? 6} claims · {data?.sourceCount ?? 4} sources</div>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#221f2e", marginTop: 2 }}>
-                Trust: <span style={{ color: "#0e8c6b" }}>3 verified</span> · <span style={{ color: "#2d6cdf" }}>2 sourced</span> · <span style={{ color: "#c0392b" }}>1 disputed</span>
+                Trust: <span style={{ color: "#0e8c6b" }}>{verifiedCount} verified</span> · <span style={{ color: "#2d6cdf" }}>{sourcedCount} sourced</span> · <span style={{ color: "#c0392b" }}>{disputedCount} disputed</span>
               </div>
             </div>
           </div>
@@ -205,19 +215,19 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
         <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
           <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Section trust</div>
           <div style={{ height: 12, borderRadius: 6, overflow: "hidden", display: "flex", gap: 2, marginBottom: 14 }}>
-            <span style={{ flex: 3, background: "#0e8c6b" }} />
-            <span style={{ flex: 2, background: "#2d6cdf" }} />
-            <span style={{ flex: 1, background: "#c0392b" }} />
+            <span style={{ flex: execCount || 0.001, background: "#0e8c6b" }} />
+            <span style={{ flex: backedCount || 0.001, background: "#2d6cdf" }} />
+            <span style={{ flex: disputedCount || 0.001, background: "#c0392b" }} />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#0e8c6b" }} />Verified by execution<span style={{ marginLeft: "auto", color: "#8b8699" }}>3</span>
+              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#0e8c6b" }} />Verified by execution<span style={{ marginLeft: "auto", color: "#8b8699" }}>{execCount}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#2d6cdf" }} />Backed by a source<span style={{ marginLeft: "auto", color: "#8b8699" }}>2</span>
+              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#2d6cdf" }} />Backed by a source<span style={{ marginLeft: "auto", color: "#8b8699" }}>{backedCount}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#c0392b" }} />Disputed<span style={{ marginLeft: "auto", color: "#8b8699" }}>1</span>
+              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#c0392b" }} />Disputed<span style={{ marginLeft: "auto", color: "#8b8699" }}>{disputedCount}</span>
             </div>
           </div>
         </div>
