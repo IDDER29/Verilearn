@@ -31,13 +31,13 @@ justification** — nothing is silently dropped.
 | NOTIF — Notifications, Reminders & Messaging | 24 | 0 | 15 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 2 | 10 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 1 | 19 | 3 |
-| BILL — Billing, Plans & Subscriptions | 23 | 4 | 7 | 12 |
+| BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **31** | **306** | **125** |
+| **TOTAL** | **462** | **32** | **305** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -526,13 +526,13 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | BILL-02 | ✅ Done | Server-side gate enforced in `web/lib/services/topics.ts` (`if (user.plan === "free" && existing.length >= 3) return { ok:false, error: "Free plan is limited to 3 topics…" }`) — a live count re-checked on the server, surfaced as an inline error via `web/app/topic-actions.ts` / `new-topic`. `web/app/settings/plan/page.tsx` shows the real "Active topics N of 3" meter and the at-limit warning banner ("You've hit your topic limit — upgrade for unlimited topics"). Note: the "Verification runs 18 of 30" meter is hardcoded and archive-to-free-a-slot is not implemented, but the primary 3-topic wall is real and server-authoritative. |
 | BILL-03 | 🟡 Partial | No public/unauthenticated pricing view exists — `web/app/upgrade/page.tsx` calls `requireUser()` and is auth-gated. There is no guest "select plan → signup → resume Checkout" hold-state. The tier copy exists but only behind auth; the pre-signup surface and plan-intent preservation are unbuilt. |
 | BILL-04 | 🟡 Partial | `web/app/upgrade/checkout/page.tsx` renders both Annual ($12/mo, "$144 billed yearly", "SAVE 20%") and Monthly ($15/mo) cards, an itemized order summary (subtotal $144.00, saving −$36.00, total $144.00), a "Pay $144 & upgrade" button, and "Secured by Stripe · 30-day money-back". Missing: the cycle toggle is static (both cards shown; no live state, total never recomputes to the monthly total), and card fields are plain inputs, not Stripe-tokenized. Happy-path visual only. |
-| BILL-05 | 🟡 Partial | `web/app/upgrade/success/page.tsx` confirms "Welcome to Pro!", lists unlocked entitlements (∞ topics, thorough verification, hard-mode Skeptic), CTAs to start a Pro topic / dashboard, and states a receipt was emailed. But it is fully static: no real entitlement flip (Checkout is a `<Link>`; `user.plan` stays `free`), a hardcoded email (`adeline@example.com`), no computed renewal date, and no receipt/reconciliation. |
+| BILL-05 | ✅ Done | `web/app/upgrade/success/page.tsx` is now an async server component reading `requireUser()`: it celebrates the **real** active plan name (Pro/Teams), shows the learner's **real** email in the receipt line, and — crucially — the entitlement flip is real. The Pro CTA on `web/app/upgrade/page.tsx` now runs `activateDemoPlanAction` (`web/app/billing-actions.ts`) via a `UpgradeButton` client island, which sets `user.plan` and revalidates before routing here, so the Free 3-topic cap in `topics.ts` and plan-derived copy across Settings/Dashboard genuinely change. If reached on Free (no purchase), the page honestly declines to celebrate and steers to `/upgrade`. Honest "Demo upgrade — no charge" note replaces the fake receipt claim. Still Deferred (behind the seam): the real Stripe charge, a computed renewal date, and PDF receipts (BILL-07/09). |
 | BILL-06 | 🟡 Partial | `web/app/settings/plan/page.tsx` shows the payment-method panel with the "No card on file" state for Free, but there is no add/replace/remove flow and no Stripe-hosted tokenized card management. Only the display state exists; management is unbuilt. |
 | BILL-07 | ⏭️ Deferred | No payment processing exists — Checkout's pay button is a `<Link href="/upgrade/success">`. Decline/insufficient-funds/CVC/SCA error handling requires the real Stripe integration (listed as deferred vendor infra). Seam: Checkout page + `user.plan` entitlement field are present. |
 | BILL-08 | ✅ Done | `web/app/settings/plan/page.tsx` is the management surface, wired to real data: current plan + headline entitlements from `user.plan`, live "Active topics N of {cap}" meter (`cap = free ? 3 : Infinity`, renders ∞ on Pro), the at-limit warning, payment-method state, and the correct "No invoices yet — you're on the Free plan" empty state. Note: the verification-runs meter (18/30) is hardcoded; invoices/payment are static-but-correct for Free. Load-bearing plan/usage state is real. |
 | BILL-09 | ⏭️ Deferred | No invoice/receipt model, no PDF generation, billing history is a static empty state. Requires Stripe invoicing + the COMPLIANCE-DPO retention policy (deferred). |
 | BILL-10 | ⏭️ Deferred | No cycle-switch flow and no proration engine. Requires the Stripe subscription + deterministic proration engine (deferred key-technical-requirement). |
-| BILL-11 | 🟡 Partial | The "cancel anytime — your verified lectures stay yours" invariant copy is present (`web/app/upgrade/page.tsx`), and the domain guarantees content/certificate persistence (immutable trust ledger, fail-closed certs). But the cancel action is inert (the "Downgrade to Free" button on Upgrade has no handler); no period-end downgrade scheduling exists. Content-preservation invariant is real; the cancel lifecycle is unbuilt. |
+| BILL-11 | 🟡 Partial | The "cancel anytime — your verified lectures stay yours" invariant copy is present (`web/app/upgrade/page.tsx`), the domain guarantees content/certificate persistence (immutable trust ledger, fail-closed certs), and the "Downgrade to Free" button is now **wired** — it calls `downgradeToFreeAction` (`web/app/billing-actions.ts`) via `UpgradeButton`, flipping `user.plan` back to free and refreshing (content preserved: the 3-cap is an activation limit, never a deletion). Still Partial: real billing cancels at period end (no proration/scheduling — Deferred with the Stripe seam), whereas the demo downgrades immediately. |
 | BILL-12 | 🟡 Partial | Content/trust preservation on downgrade is guaranteed by the engine — trust states are immutable and no billing path can rewrite the ledger (`web/lib/domain/trust.ts`, `rbac.ts` firewall), and the 3-cap is an activation limit in `topics.ts`, not a deletion. But the "choose which 3 stay active" prompt, archiving/read-only, and the downgrade flow itself are not implemented. |
 | BILL-13 | ⏭️ Deferred | Teams tenant entity exists (`web/lib/store/entities.ts`: `plan: "team"`, `seatLimit`), but there is no seat-count purchase flow — the "Contact sales" CTA is inert. Sales-assisted provisioning + Stripe are deferred. |
 | BILL-14 | ⏭️ Deferred | No seat-ceiling change flow, no proration, no occupied-seat/5-seat-minimum enforcement engine. `billing:manage` permission is modeled in RBAC but no service backs it. Requires the deferred proration/seat engine. |
@@ -546,7 +546,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | BILL-22 | ⏭️ Deferred | No seat/plan concurrency control — no optimistic locking or single-source-of-truth serialization for a seat pool (none exists yet). Nice-to-have; requires the deferred seat engine. |
 | BILL-23 | ⏭️ Deferred | Future per the PRD. Payer≠learner is not modeled — only a shared single account. The COPPA age-gate exists in Auth but guardian-owned billing (distinct billing identity, guardian views, dependent-content shielding) is unbuilt. |
 
-**Counts:** 23 total — ✅ 4 Done · 🟡 7 Partial · ⏭️ 12 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 23 total — ✅ 5 Done · 🟡 6 Partial · ⏭️ 12 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

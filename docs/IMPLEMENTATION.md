@@ -77,7 +77,8 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Notifications | derived from real state (verification/review/conflict) |
 | Settings › Verification | real `verification` prefs — depth, interpretive/dispute/sandbox toggles, Skeptic-aggressiveness slider (auto-save; ledger provably untouched) |
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
-| Upgrade / Welcome | real current plan / greeting + counts |
+| Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
+| Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred |
 | Login / Signup | real auth + COPPA age-gate |
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
@@ -88,8 +89,8 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 31 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 306 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 32 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 305 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |

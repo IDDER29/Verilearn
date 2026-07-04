@@ -1,9 +1,41 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
 
 export const metadata = { title: "Upgrade Success · VeriLearn" };
 
-export default function UpgradeSuccessPage() {
+const PLAN_NAME = { pro: "Pro", team: "Teams", free: "Free" } as const;
+
+export default async function UpgradeSuccessPage() {
+  const user = await requireUser();
+  const planName = PLAN_NAME[user.plan];
+
+  // Reaching this screen on Free means no plan is active — steer back to Upgrade
+  // rather than falsely celebrate a purchase that never happened.
+  if (user.plan === "free") {
+    return (
+      <AppShell>
+        <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 22 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16, minHeight: 560 }}>
+            <div style={{ font: "900 26px var(--font-nunito)", letterSpacing: "-.02em" }}>You&apos;re on the Free plan</div>
+            <div style={{ font: "600 14.5px/1.6 var(--font-nunito)", color: "#8b8699", maxWidth: 400 }}>
+              No paid plan is active on your account yet. Pick a plan to unlock unlimited topics and hard-mode verification.
+            </div>
+            <Link
+              href="/upgrade"
+              style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "14px 24px", borderRadius: 14, boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)", marginTop: 8 }}
+            >
+              See plans
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </div>
+        </main>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 22 }}>
@@ -14,7 +46,7 @@ export default function UpgradeSuccessPage() {
               <path d="M20 6L9 17l-5-5" />
             </svg>
           </div>
-          <div style={{ font: "900 30px var(--font-nunito)", letterSpacing: "-.02em" }}>Welcome to Pro! 🎉</div>
+          <div style={{ font: "900 30px var(--font-nunito)", letterSpacing: "-.02em" }}>Welcome to {planName}! 🎉</div>
           <div style={{ font: "600 14.5px/1.6 var(--font-nunito)", color: "#8b8699", maxWidth: 400 }}>
             Your upgrade is live. Unlimited topics, thorough verification and the Skeptic on hard mode are unlocked.
           </div>
@@ -57,7 +89,7 @@ export default function UpgradeSuccessPage() {
               href="/new-topic"
               style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "14px 24px", borderRadius: 14, boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}
             >
-              Start a Pro topic
+              Start a {planName} topic
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
@@ -70,7 +102,7 @@ export default function UpgradeSuccessPage() {
             </Link>
           </div>
           <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 4 }}>
-            A receipt was emailed to adeline@example.com
+            Demo upgrade — no charge. A receipt would be emailed to {user.email}.
           </div>
         </div>
       </main>

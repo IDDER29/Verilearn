@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import UpgradeButton from "@/components/UpgradeButton";
 import { requireUser } from "@/lib/auth/current";
 
 export const metadata = { title: "Upgrade · VeriLearn" };
@@ -78,9 +79,12 @@ export default async function UpgradePage() {
                 Current plan
               </button>
             ) : (
-              <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fff", color: "#8b8699", font: "800 13.5px var(--font-nunito)", cursor: "pointer" }}>
-                Downgrade to Free
-              </button>
+              <UpgradeButton
+                plan="free"
+                label="Downgrade to Free"
+                busyLabel="Downgrading…"
+                style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fff", color: "#8b8699", font: "800 13.5px var(--font-nunito)" }}
+              />
             )}
           </div>
 
@@ -118,12 +122,11 @@ export default async function UpgradePage() {
                 <span style={{ flexShrink: 0 }}>✓</span>Current plan
               </div>
             ) : (
-              <Link
-                href="/upgrade/checkout"
-                style={{ display: "block", textAlign: "center", width: "100%", boxSizing: "border-box", marginTop: 22, padding: 13, border: "none", borderRadius: 13, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", textDecoration: "none", boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}
-              >
-                Upgrade to Pro
-              </Link>
+              <UpgradeButton
+                plan="pro"
+                label="Upgrade to Pro"
+                style={{ display: "block", textAlign: "center", width: "100%", boxSizing: "border-box", marginTop: 22, padding: 13, border: "none", borderRadius: 13, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}
+              />
             )}
           </div>
 
