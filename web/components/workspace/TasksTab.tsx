@@ -170,10 +170,14 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
 
               {/* grade */}
               {grade && (
-                <div style={{ background: grade.passed ? "#e4f4ec" : "#fbefdd", borderRadius: 16, padding: "16px 18px", marginBottom: 18 }}>
+                <div role="status" aria-live="polite" style={{ background: grade.passed ? "#e4f4ec" : "#fbefdd", borderRadius: 16, padding: "16px 18px", marginBottom: 18 }}>
+                  {/* Screen-reader summary of the outcome (TASK-19) — announced on grade. */}
+                  <span className="vl-sr-only">
+                    {grade.passed ? "Passed" : "Not yet a pass"} — {grade.scorePct} percent, {criteria.filter((c) => isHit(c.id)).length} of {criteria.length} criteria met.
+                  </span>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 9, font: "900 15px var(--font-nunito)", color: grade.passed ? "#0e8c6b" : "#9a7f2a" }}>
-                      {grade.passed ? "✅ Passed" : "🟡 Not yet a pass"}
+                      <span aria-hidden>{grade.passed ? "✅" : "🟡"}</span> {grade.passed ? "Passed" : "Not yet a pass"}
                     </div>
                     <div style={{ font: "900 18px var(--font-nunito)", color: grade.passed ? "#0e8c6b" : "#9a7f2a" }}>{grade.scorePct}%</div>
                   </div>
@@ -181,12 +185,12 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
                     {criteria.map((c) =>
                       isHit(c.id) ? (
                         <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, font: "700 13.5px var(--font-nunito)" }}>
-                          <span style={{ width: 20, height: 20, borderRadius: 7, background: "#0e8c6b", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, flexShrink: 0 }}>✓</span>
-                          {c.text}
+                          <span aria-hidden style={{ width: 20, height: 20, borderRadius: 7, background: "#0e8c6b", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, flexShrink: 0 }}>✓</span>
+                          <span className="vl-sr-only">Met: </span>{c.text}
                         </div>
                       ) : (
                         <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, font: "700 13.5px var(--font-nunito)", color: "#9a95a8" }}>
-                          <span style={{ width: 20, height: 20, borderRadius: 7, border: "2px solid #d8c9a3", boxSizing: "border-box", flexShrink: 0 }} />
+                          <span aria-hidden style={{ width: 20, height: 20, borderRadius: 7, border: "2px solid #d8c9a3", boxSizing: "border-box", flexShrink: 0 }} />
                           Missing: <b style={{ color: "#3a3550" }}>{c.text}</b>
                         </div>
                       ),
