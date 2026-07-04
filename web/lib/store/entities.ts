@@ -191,5 +191,13 @@ export interface CertificateRecord {
   testScorePct: number;
   revoked: boolean;
   revokedReason?: string;
+  /** Server timestamp (epoch ms) of revocation, present once revoked. */
+  revokedAt?: number;
+  /** Actor id that revoked it — the reinstatement reviewer-other-than-actor gate keys off this (ADMIN-15/22). */
+  revokedBy?: string;
+  /** Present once reinstated. The prior revocation fields above are kept as history, never erased. */
+  reinstatedAt?: number;
+  reinstatedBy?: string;
+  reinstatedReason?: string;
   verifyCode: string;
 }

@@ -49,15 +49,16 @@ describe("test session (prove loop)", () => {
   });
 
   it("a passing score issues + persists a certificate; a failing one does not", () => {
+    const before = globalThis.__verilearnDb!.certificates.size; // a seeded cert already exists (ADMIN-15/22 fixture)
     const pass = submitTest(USER, "topic_dijkstra", 5, 5);
     expect(pass.passed).toBe(true);
     expect(pass.certificateId).toBeTruthy();
-    expect(globalThis.__verilearnDb!.certificates.size).toBe(1);
+    expect(globalThis.__verilearnDb!.certificates.size).toBe(before + 1);
 
     const fail = submitTest(USER, "topic_dijkstra", 2, 5);
     expect(fail.passed).toBe(false);
     expect(fail.certificateId).toBeUndefined();
-    expect(globalThis.__verilearnDb!.certificates.size).toBe(1); // unchanged
+    expect(globalThis.__verilearnDb!.certificates.size).toBe(before + 1); // unchanged
   });
 
   it("missed claims become tracked gaps tagged origin=test, ignoring foreign ids (TEST-06)", () => {

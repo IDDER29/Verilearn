@@ -4,6 +4,7 @@
  * are computed by the real engine — not hard-coded.
  */
 import { hashPassword } from "@/lib/auth/password";
+import { issueCertificate } from "@/lib/domain/certificates";
 import { newCard } from "@/lib/domain/fsrs";
 import { openGap } from "@/lib/domain/gap";
 import { TrustLedger, verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
@@ -91,6 +92,39 @@ export function seedDb(db: Db, now: number): void {
     prefs: defaultPrefs(),
   };
   db.users.set(user.id, user);
+
+  // Two seeded trust_safety_lead accounts (ADMIN-15/22): the demo learner is
+  // never any role but "learner", so without these the RBAC-gated admin
+  // console (cert:revoke) would be unreachable by any real sign-in. Two
+  // distinct reviewers exist specifically so the reinstate-by-a-different-
+  // reviewer invariant (ReinstateError otherwise) can be genuinely exercised,
+  // not just unit-tested.
+  const reviewer1: User = {
+    id: "user_ts_reviewer1",
+    email: "reviewer1@example.com",
+    // demo password: "verilearn" (hashed at seed time)
+    passwordHash: hashPassword("verilearn"),
+    displayName: "Priya (T&S)",
+    role: "trust_safety_lead",
+    ageBand: "adult",
+    plan: "free",
+    createdAt: now,
+    prefs: defaultPrefs(),
+  };
+  const reviewer2: User = {
+    id: "user_ts_reviewer2",
+    email: "reviewer2@example.com",
+    // demo password: "verilearn" (hashed at seed time)
+    passwordHash: hashPassword("verilearn"),
+    displayName: "Marcus (T&S)",
+    role: "trust_safety_lead",
+    ageBand: "adult",
+    plan: "free",
+    createdAt: now,
+    prefs: defaultPrefs(),
+  };
+  db.users.set(reviewer1.id, reviewer1);
+  db.users.set(reviewer2.id, reviewer2);
 
   const dijkstra = buildTopic(
     {
@@ -227,4 +261,18 @@ export function seedDb(db: Db, now: number): void {
     explanation: "A popped node's distance is finalised — that finality is the cut-property invariant the algorithm depends on (and exactly what a negative edge would violate).",
     claimId: "topic_dijkstra_c5", // "Relaxation never increases a tentative distance."
   });
+
+  // A real, already-issued certificate (via the same issueCertificate domain
+  // function a live test pass uses) so the admin console (ADMIN-15/22) has
+  // something to revoke/reinstate against in a fresh seed, without fabricating
+  // a raw record by hand.
+  const binsearchCert = issueCertificate({
+    topicId: binsearch.id,
+    learnerId: userId,
+    testResult: { correct: 4, total: 5, pct: 80, passed: true, passBar: 75 },
+    now,
+    id: "cert_binsearch_1",
+    verifyCode: "VL-BINSEARCH1",
+  });
+  db.certificates.set(binsearchCert.id, binsearchCert);
 }
