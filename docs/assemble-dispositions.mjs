@@ -9,7 +9,7 @@ const ROWS = [
   ["AUTH", "Authentication, Onboarding & Identity", 24, 4, 11, 9],
   ["HOME", "Learner Home / Dashboard & Discovery", 22, 9, 12, 1],
   ["VERIFY", "Topic Creation & Verification Pipeline", 23, 12, 10, 1],
-  ["LEARN", "Lecture & Active Listening", 23, 3, 19, 1],
+  ["LEARN", "Lecture & Active Listening", 23, 4, 18, 1],
   ["TASK", "Tasks & Rubric Assessment", 24, 9, 12, 3],
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 11, 7, 4],
   ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 10, 13, 1],

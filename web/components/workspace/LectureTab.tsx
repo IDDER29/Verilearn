@@ -85,6 +85,7 @@ const SPAN_TO_INDEX: Record<string, number> = { smallest: 0, correct: 1, pq: 2 }
 
 export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
   const [selected, setSelected] = useState<string>("correct");
+  const [activeSection, setActiveSection] = useState(0);
 
   // Resolve a prose-span key to a display claim from REAL ledger data when
   // available, falling back to the illustrative constants when data is absent.
@@ -111,8 +112,6 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
 
   // Ledger-computed aggregates (fall back to the illustrative Dijkstra numbers).
   const bd = data?.breakdown;
-  const execCount = bd?.verified_execution ?? 3;
-  const backedCount = (bd?.verified_source ?? 2) + (bd?.sourced ?? 0);
   const disputedCount = bd?.disputed ?? 1;
   const verifiedCount = (bd?.verified_execution ?? 3) + (bd?.verified_source ?? 0);
   const sourcedCount = bd?.sourced ?? 2;
@@ -130,6 +129,21 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
   const sections = [...sectionAgg.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([id, agg], i) => ({ id, label: `§${i + 1}`, total: agg.total, disputed: agg.disputed }));
+
+  // Per-section trust breakdown (LEARN-04): the "Section trust" panel reflects the
+  // SELECTED section's claims, not the whole topic, and updates on section change.
+  const activeSectionId = sections[activeSection]?.id;
+  const secClaims = (data?.claims ?? []).filter((c) => c.sectionId === activeSectionId);
+  const secCount = (state: string) => secClaims.filter((c) => c.state === state).length;
+  const SECTION_TRUST_ROWS = [
+    { key: "verified_execution", label: "Verified by execution", color: "#0e8c6b" },
+    { key: "verified_source", label: "Verified by source", color: "#2d6cdf" },
+    { key: "sourced", label: "Sourced", color: "#3a8de0" },
+    { key: "interpretive", label: "Interpretive", color: "#6d5bd0" },
+    { key: "disputed", label: "Disputed", color: "#c0392b" },
+    { key: "unsupported", label: "Unsupported", color: "#b4460f" },
+  ].map((r) => ({ ...r, n: secCount(r.key) }));
+  const secHasData = secClaims.length > 0;
   // Honest verified chip tone (never a green 0%).
   const verifiedTone = verifiedPct >= 67 ? { color: "#2e9c6a", bg: "#e4f4ec", mark: "✓" } : verifiedPct >= 34 ? { color: "#b4830f", bg: "#fbefdd", mark: "◐" } : { color: "#c0392b", bg: "#fbeceb", mark: "⚠" };
 
@@ -204,21 +218,29 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
         <div style={{ background: "#fff", borderRadius: 22, padding: "26px 30px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
           {/* section chips — real sections from the claims' sectionIds */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
-            {sections.map((s, i) => (
-              <span
-                key={s.id}
-                title={`${s.total} claim${s.total === 1 ? "" : "s"}${s.disputed > 0 ? `, ${s.disputed} to resolve` : ""}`}
-                style={{
-                  font: "800 12px var(--font-nunito)",
-                  color: i === 0 ? "#fff" : s.disputed > 0 ? "#c0392b" : "#6c6780",
-                  background: i === 0 ? "#6d5bd0" : s.disputed > 0 ? "#fbeceb" : "#f3f1f9",
-                  padding: "7px 13px",
-                  borderRadius: 11,
-                }}
-              >
-                {s.disputed > 0 ? "⚠ " : ""}{s.label} · {s.total} claim{s.total === 1 ? "" : "s"}
-              </span>
-            ))}
+            {sections.map((s, i) => {
+              const on = i === activeSection;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActiveSection(i)}
+                  aria-pressed={on}
+                  title={`${s.total} claim${s.total === 1 ? "" : "s"}${s.disputed > 0 ? `, ${s.disputed} to resolve` : ""}`}
+                  style={{
+                    border: "none",
+                    cursor: "pointer",
+                    font: "800 12px var(--font-nunito)",
+                    color: on ? "#fff" : s.disputed > 0 ? "#c0392b" : "#6c6780",
+                    background: on ? "#6d5bd0" : s.disputed > 0 ? "#fbeceb" : "#f3f1f9",
+                    padding: "7px 13px",
+                    borderRadius: 11,
+                  }}
+                >
+                  {s.disputed > 0 ? "⚠ " : ""}{s.label} · {s.total} claim{s.total === 1 ? "" : "s"}
+                </button>
+              );
+            })}
           </div>
 
           <h2 style={{ font: "900 21px var(--font-nunito)", letterSpacing: "-.01em", margin: "0 0 14px" }}>The core idea: greedily grow the shortest-path tree</h2>
@@ -279,25 +301,30 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
 
       {/* ---- RIGHT: TRUST PANEL ---- */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* section trust */}
+        {/* section trust — reflects the SELECTED section (LEARN-04) */}
         <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-          <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Section trust</div>
-          <div style={{ height: 12, borderRadius: 6, overflow: "hidden", display: "flex", gap: 2, marginBottom: 14 }}>
-            <span style={{ flex: execCount || 0.001, background: "#0e8c6b" }} />
-            <span style={{ flex: backedCount || 0.001, background: "#2d6cdf" }} />
-            <span style={{ flex: disputedCount || 0.001, background: "#c0392b" }} />
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+            <div style={{ font: "900 16px var(--font-nunito)" }}>Section trust</div>
+            <div style={{ font: "800 12px var(--font-nunito)", color: "#8b8699" }}>{sections[activeSection]?.label ?? "§1"} · {secClaims.length} claim{secClaims.length === 1 ? "" : "s"}</div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#0e8c6b" }} />Verified by execution<span style={{ marginLeft: "auto", color: "#8b8699" }}>{execCount}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#2d6cdf" }} />Backed by a source<span style={{ marginLeft: "auto", color: "#8b8699" }}>{backedCount}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
-              <span style={{ width: 11, height: 11, borderRadius: 4, background: "#c0392b" }} />Disputed<span style={{ marginLeft: "auto", color: "#8b8699" }}>{disputedCount}</span>
-            </div>
-          </div>
+          {secHasData ? (
+            <>
+              <div style={{ height: 12, borderRadius: 6, overflow: "hidden", display: "flex", gap: 2, marginBottom: 14 }}>
+                {SECTION_TRUST_ROWS.filter((r) => r.n > 0).map((r) => (
+                  <span key={r.key} style={{ flex: r.n, background: r.color }} />
+                ))}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {SECTION_TRUST_ROWS.filter((r) => r.n > 0).map((r) => (
+                  <div key={r.key} style={{ display: "flex", alignItems: "center", gap: 9, font: "700 13px var(--font-nunito)" }}>
+                    <span style={{ width: 11, height: 11, borderRadius: 4, background: r.color }} />{r.label}<span style={{ marginLeft: "auto", color: "#8b8699" }}>{r.n}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div style={{ font: "600 13px var(--font-nunito)", color: "#8b8699" }}>No claims in this section yet.</div>
+          )}
         </div>
 
         {/* claim detail (interactive) */}
