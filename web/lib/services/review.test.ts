@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, gradeCard, getDueCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { calibrationFor, fsrsParamsFor, gradeCard, getDueCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { updatePrefs } from "./prefs";
 
 // The service reads the process singleton via getDb(); seed that singleton.
 declare global {
@@ -26,6 +27,30 @@ describe("review service", () => {
 
   it("scopes cards to the owner", () => {
     expect(getDueCards("intruder", SEED_NOW)).toHaveLength(0);
+  });
+
+  it("REVIEW-13: maps saved Review prefs into FSRS params", () => {
+    updatePrefs(USER, "review", { targetRetention: 85, maxIntervalDays: 200 });
+    const p = fsrsParamsFor(USER);
+    expect(p.requestRetention).toBeCloseTo(0.85, 5);
+    expect(p.maximumInterval).toBe(200);
+  });
+
+  it("REVIEW-13: higher target retention schedules the card sooner", () => {
+    const db = globalThis.__verilearnDb!;
+    const card = db.reviewCards.get("rc_topic_dijkstra_c1")!;
+    const fresh = { ...card.fsrs };
+
+    updatePrefs(USER, "review", { targetRetention: 50 });
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    const lowRetDue = card.fsrs.due;
+
+    card.fsrs = { ...fresh }; // reset to identical starting state
+    updatePrefs(USER, "review", { targetRetention: 99 });
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    const highRetDue = card.fsrs.due;
+
+    expect(highRetDue).toBeLessThan(lowRetDue); // higher retention → review sooner
   });
 
   it("REVIEW-15: holds out a due card whose claim has become contested", () => {

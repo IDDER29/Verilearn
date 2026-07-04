@@ -5,7 +5,8 @@
  * ANALYTICS (retention/calibration signals).
  */
 import { calibrationScore } from "@/lib/domain/calibration";
-import { schedule, type Rating } from "@/lib/domain/fsrs";
+import { schedule, type FsrsParams, type Rating } from "@/lib/domain/fsrs";
+import { getPrefs } from "./prefs";
 import { closeGap, MASTERY_THRESHOLD, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { isTestEligible } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor, reviewCardsOf } from "@/lib/store/db";
@@ -47,12 +48,25 @@ export interface GradeResult {
  * Grade one card: reschedule via FSRS, log the confidence↔correctness pair for
  * calibration, and auto-reopen (or open) a Gap on a lapse. "again" is a lapse.
  */
+/**
+ * Per-learner FSRS tuning from saved Review preferences (REVIEW-13): the
+ * Settings › Review target-retention (%) and max-interval (days) feed the
+ * scheduler, so a learner who raises retention gets shorter intervals. Falls
+ * back to the engine defaults when no prefs are stored. `schedule`/`nextIntervals`
+ * clamp these to safe ranges.
+ */
+export function fsrsParamsFor(userId: string): Partial<FsrsParams> {
+  const p = getPrefs(userId);
+  if (!p) return {};
+  return { requestRetention: p.review.targetRetention / 100, maximumInterval: p.review.maxIntervalDays };
+}
+
 export function gradeCard(userId: string, cardId: string, confidence: Confidence, rating: Rating, at: number): GradeResult {
   const db = getDb();
   const card = db.reviewCards.get(cardId);
   if (!card || card.userId !== userId) return { ok: false, error: "Card not found." };
 
-  card.fsrs = schedule(card.fsrs, rating, at);
+  card.fsrs = schedule(card.fsrs, rating, at, fsrsParamsFor(userId));
   const correct = rating !== "again";
   db.reviewLog.push({ userId, claimId: card.claimId, topicId: card.topicId, confidence, rating, correct, at });
 

@@ -3,7 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
-import { getDueCards, gradeCard, type Confidence } from "@/lib/services/review";
+import { fsrsParamsFor, getDueCards, gradeCard, type Confidence } from "@/lib/services/review";
 import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
@@ -28,9 +28,10 @@ export async function getDueCardsAction(): Promise<SessionCard[]> {
   if (!user) return [];
   const db = getDb();
   const at = now();
+  const params = fsrsParamsFor(user.id); // per-learner retention/max-interval (REVIEW-13)
   return getDueCards(user.id, at).map((c) => {
     const topic = db.topics.get(c.topicId);
-    const iv = nextIntervals(c.fsrs, at);
+    const iv = nextIntervals(c.fsrs, at, params);
     const section = topic?.claims.find((cl) => cl.id === c.claimId)?.sectionId ?? "";
     const trustState = topic ? ledgerFor(topic).stateOf(c.claimId) : null;
     return {
