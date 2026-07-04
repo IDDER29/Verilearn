@@ -6,6 +6,7 @@ export type NavKey =
   | "topics"
   | "tasks"
   | "tests"
+  | "gaps"
   | "community"
   | "reports"
   | "events"
@@ -69,6 +70,17 @@ const NAV: NavItem[] = [
       <svg width="19" height="19" viewBox="0 0 24 24" {...stroke}>
         <path d="M9 3h6l1 3H8zM8 6h8l1 14a1 1 0 01-1 1H8a1 1 0 01-1-1z" />
         <path d="M10 12h4M10 16h4" />
+      </svg>
+    ),
+  },
+  {
+    key: "gaps",
+    label: "Gap Map",
+    href: "/gap-map",
+    icon: (
+      <svg width="19" height="19" viewBox="0 0 24 24" {...stroke}>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+        <circle cx="12" cy="12" r="3" />
       </svg>
     ),
   },

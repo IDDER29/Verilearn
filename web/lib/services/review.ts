@@ -6,7 +6,7 @@
  */
 import { calibrationScore } from "@/lib/domain/calibration";
 import { schedule, type Rating } from "@/lib/domain/fsrs";
-import { onLapse, openGap } from "@/lib/domain/gap";
+import { closeGap, MASTERY_THRESHOLD, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { getDb, gapsOf, reviewCardsOf } from "@/lib/store/db";
 import type { ReviewCardRecord } from "@/lib/store/entities";
 import { newId } from "@/lib/ids";
@@ -25,6 +25,10 @@ export interface GradeResult {
   error?: string;
   nextDue?: number;
   gapReopened?: boolean;
+  /** A tracked gap advanced toward closed (watching or closed) on a correct recall. */
+  gapAdvanced?: boolean;
+  /** A tracked gap reached `closed` on this correct recall (sustained mastery). */
+  gapClosed?: boolean;
 }
 
 /**
@@ -41,6 +45,8 @@ export function gradeCard(userId: string, cardId: string, confidence: Confidence
   db.reviewLog.push({ userId, claimId: card.claimId, topicId: card.topicId, confidence, rating, correct, at });
 
   let gapReopened = false;
+  let gapAdvanced = false;
+  let gapClosed = false;
   if (rating === "again") {
     const rec = gapsOf(db, userId).find((g) => g.gap.claimId === card.claimId);
     if (rec) {
@@ -52,8 +58,27 @@ export function gradeCard(userId: string, cardId: string, confidence: Confidence
       const gap = openGap({ id: newId("gap"), claimId: card.claimId, topicId: card.topicId, origin: "review", severity: "med" }, at);
       db.gaps.set(gap.id, { userId, gap });
     }
+  } else {
+    // Correct recall advances a tracked gap toward closed (GAP-05):
+    // open/reopened → watching on the first correct recall, then watching →
+    // closed once sustained correct recalls reach the mastery threshold.
+    const rec = gapsOf(db, userId).find((g) => g.gap.claimId === card.claimId);
+    if (rec) {
+      const before = rec.gap.status;
+      if (before === "open" || before === "reopened") {
+        rec.gap = toWatching(rec.gap, at);
+        gapAdvanced = rec.gap.status === "watching";
+      } else if (before === "watching") {
+        const successes = db.reviewLog.filter((r) => r.userId === userId && r.claimId === card.claimId && r.correct).length;
+        if (successes >= MASTERY_THRESHOLD) {
+          rec.gap = closeGap(rec.gap, { successfulReviews: successes }, at);
+          gapClosed = rec.gap.status === "closed";
+          gapAdvanced = gapClosed;
+        }
+      }
+    }
   }
-  return { ok: true, nextDue: card.fsrs.due, gapReopened };
+  return { ok: true, nextDue: card.fsrs.due, gapReopened, gapAdvanced, gapClosed };
 }
 
 /** Calibration summary for the learner from the review log (feeds Progress). */

@@ -83,6 +83,23 @@ describe("review service", () => {
     expect(s.reviewed).toBe(1); // only the recent grade counts
   });
 
+  it("GAP-05: correct recalls advance a tracked gap open→watching→closed", () => {
+    const db = globalThis.__verilearnDb!;
+    // Track an OPEN gap on the claim behind card c2.
+    const g = openGap({ id: "gap_adv", claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", origin: "review" }, SEED_NOW);
+    db.gaps.set(g.id, { userId: USER, gap: g });
+
+    // First correct recall → watching.
+    const r1 = gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW + 10);
+    expect(r1.gapAdvanced).toBe(true);
+    expect(db.gaps.get("gap_adv")!.gap.status).toBe("watching");
+
+    // Second sustained correct recall → closed (MASTERY_THRESHOLD = 2).
+    const r2 = gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW + 20);
+    expect(r2.gapClosed).toBe(true);
+    expect(db.gaps.get("gap_adv")!.gap.status).toBe("closed");
+  });
+
   it("accumulates calibration + retention across grades", () => {
     gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
     gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", SEED_NOW);

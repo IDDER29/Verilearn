@@ -72,7 +72,8 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted |
 | Workspace › Sources | real claims×sources coverage %/unsupported count |
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass) |
-| My Tasks | real due-review + conflict counts |
+| My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
+| Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed |
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code |
 | Notifications | derived from real state (verification/review/conflict) |
 | Settings › Verification | real `verification` prefs — depth, interpretive/dispute/sandbox toggles, Skeptic-aggressiveness slider (auto-save; ledger provably untouched) |
@@ -83,14 +84,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 252 passing across 19 files · build green.
+**Test count:** 256 passing across 20 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 47 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 290 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 50 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 287 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -121,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the Test Detail section-coverage pass — 47 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the Gap Map board pass — 50 Done; remainder is field-polish or deferred-with-justification._
