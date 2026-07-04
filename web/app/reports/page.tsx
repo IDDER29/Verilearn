@@ -53,7 +53,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const weeks = WEEK_OPTIONS.includes(weeksParsed as (typeof WEEK_OPTIONS)[number]) ? weeksParsed : DEFAULT_WEEKS;
 
   // Real weekly retention series for the trend chart (ANALYTICS-05).
-  const series = retentionSeries(user.id, now(), weeks);
+  const at = now();
+  const series = retentionSeries(user.id, at, weeks);
+  // Freshness marker (ANALYTICS-20): signals are recomputed live on every visit —
+  // there's no cache/snapshot to go stale, so this always reflects this exact request.
+  const asOf = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(at);
   const CW = 620, PAD = 10, TOP = 20, BOT = 190;
   const xAt = (i: number) => PAD + (i * (CW - 2 * PAD)) / (series.weeks - 1);
   const yAt = (r: number) => BOT - r * (BOT - TOP);
@@ -86,6 +90,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
               Four honest signals — no vanity metrics. Each maps to something you actually did.
             </div>
+            <div style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", marginTop: 4 }}>As of {asOf} · recomputed live on every visit, never cached</div>
           </div>
           <WeeksSelect weeks={weeks} />
         </div>

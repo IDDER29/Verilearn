@@ -67,7 +67,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
 | Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted |
 | Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
-| Progress (`/reports`) | four honest signals from the review log (honest empty states); real 7-day trend delta per signal, never fabricated (ANALYTICS-01); real keyboard-operable trend-window selector replacing a decorative button (ANALYTICS-17) |
+| Progress (`/reports`) | four honest signals from the review log (honest empty states); real 7-day trend delta per signal, never fabricated (ANALYTICS-01); real keyboard-operable trend-window selector replacing a decorative button (ANALYTICS-17); real "As of {time}" freshness marker (ANALYTICS-20) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
 | Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted; resolving/reopening a dispute now opens/advances/reopens a linked Gap Map entry too (GAP-21) |
 | Workspace › Sources | full real coverage matrix (claims × sources, ledger-coloured cells), real source strip, coverage %/unsupported |
