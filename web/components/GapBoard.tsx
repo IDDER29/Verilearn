@@ -39,11 +39,9 @@ type Filter = "all" | "high" | "reopened";
 function GapCard({ g }: { g: GapView }) {
   const sev = SEVERITY[g.severity];
   const st = STATUS_BADGE[g.status];
+  const actionable = g.status !== "closed";
   return (
-    <Link
-      href={`/topics/conflicts?topic=${g.topicId}`}
-      style={{ display: "block", textDecoration: "none", color: "inherit", background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}
-    >
+    <div style={{ background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
         <span style={{ font: "800 10px var(--font-nunito)", color: st.color, background: st.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{st.label}</span>
         <span style={{ font: "800 10px var(--font-nunito)", color: sev.color, background: sev.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{sev.label}</span>
@@ -56,13 +54,27 @@ function GapCard({ g }: { g: GapView }) {
           {CLAIM_TRUST[g.claimState].label}
         </div>
       )}
-      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f0edf6", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f0edf6", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
         <span style={{ font: "700 10px var(--font-nunito)", color: "#a7a1b8" }}>
           {g.history.length} event{g.history.length === 1 ? "" : "s"} · {g.successfulReviews} recall{g.successfulReviews === 1 ? "" : "s"}
         </span>
-        {g.status === "watching" && <GapCloseButton gapId={g.id} canClose={g.canClose} hint={`needs ${Math.max(0, 2 - g.successfulReviews)} more to close`} />}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {actionable && (
+            /* Practice handoff (GAP-09): Review is the surface that advances a gap
+               toward closure — a correct recall moves open/reopened → watching → closed. */
+            <Link href="/review" style={{ font: "800 10.5px var(--font-nunito)", color: "#6d5bd0", background: "#f2effc", padding: "6px 11px", borderRadius: 9, textDecoration: "none", whiteSpace: "nowrap" }}>
+              Practice in Review ▸
+            </Link>
+          )}
+          {g.origin === "conflict" && g.claimState === "disputed" && (
+            <Link href={`/topics/conflicts?topic=${g.topicId}&claim=${g.claimId}`} style={{ font: "800 10.5px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "6px 11px", borderRadius: 9, textDecoration: "none", whiteSpace: "nowrap" }}>
+              Adjudicate ▸
+            </Link>
+          )}
+          {g.status === "watching" && <GapCloseButton gapId={g.id} canClose={g.canClose} hint={`needs ${Math.max(0, 2 - g.successfulReviews)} more to close`} />}
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
