@@ -30,14 +30,14 @@ justification** — nothing is silently dropped.
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
 | NOTIF — Notifications, Reminders & Messaging | 24 | 5 | 10 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 7 | 5 | 9 |
-| SETTINGS — Settings, Profile & Privacy | 23 | 11 | 9 | 3 |
+| SETTINGS — Settings, Profile & Privacy | 23 | 12 | 8 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 3 | 17 |
-| **TOTAL** | **462** | **123** | **214** | **125** |
+| **TOTAL** | **462** | **124** | **213** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -490,7 +490,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 
 | Story | Status | Evidence / Justification |
 |---|---|---|
-| SETTINGS-01 | 🟡 Partial | Shell + 3-group sub-nav (Account/Learning/Data) with active highlight and title+one-line description per panel is real: `web/components/SettingsNav.tsx` (SECTIONS), and all deep-link routes exist (`app/settings/{page,profile,plan,active-listening,review,privacy,danger}/page.tsx`). Missing business rules: no role-scoping (Team seat still sees billing; frozen→read-only unimplemented — no `frozen` field), upgrade nudge not hidden for Pro/Teams, and unknown sub-path falls to Next default 404 rather than redirecting to the settings home (no `notFound`/`redirect` in `app/settings`). |
+| SETTINGS-01 | ✅ Done | The settings shell + 3-group sub-nav (Account/Learning/Data) with active `aria-current` highlight and title+description per panel is real (`SettingsNav.tsx`), all deep-link routes exist, and the two R1 business rules are now wired: an **unknown `/settings/*` sub-path redirects to the settings home** via a catch-all `app/settings/[...rest]/page.tsx` (specific routes still resolve first) instead of the default 404, and the **upgrade upsell is hidden for paid plans** — the sidebar's "Go Verified Pro" card is a client island (`UpgradeUpsell`) that reads the plan via `currentPlanAction` and renders only for Free (no flash for Pro/Teams). Remaining nuance: full **role-scoped / frozen** read-only settings (Team seat hiding billing, a `frozen` account state) depend on the unbuilt Org/Teams model + account-freeze mechanism (R2, deferred with the ORG domain). |
 | SETTINGS-02 | ✅ Done | `app/settings/profile/page.tsx` reads real `displayName`/`email`/role/join date, and the **display name now persists** via the `ProfileForm` client island → `updateDisplayNameAction` (`app/profile-actions.ts`, trimmed + 1–60 validated, Saved-check, dirty Save/Cancel, `router.refresh()` so the change propagates). Email is read-only (identity · locked). Remaining nice-to-haves: photo upload and language/timezone models (no store fields; FSRS uses UTC boundaries). |
 | SETTINGS-03 | 🟡 Partial | The Profile panel shows the current email (real, from `requireUser()`), but there is no Change-email action, no hand-off to the Auth verification flow, no links to Auth-owned password/2FA/active-sessions controls, and no SSO read-only handling. Auth engine exists (`lib/auth/service.ts`) but Settings does not wire into it here. |
 | SETTINGS-04 | 🟡 Partial | `app/settings/plan/page.tsx` shows the real plan (`user.plan`), live active-topics count vs the 3-cap (`listTopicSummaries(user.id).length`), an `atLimit` warning ("You've hit your topic limit — upgrade for unlimited topics"), and an Upgrade link → `/upgrade`. Gaps: the "Verification runs 18 of 30" meter is hardcoded static; no Team-seat variant ("your seat is provided by <Org>"); no skeleton/retry when usage is unavailable. |

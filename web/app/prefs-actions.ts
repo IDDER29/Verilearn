@@ -10,6 +10,12 @@ export async function getPrefsAction(): Promise<UserPrefs | null> {
   return user ? getPrefs(user.id) : null;
 }
 
+/** The current learner's plan — used to hide the upgrade upsell for paid plans (SETTINGS-01). */
+export async function currentPlanAction(): Promise<"free" | "pro" | "team"> {
+  const user = await getCurrentUser();
+  return user?.plan ?? "free";
+}
+
 export async function saveVerificationAction(patch: Partial<UserPrefs["verification"]>): Promise<{ ok: boolean }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
