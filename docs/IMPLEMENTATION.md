@@ -75,7 +75,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
 | Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed |
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code |
-| Notifications | derived from real state (verification/review/conflict/test) with persistent read-state + working Mark-all-read |
+| Notifications | derived from real state (verification/review/conflict/test) with persistent read-state + working Mark-all-read + working filter chips (NOTIF-07) |
 | Settings › Verification | real `verification` prefs — depth, interpretive/dispute/sandbox toggles, Skeptic-aggressiveness slider (auto-save; ledger provably untouched) |
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
 | Settings › Sessions & devices | real live session list scoped to the caller (`db.sessions`), device parsed from the real User-Agent, sign-out-one / sign-out-others / sign-out-everywhere (AUTH-12) |
@@ -91,8 +91,8 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 136 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 201 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 137 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 200 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -123,4 +123,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the criterion-to-dispute path + rate limit (TASK-11) — 136 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after working notification filter chips (NOTIF-07) — 137 Done; remainder is field-polish or deferred-with-justification._

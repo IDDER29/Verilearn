@@ -30,7 +30,7 @@ with justification** — nothing among them is silently dropped.
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
-| NOTIF — Notifications, Reminders & Messaging | 23 | 5 | 9 | 9 |
+| NOTIF — Notifications, Reminders & Messaging | 23 | 6 | 8 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 8 | 4 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 13 | 7 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 6 | 5 | 12 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **136** | **201** | **124** |
+| **TOTAL** | **461** | **137** | **200** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -432,7 +432,7 @@ The domain is implemented as a single read-only derived view (`web/lib/services/
 | NOTIF-04 | 🟡 Partial | An aggregated single review-due item exists — one notification with a portfolio-wide due count read from the FSRS scheduler, never per-card (`notifications.ts:37-47`), deep-linking `/review`, and suppressed when zero are due. Missing: it is an in-app derived view, not a **scheduled/timed batched reminder**; no delivery at a configured time, no honoring of the (static) Settings → Review "Daily reminder" toggle, no email channel, no timezone logic. |
 | NOTIF-05 | 🟡 Partial | No streak-at-risk nudge exists. The review log substrate is present but no streak length is computed and no engagement-nudge path, suppress toggle, or frequency cap is built in the notifications layer. Nothing external blocks an in-app version; simply unimplemented. |
 | NOTIF-06 | ✅ Done | The notifications service now emits a **`test` kind**: for every topic with test-eligible claims (`listTestableTopics`), a "'{title}' checkpoint is ready · N verified claims eligible" item deep-links to that topic's Test Detail (`/tests/{id}?topic={id}`). The notifications page renders the new kind with its own icon/treatment, and `notifications.test.ts` asserts the test item is emitted with a `/tests/` href. Remaining nice-to-haves: results-ready / retake-available / attempts-low variants (need the persisted-attempt model, TEST runner-Deferred). |
-| NOTIF-07 | 🟡 Partial | Filter chips (All · Tests · Verification · Community) render (`notifications/page.tsx:74-114`) but are **purely static** — no click handlers, no state, no filtering; the active chip is hard-coded to "All". Each item does carry a stable primary `kind`/category (`notifications.ts:11`), so the data model supports filtering; the interaction does not. |
+| NOTIF-07 | ✅ Done | Filter chips are now real: a client component (`components/NotificationsFeed.tsx`) holds the active-filter state and actually filters the already-loaded items by their real `kind` (`notifications.ts`) on click — no server round-trip needed, no fabricated data. Chips are generated only for kinds actually present in the feed (`All` plus whichever of Tests/Verification/Review/Conflicts have items), and the previously-decorative **"Community" chip was removed** — no `community` notification kind is ever emitted (Community/Events aren't seeded, R2/R3), so a chip for it would have filtered to a permanently-empty list. Each filter has its own honest empty state ("No {category} notifications"). Verified via tsc/lint/build. |
 | NOTIF-08 | ✅ Done | A **per-category** notification preference model is now real and **enforced at feed time**. `UserPrefs.notifications` (`verification` / `conflict` / `review` / `test`, all default on) is persisted through the shared prefs store, and `listNotifications` filters the derived feed so a **muted category never reaches the notification center** (unknown/absent prefs default to on — no silent suppression). Settings › Privacy hosts the four **category toggles** (`role="switch"`), wired to `saveNotificationPrefsAction` → `updatePrefs`, which revalidates `/notifications`. Covered by `notifications.test.ts` (muting `conflict` drops conflict items while other categories stay). Remaining nuance: the second axis — **per-channel** (email / push) delivery — is deferred with the email/push transport itself (the UI says so); in-app is the R1 channel. |
 | NOTIF-09 | 🟡 Partial | Deep-links point to stable static routes (`/topics`, `/review`, `/topics/conflicts`) that won't hard-404, but there is **no click-time authorization/existence resolution, no tombstone state, no access-change message, and no dismiss/expired marking**. Graceful stale-link handling is not implemented. |
 | NOTIF-10 | ⏭️ Deferred | In-app is the only channel; there is no email/push fan-out, retry/backoff, bounce tracking, or channel-health auto-disable. The "canonical in-app record survives channel failure" invariant needs the transactional-email/push vendor (Deferred infra) to have any other channel to fail. Seam: a durable notification store + channel adapters would sit behind `listNotifications`. |
@@ -450,7 +450,7 @@ The domain is implemented as a single read-only derived view (`web/lib/services/
 | NOTIF-23 | 🟡 Partial | The Gap Map engine is done and tested (Open→Watching→Closed→Reopened + auto-reopen, `web/lib/domain/gap.ts`), but **no gap-opened/reopened notification is emitted** — the service produces only verification/review/conflict kinds. Transition reporting is unwired; debounce and jump-to-section links absent. |
 | NOTIF-24 | 🟡 Partial | Notifications are computed per `userId` with no persistent store, so a guest session inherently persists no notification records or reminders (satisfies the "persist nothing" AC by construction). Missing: consented, marketing-classified email capture with working unsubscribe, and a clean-state guarantee on guest→account conversion — none of which are built (no email channel). |
 
-**Counts:** 24 total — 2 Done, 13 Partial, 9 Deferred, 0 Out-of-scope.
+**Counts:** 23 enumerated of the PRD's 24 (NOTIF-12 has no row — a pre-existing numbering gap, not a dropped story) — ✅ 6 Done, 🟡 8 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
