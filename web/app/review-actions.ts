@@ -3,7 +3,8 @@
 import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
-import { fsrsParamsFor, getDueCards, getReviewAheadCards, gradeCard, type Confidence } from "@/lib/services/review";
+import { dueBreakdown, fsrsParamsFor, getDueCards, getReviewAheadCards, gradeCard, type Confidence, type DueBreakdown } from "@/lib/services/review";
+export type { DueBreakdown };
 import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
@@ -55,6 +56,13 @@ export async function getDueCardsAction(): Promise<SessionCard[]> {
   const at = now();
   const params = fsrsParamsFor(user.id); // per-learner retention/max-interval (REVIEW-13)
   return getDueCards(user.id, at).map((c) => toSessionCard(c, at, params));
+}
+
+/** Per-topic due breakdown for the session panel (REVIEW-12). */
+export async function dueBreakdownAction(): Promise<DueBreakdown | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return dueBreakdown(user.id, now());
 }
 
 /** Review-ahead cards (not-yet-due, lowest-retrievability first) for study-ahead (REVIEW-11). */

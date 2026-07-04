@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
-import { caughtUpInfoAction, getDueCardsAction, gradeCardAction, reviewAheadCardsAction, type CaughtUpInfo, type SessionCard } from "@/app/review-actions";
+import { caughtUpInfoAction, dueBreakdownAction, getDueCardsAction, gradeCardAction, reviewAheadCardsAction, type CaughtUpInfo, type DueBreakdown, type SessionCard } from "@/app/review-actions";
 import { dismissReviewPrimerAction, reviewPrimerSeenAction } from "@/app/prefs-actions";
 import type { Rating } from "@/lib/domain/fsrs";
 
@@ -75,12 +75,16 @@ export default function ReviewPage() {
   const [tracked, setTracked] = useState(0);
   const [caughtUp, setCaughtUp] = useState<CaughtUpInfo | null>(null);
   const [showPrimer, setShowPrimer] = useState(false);
+  const [breakdown, setBreakdown] = useState<DueBreakdown | null>(null);
 
   useEffect(() => {
     getDueCardsAction().then((cs) => {
       setCards(cs);
       if (cs.length === 0) caughtUpInfoAction().then(setCaughtUp);
-      else reviewPrimerSeenAction().then((seen) => setShowPrimer(!seen));
+      else {
+        reviewPrimerSeenAction().then((seen) => setShowPrimer(!seen));
+        dueBreakdownAction().then(setBreakdown);
+      }
     });
   }, []);
 
@@ -508,6 +512,29 @@ export default function ReviewPage() {
 
           {phase === "front" ? (
             <>
+              {/* today's queue — per-topic due breakdown (REVIEW-12) */}
+              {breakdown && breakdown.totalDue > 0 && (
+                <div style={{ background: "#fff", borderRadius: 22, padding: "20px 22px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ font: "900 16px var(--font-nunito)" }}>Today&apos;s queue</div>
+                    <div style={{ font: "800 12px var(--font-nunito)", color: "#8b8699" }}>{breakdown.totalDue} due</div>
+                  </div>
+                  {breakdown.byTopic.map((t) => (
+                    <div key={t.topicId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "7px 0", font: "700 12.5px var(--font-nunito)" }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.topicTitle}</span>
+                      <span style={{ flexShrink: 0, color: "#6c6780" }}>
+                        {t.due}{t.overdue > 0 && <span style={{ color: "#c0392b" }}> · {t.overdue} overdue</span>}
+                      </span>
+                    </div>
+                  ))}
+                  {breakdown.beyondLimit > 0 && (
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f0edf6", font: "700 11.5px var(--font-nunito)", color: "#b4830f" }}>
+                      {breakdown.beyondLimit} beyond today&apos;s limit of {breakdown.dailyLimit} — they&apos;ll roll into tomorrow.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* up next — the real upcoming cards in this session */}
               <div style={{ background: "#fff", borderRadius: 22, padding: "20px 22px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
                 <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Up next</div>

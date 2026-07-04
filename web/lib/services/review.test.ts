@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
 import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
 
@@ -28,6 +28,21 @@ describe("review service", () => {
 
   it("scopes cards to the owner", () => {
     expect(getDueCards("intruder", SEED_NOW)).toHaveLength(0);
+  });
+
+  it("REVIEW-12: per-topic due breakdown with overdue + beyond-limit framing", () => {
+    const b = dueBreakdown(USER, SEED_NOW);
+    expect(b.totalDue).toBe(getDueCards(USER, SEED_NOW).length);
+    // per-topic counts sum to the total, sorted most-due-first
+    expect(b.byTopic.reduce((n, t) => n + t.due, 0)).toBe(b.totalDue);
+    for (let i = 1; i < b.byTopic.length; i++) expect(b.byTopic[i].due).toBeLessThanOrEqual(b.byTopic[i - 1].due);
+    // a small daily limit surfaces the beyond-limit overflow
+    const db = globalThis.__verilearnDb!;
+    db.users.get(USER)!.prefs.review.dailyLimit = 1;
+    const capped = dueBreakdown(USER, SEED_NOW);
+    expect(capped.dailyLimit).toBe(1);
+    expect(capped.beyondLimit).toBe(Math.max(0, capped.totalDue - 1));
+    expect(dueBreakdown("intruder", SEED_NOW).totalDue).toBe(0);
   });
 
   it("REVIEW-11: review-ahead returns only not-yet-due cards, lowest-retrievability first", () => {

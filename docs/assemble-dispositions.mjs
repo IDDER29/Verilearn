@@ -12,7 +12,7 @@ const ROWS = [
   ["LEARN", "Lecture & Active Listening", 23, 4, 18, 1],
   ["TASK", "Tasks & Rubric Assessment", 24, 11, 10, 3],
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 11, 7, 4],
-  ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 12, 11, 1],
+  ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 13, 10, 1],
   ["GAP", "Gap Map & Misconception Tracking", 23, 13, 8, 2],
   ["TEST", "Tests, Certificates & Verification", 23, 4, 16, 3],
   ["COMM", "Community, Contributions & Reputation", 24, 0, 14, 10],

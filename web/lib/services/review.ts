@@ -33,6 +33,45 @@ export function getDueCards(userId: string, at: number): ReviewCardRecord[] {
     .sort((a, b) => a.fsrs.due - b.fsrs.due);
 }
 
+export interface DueBreakdown {
+  byTopic: { topicId: string; topicTitle: string; due: number; overdue: number }[];
+  totalDue: number;
+  overdue: number;
+  dailyLimit: number;
+  /** Due cards beyond today's per-learner daily limit — honest "N beyond today's limit". */
+  beyondLimit: number;
+}
+
+/**
+ * Per-topic due breakdown for the session (REVIEW-12): how many cards are due in
+ * each topic, how many are overdue (>1 day past due), and how many fall beyond
+ * the learner's daily limit. All from the eligibility-gated due deck.
+ */
+export function dueBreakdown(userId: string, at: number): DueBreakdown {
+  const db = getDb();
+  const DAY = 86_400_000;
+  const map = new Map<string, { title: string; due: number; overdue: number }>();
+  const due = getDueCards(userId, at);
+  for (const c of due) {
+    const title = db.topics.get(c.topicId)?.title ?? "Topic";
+    const e = map.get(c.topicId) ?? { title, due: 0, overdue: 0 };
+    e.due += 1;
+    if (c.fsrs.due <= at - DAY) e.overdue += 1;
+    map.set(c.topicId, e);
+  }
+  const byTopic = [...map.entries()]
+    .map(([topicId, v]) => ({ topicId, topicTitle: v.title, due: v.due, overdue: v.overdue }))
+    .sort((a, b) => b.due - a.due);
+  const dailyLimit = getPrefs(userId)?.review.dailyLimit ?? 40;
+  return {
+    byTopic,
+    totalDue: due.length,
+    overdue: byTopic.reduce((n, t) => n + t.overdue, 0),
+    dailyLimit,
+    beyondLimit: Math.max(0, due.length - dailyLimit),
+  };
+}
+
 /**
  * Review-ahead (REVIEW-11): not-yet-due, still-eligible cards ordered by LOWEST
  * retrievability first — the ones closest to being forgotten, so studying ahead
