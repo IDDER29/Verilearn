@@ -4,6 +4,7 @@ import {
   MASTERY_THRESHOLD,
   applyReviewOutcome,
   closeGap,
+  noteOriginHit,
   onLapse,
   openGap,
   toWatching,
@@ -43,6 +44,47 @@ describe("openGap (GAP-01/07 intake)", () => {
   it("honors an explicit severity", () => {
     const g = openGap({ ...SEED, severity: "high" }, 1);
     expect(g.severity).toBe("high");
+  });
+
+  it("seeds contributingOrigins with just the founding origin", () => {
+    const g = openGap(SEED, 100);
+    expect(g.contributingOrigins).toEqual(["review"]);
+  });
+});
+
+describe("noteOriginHit — explicit cross-origin merge policy (GAP-07)", () => {
+  it("appends a genuinely new origin, leaving the founding origin unchanged", () => {
+    const g = openGap(SEED, 100); // origin: review
+    const hit = noteOriginHit(g, "test");
+    expect(hit.origin).toBe("review"); // the founding channel is immutable
+    expect(hit.contributingOrigins).toEqual(["review", "test"]);
+  });
+
+  it("is a no-op (same reference) when that origin already contributed", () => {
+    const g = openGap(SEED, 100);
+    const hit = noteOriginHit(g, "review");
+    expect(hit).toBe(g);
+  });
+
+  it("is a no-op on a repeat hit from an already-recorded second origin", () => {
+    const g = openGap(SEED, 100);
+    const first = noteOriginHit(g, "task");
+    const second = noteOriginHit(first, "task");
+    expect(second).toBe(first);
+    expect(second.contributingOrigins).toEqual(["review", "task"]);
+  });
+
+  it("accumulates three distinct origins in the order they hit", () => {
+    let g = openGap(SEED, 100);
+    g = noteOriginHit(g, "test");
+    g = noteOriginHit(g, "drill");
+    expect(g.contributingOrigins).toEqual(["review", "test", "drill"]);
+  });
+
+  it("never mutates history — provenance and lifecycle are tracked separately", () => {
+    const g = openGap(SEED, 100);
+    const hit = noteOriginHit(g, "conflict");
+    expect(hit.history).toBe(g.history);
   });
 });
 

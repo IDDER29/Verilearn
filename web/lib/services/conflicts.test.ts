@@ -3,6 +3,7 @@ import { createDb, ledgerFor, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { listConflicts, listRankedConflicts, listResolvedConflicts, raiseDispute, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
 import { isTestEligible } from "@/lib/domain/types";
+import { gradeCard } from "./review";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -158,6 +159,22 @@ describe("conflicts service", () => {
       expect(rec).toBeTruthy();
       expect(rec.gap.origin).toBe("conflict");
       expect(rec.gap.status).toBe("open");
+    });
+
+    it("a claim already tracked from a review lapse doesn't fork a second gap when it's later disputed — it's the same gap, with both origins recorded (GAP-07)", () => {
+      const db = globalThis.__verilearnDb!;
+      gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", SEED_NOW);
+      const afterLapse = [...db.gaps.values()].filter((g) => g.gap.claimId === "topic_dijkstra_c2");
+      expect(afterLapse).toHaveLength(1);
+      expect(afterLapse[0].gap.origin).toBe("review");
+      expect(afterLapse[0].gap.contributingOrigins).toEqual(["review"]);
+
+      raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c2", "not convinced");
+
+      const afterDispute = [...db.gaps.values()].filter((g) => g.gap.claimId === "topic_dijkstra_c2");
+      expect(afterDispute).toHaveLength(1); // still one gap, not a second conflict-origin fork
+      expect(afterDispute[0].gap.origin).toBe("review"); // founding channel never reassigned
+      expect(afterDispute[0].gap.contributingOrigins).toEqual(["review", "conflict"]);
     });
 
     it("resolving a conflict advances its tracked gap toward closure (like a correct recall)", () => {

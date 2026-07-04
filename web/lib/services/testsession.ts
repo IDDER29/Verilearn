@@ -5,7 +5,7 @@
  */
 import { issueCertificate } from "@/lib/domain/certificates";
 import { buildTest, scoreTest } from "@/lib/domain/tests-engine";
-import { onLapse, openGap } from "@/lib/domain/gap";
+import { noteOriginHit, onLapse, openGap } from "@/lib/domain/gap";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 import type { CertificateRecord } from "@/lib/store/entities";
 import { newId, now } from "@/lib/ids";
@@ -69,7 +69,7 @@ function recordMissesAsGaps(userId: string, topicId: string, missedClaimIds: str
     const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
     if (rec) {
       const before = rec.gap.status;
-      rec.gap = onLapse(rec.gap, at, "missed on a test");
+      rec.gap = noteOriginHit(onLapse(rec.gap, at, "missed on a test"), "test");
       if (rec.gap.status !== before) count += 1; // regressed (e.g. closed/watching → reopened)
     } else {
       const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "test", severity: "high" }, at);

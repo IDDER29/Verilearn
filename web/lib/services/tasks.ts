@@ -4,7 +4,7 @@
  * pass, revise-to-pass. Traces to TASK-04 (source-traced rubric), TASK.
  */
 import { assertRubricGradeable, checkSubstance, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
-import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
+import { noteOriginHit, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { isTestEligible, type TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 import { newId, now } from "@/lib/ids";
@@ -98,7 +98,7 @@ function applyTaskGapOutcomes(userId: string, topicId: string, criteria: Criteri
       if (rec) rec.gap = toWatching(rec.gap, at);
     } else if (rec) {
       const before = rec.gap.status;
-      rec.gap = onLapse(rec.gap, at, "missed a task criterion");
+      rec.gap = noteOriginHit(onLapse(rec.gap, at, "missed a task criterion"), "task");
       if (rec.gap.status !== before) opened += 1;
     } else {
       const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "task", severity: "med" }, at);

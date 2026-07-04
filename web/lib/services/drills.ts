@@ -6,7 +6,7 @@
  * it feeds are genuinely computed from real per-learner attempts, never
  * fabricated.
  */
-import { onLapse, openGap } from "@/lib/domain/gap";
+import { noteOriginHit, onLapse, openGap } from "@/lib/domain/gap";
 import { getDb, gapsOf, topicsOf } from "@/lib/store/db";
 import { newId } from "@/lib/ids";
 import { getPrefs } from "./prefs";
@@ -59,7 +59,7 @@ function applyDrillMiss(userId: string, claimId: string, topicId: string, at: nu
   const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
   if (rec) {
     const before = rec.gap.status;
-    rec.gap = onLapse(rec.gap, at, "missed a blind-spot drill");
+    rec.gap = noteOriginHit(onLapse(rec.gap, at, "missed a blind-spot drill"), "drill");
     return rec.gap.status !== before;
   }
   const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "drill", severity: "med" }, at);

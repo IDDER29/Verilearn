@@ -5,7 +5,7 @@
  * triggers RE-VERIFICATION, and the system verifier emits the new verification
  * event. Traces to TRUST (conflicts), VERIFY-13, and the firewall invariant.
  */
-import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
+import { noteOriginHit, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor, topicsOf, type Db } from "@/lib/store/db";
@@ -21,7 +21,7 @@ const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSM
 function trackConflictGap(db: Db, userId: string, topicId: string, claimId: string, at: number): void {
   const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
   if (rec) {
-    rec.gap = onLapse(rec.gap, at, "claim disputed again");
+    rec.gap = noteOriginHit(onLapse(rec.gap, at, "claim disputed again"), "conflict");
   } else {
     const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "conflict", severity: "med" }, at);
     db.gaps.set(gap.id, { userId, gap });

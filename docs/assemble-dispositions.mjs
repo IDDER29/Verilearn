@@ -13,7 +13,7 @@ const ROWS = [
   ["TASK", "Tasks & Rubric Assessment", 24, 13, 8, 3],
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 12, 6, 4],
   ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 15, 8, 1],
-  ["GAP", "Gap Map & Misconception Tracking", 23, 14, 7, 2],
+  ["GAP", "Gap Map & Misconception Tracking", 23, 15, 6, 2],
   ["TEST", "Tests, Certificates & Verification", 23, 6, 14, 3],
   ["COMM", "Community, Contributions & Reputation", 24, 1, 13, 10],
   ["EVENT", "Events: Workshops, Groups & Challenges", 25, 0, 18, 7],

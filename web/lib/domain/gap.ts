@@ -77,6 +77,15 @@ export interface Gap {
   claimId: string;
   topicId: string;
   origin: GapOrigin;
+  /**
+   * Every origin that has ever hit this SAME tracked gap (GAP-07's explicit
+   * cross-origin merge policy) — `origin` is the founding channel and stays
+   * immutable, but a claim already tracked from one origin (say, `review`)
+   * that's later missed on a test doesn't fork into a second gap; the
+   * per-claim lookup reuses the one gap, and this set records that the test
+   * channel ALSO hit it, monotonically growing, never shrinking.
+   */
+  contributingOrigins: readonly GapOrigin[];
   severity: GapSeverity;
   status: GapStatus;
   history: readonly GapEvent[];
@@ -206,10 +215,22 @@ export function openGap(input: OpenGapInput, now: number): Gap {
     claimId: input.claimId,
     topicId: input.topicId,
     origin: input.origin,
+    contributingOrigins: [input.origin],
     severity,
     status: "open",
     history: [{ at: now, from: null, to: "open", reason: "created" }],
   };
+}
+
+/**
+ * Record that `origin` hit this already-tracked gap (GAP-07). A no-op — the
+ * SAME gap reference — when that origin has already been recorded, so a
+ * repeat hit from the founding channel never grows the set. `origin` itself
+ * is never reassigned; this only ever appends to the provenance set.
+ */
+export function noteOriginHit(gap: Gap, origin: GapOrigin): Gap {
+  if (gap.contributingOrigins.includes(origin)) return gap;
+  return { ...gap, contributingOrigins: [...gap.contributingOrigins, origin] };
 }
 
 /**

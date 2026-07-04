@@ -63,6 +63,11 @@ function GapCard({ g, highlighted }: { g: GapView; highlighted: boolean }) {
       </div>
       <div style={{ font: "700 13.5px/1.5 var(--font-nunito)", color: "#221f2e", marginBottom: 8 }}>{g.claimText}</div>
       <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{g.topicTitle} · {ORIGIN_LABEL[g.origin]}</div>
+      {g.contributingOrigins.length > 1 && (
+        <div style={{ font: "600 10.5px var(--font-nunito)", color: "#a7a1b8", marginTop: 3 }}>
+          Also caught via: {g.contributingOrigins.filter((o) => o !== g.origin).map((o) => ORIGIN_LABEL[o]).join(", ")}
+        </div>
+      )}
       {g.claimState && CLAIM_TRUST[g.claimState] && (
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8, font: "700 10.5px var(--font-nunito)", color: CLAIM_TRUST[g.claimState].color }}>
           <span style={{ width: 8, height: 8, borderRadius: 3, background: CLAIM_TRUST[g.claimState].color }} />

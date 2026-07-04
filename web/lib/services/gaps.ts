@@ -16,6 +16,8 @@ export interface GapView {
   topicId: string;
   topicTitle: string;
   origin: GapOrigin;
+  /** Every origin that has ever hit this same tracked gap (GAP-07's explicit cross-origin merge policy). */
+  contributingOrigins: readonly GapOrigin[];
   severity: GapSeverity;
   status: GapStatus;
   /** Read-only current trust state of the linked claim (gaps never mutate it). */
@@ -65,6 +67,7 @@ export function listGaps(userId: string): GapView[] {
         topicId: gap.topicId,
         topicTitle: topic?.title ?? "Topic",
         origin: gap.origin,
+        contributingOrigins: gap.contributingOrigins,
         severity: gap.severity,
         status: gap.status,
         claimState: topic ? ledgerFor(topic).stateOf(gap.claimId) : null,

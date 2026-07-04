@@ -7,7 +7,7 @@
 import { calibrationScore } from "@/lib/domain/calibration";
 import { retrievability, schedule, type FsrsParams, type Rating } from "@/lib/domain/fsrs";
 import { getPrefs } from "./prefs";
-import { closeGap, MASTERY_THRESHOLD, onLapse, openGap, toWatching } from "@/lib/domain/gap";
+import { closeGap, MASTERY_THRESHOLD, noteOriginHit, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { isTestEligible } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { ReviewCardRecord } from "@/lib/store/entities";
@@ -152,7 +152,7 @@ export function gradeCard(userId: string, cardId: string, confidence: Confidence
     const rec = gapsOf(db, userId).find((g) => g.gap.claimId === card.claimId);
     if (rec) {
       const before = rec.gap.status;
-      rec.gap = onLapse(rec.gap, at);
+      rec.gap = noteOriginHit(onLapse(rec.gap, at), "review");
       gapReopened = rec.gap.status === "reopened" && before !== "reopened";
     } else {
       // A fresh lapse with no tracked gap opens one (origin: review).
