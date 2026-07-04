@@ -19,7 +19,7 @@ with justification** — nothing among them is silently dropped.
 
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
-| AUTH — Authentication, Onboarding & Identity | 24 | 5 | 10 | 9 |
+| AUTH — Authentication, Onboarding & Identity | 24 | 6 | 9 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 14 | 7 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 15 | 7 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 5 | 17 | 1 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **151** | **186** | **124** |
+| **TOTAL** | **461** | **152** | **185** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -56,8 +56,8 @@ email — each behind a clean seam.
 
 | Story | Status | Evidence / Justification |
 |---|---|---|
-| AUTH-01 | 🟡 Partial | No true no-login guest demo. `proxy.ts` redirects every non-public path to `/login`, so nothing is reachable pre-auth. The stand-in is a seeded demo learner (`lib/store/seed.ts` — 3 ledger-computed topics) plus a one-click pre-filled `/login` (`app/login/page.tsx` defaults `adeline@example.com`/`verilearn`) that drops you into the real trust ledger. Missing: an ephemeral, session-scoped guest topic reachable with no account, and live-vs-gated labeling. |
-| AUTH-02 | 🟡 Partial | An auth wall exists but is upfront, not at the value boundary: `proxy.ts` + `requireUser()` gate the whole app. There is no guest state, so persist-action-triggered walls and "return to intended action after auth" are absent — `loginAction`/`signupAction` in `app/auth-actions.ts` always `redirect("/")`. No carry-through of a demo-typed topic name. |
+| AUTH-01 | ✅ Done | Corrected from a stale reading: a true no-login guest demo now exists at `/demo` (`app/demo/page.tsx`, `proxy.ts` explicitly allowlists it — TRUST-22/VERIFY-22/LEARN-17), reachable with zero clicks and no account. It's a real ephemeral guest topic, stronger than merely "session-scoped": every field is recomputed from a fixed scenario on each request with no `db` involved at all, so there's nothing to expire or leak between visitors. It covers a real Lecture reader with live per-claim trust badges (`DemoLecturePanel`), a real interactive disputed-claim resolve (`DemoConflictPanel`), and a real six-stage pipeline run (`DemoPipelinePanel`) — genuine engine output, not screenshots. Live-vs-gated is labeled ("this page doesn't save anything you do here"; "Ready for your own topics? Sign up free"). The pre-filled `/login` demo-account shortcut (`adeline@example.com`/`verilearn`) remains as a *second*, complementary path for exploring a fuller seeded account, not a replacement for the true guest path. Remaining nuance: the guest topic is fixed/canned, not a learner-typed one (that carry-through is AUTH-02). |
+| AUTH-02 | 🟡 Partial | The blanket auth wall is now real for guests (`/demo`, AUTH-01) rather than purely upfront — a visitor can read a real lecture, resolve a real conflict, and watch a real pipeline run before ever hitting `/login`. But the wall still isn't positioned at the *value boundary* for a learner's own typed intent: `/demo` is a fixed, canned topic, not something a guest types themselves, so there's no persist-action-triggered wall and no "return to intended action after auth" — `loginAction`/`signupAction` in `app/auth-actions.ts` always `redirect("/")`, and no carry-through of a guest-typed topic name into signup exists. |
 | AUTH-03 | ✅ Done | `signUp` in `lib/auth/service.ts`: email normalized+lowercased, uniqueness via `userByEmail`, password policy (`length < 8` rejected), age gate, scrypt `hashPassword`, defaults role `learner`/plan `free`, mints signed session; wired through `signupAction` and `app/signup/page.tsx` (name+email+password+birthYear). Covered by `lib/auth/auth.test.ts`. Gaps vs AC: `email_taken` message enumerates ("account with that email already exists"), and no Terms-acceptance timestamp, disposable-domain, or rate-limit (verification-pending is AUTH-05). |
 | AUTH-04 | ⏭️ Deferred | No social/OAuth path in `lib/auth` or the sign-up UI. Needs an OAuth/OIDC provider integration (vendor). Account-linking-on-matching-email seam not present. |
 | AUTH-05 | ⏭️ Deferred | No email-verification token, no unverified state, no `verified` flag on `User`; sign-up creates an immediately-usable account. Needs a transactional email pipeline (Deferred infra) plus expiring single-use tokens. |
@@ -81,7 +81,7 @@ email — each behind a clean seam.
 | AUTH-23 | 🟡 Partial | Anti-enumeration is honored: `signIn` returns a uniform "Email or password is incorrect." regardless of factor. **Credential-stuffing lockout/backoff is now real** (same mechanism as AUTH-06): 5 failed attempts per email trip a 15-minute lock, independent of any other account, tested (`lib/auth/auth.test.ts`). This is intentionally per-account, in-process state — not per-IP — since this single-process app has no distributed rate-limiter infra to key on IP/ASN; an attacker who only wants to deny one victim access could still trip it, a known, honestly-disclosed trade-off of this simpler mechanism. Still missing: no accessible CAPTCHA/progressive challenge, no disposable/known-abuse email-domain list, and no alerting/anomaly detection — CAPTCHA needs a vendor, the domain list needs a maintained data feed, and alerting needs an ops/notification channel, none of which exist here. |
 | AUTH-24 | 🟡 Partial | Expiry fails closed safely: `authenticate` rejects expired/revoked tokens and `requireUser()` redirects to `/login` without corrupting state. Missing the graceful-resume behavior — no lightweight re-auth-and-resume, no preservation of uncommitted in-progress work, and no server-side background-pipeline reattach (the pipeline is a client animation). |
 
-**Counts:** 24 total — ✅ 5 Done, 🟡 10 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
+**Counts:** 24 total — ✅ 6 Done, 🟡 9 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
