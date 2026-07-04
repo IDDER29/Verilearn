@@ -11,7 +11,7 @@ const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSM
 
 export const DEMO_TOPIC = { title: "Dijkstra’s algorithm", level: "Intermediate" };
 export const DEMO_SOURCE = { title: "CLRS — Introduction to Algorithms", ref: "Ch. 24" };
-const DEMO_SOURCE_ID = "demo_src_clrs";
+export const DEMO_SOURCE_ID = "demo_src_clrs";
 export const DEMO_DISPUTED_CLAIM_ID = "demo_c4";
 
 export const DEMO_CLAIMS: Claim[] = [
@@ -21,7 +21,7 @@ export const DEMO_CLAIMS: Claim[] = [
   { id: "demo_c4", topicId: "demo", sectionId: "s3", text: "It works correctly on any weighted graph, including negative edge weights." },
 ];
 
-const BASE_EVENTS: VerificationEvent[] = [
+export const BASE_EVENTS: VerificationEvent[] = [
   {
     id: "demo_ve1",
     claimId: "demo_c1",

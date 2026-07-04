@@ -22,7 +22,7 @@ with justification** — nothing among them is silently dropped.
 | AUTH — Authentication, Onboarding & Identity | 24 | 5 | 10 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 14 | 7 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 15 | 7 | 1 |
-| LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
+| LEARN — Lecture & Active Listening | 23 | 5 | 17 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 13 | 8 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 12 | 6 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 15 | 8 | 1 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **150** | **187** | **124** |
+| **TOTAL** | **461** | **151** | **186** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -170,7 +170,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | LEARN-14 | ⏭️ Deferred | No Skeptic hard-mode toggle, entitlement gate, or "hard mode active" indicator in the lecture. The added disputed/interpretive density must come from a Skeptic re-run upstream, which is the real LLM verifier — Deferred behind the `DeterministicVerifier` adapter seam (`lib/domain/pipeline.ts`). Needs the real LLM Skeptic plus Pro/Teams entitlement wiring before it can render. |
 | LEARN-15 | 🟡 Partial | Partial a11y: claim spans are keyboard-reachable/activatable (Enter/Space, lines 88-89) and trust states carry icon+label text (not color-only) in the detail badge and inline callout (`TRUST_BADGE`, lines 58-62). Gaps: the disabled "Next" button is a plain `<button>` with `cursor:not-allowed` — no `disabled`/`aria-disabled` attribute or programmatic reason exposed (lines 205-207); underlined spans have no `aria-label`/announced trust level on focus; no `aria-live` region for gate state changes; side-rail detail is not programmatically associated with the selected span. No WCAG-AA verification. |
 | LEARN-16 | 🟡 Partial | Deep-link routes exist and load real workspace data (`/topics/conflicts|sources|tasks` via `loadWorkspaceData`, `workspace.ts`), but there is no stable section/claim anchor model, so a Gap/test/review link cannot land on a specific section or claim, and no originating-context indicator is shown on arrival. Backward-nav is unrestricted only because no section locking exists at all. |
-| LEARN-17 | 🟡 Partial | The showcase Dijkstra lecture content (real underlined claims, working claim→evidence side rail, a real disputed claim) exists inside `LectureTab.tsx`, but it is reachable only behind the auth gate (`web/proxy.ts` route auth) — there is no unauthenticated `/demo` route, no ephemeral no-persistence guest path, and no sign-up-on-persist prompt. Buildable now (no external blocker); just not wired. |
+| LEARN-17 | ✅ Done | The guest, no-account Lecture reader now exists on the real `/demo` route (`proxy.ts` already allowlists it, TRUST-22): `demoWorkspaceData` (`lib/demo/workspace.ts`) assembles the same `WorkspaceData` shape a real signed-in `loadWorkspaceData` produces, from the fixed ephemeral demo scenario (`lib/demo/scenario.ts`) — real `TrustLedger`-derived states for every claim, a real claim→evidence pairing, and the same disputed claim `DemoConflictPanel` lets the guest resolve. `DemoLecturePanel` (`components/DemoLecturePanel.tsx`) renders it: each claim underlined with its live trust badge (Verified · execution / Verified · source / Sourced / Disputed) and its backing source when one exists — a simplified, guest-appropriate layout (no app-shell chrome, no Tasks/Sources/Conflicts tabs, since there's no demo data for those) rather than reusing `LectureTab.tsx` verbatim, which assumes a signed-in app shell. Ephemeral by construction (nothing persisted, no `db`), and the existing "Sign up free" CTA is the sign-up-on-persist prompt. Covered by 4 new `lib/demo/workspace.test.ts` cases (every claim carries a real state; the one disputed claim surfaces; the coverage matrix only backs the citation-based claims; deterministic across calls) and verified in a real browser. |
 | LEARN-18 | 🟡 Partial | No resume/reading-progress model. The progress bar and completed-section marks are hardcoded (lines 133-140, 149-153); there is no per-learner, per-topic store of last-read section, satisfied gates, or prior gate responses (the store has OWNER/TENANT scoping but no reading-progress entity). Gate state is not persisted, so it cannot be restored. |
 | LEARN-19 | 🟡 Partial | No offline capability: no service worker/PWA layer, no local persistence of prose/claims/gate inputs, no idempotent sync queue, and no "you're offline" indicator. Not blocked by a vendor — simply not implemented. |
 | LEARN-20 | 🟡 Partial | The fail-closed invariant is implemented and unit-tested in the domain engine — `trust.ts` fail-closed rendering, source-hallucination guard, and `unsupported` as the default fallback (`types.ts:21`, `isVerified` gating at `types.ts:91`); percent-verified aggregates exclude non-verified claims. But the LectureTab UI renders no per-claim "evidence unavailable / retry" state or skeleton (claims are hardcoded, always resolved), so the story's UI-level fail-closed/loading behavior is not surfaced. |
@@ -178,7 +178,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | LEARN-22 | 🟡 Partial | No anti-gaming validation on the close gate — the gate is entirely non-functional (disabled button, no submit handler; lines 194-208), so empty/whitespace/junk/min-length checks and genuine-vs-rejected signal emission do not exist. The rubric/effort logic that lives in `lib/domain/rubric.ts` is Tasks-domain grading, not wired to a close gate here. |
 | LEARN-23 | 🟡 Partial | The read-only-over-ledger invariant holds (RBAC has no human `trust:write`, `lib/domain/rbac.ts`; the lecture only renders ledger state), and the store carries OWNER/TENANT scoping (`lib/store`). But no shared/curated team library is seeded, no per-seat reading/gate state is recorded separately from shared content, and the team-seat consumer reading flow is not built. |
 
-**Summary:** 23 stories — ✅ 3 Done · 🟡 19 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
+**Summary:** 23 stories — ✅ 5 Done · 🟡 17 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

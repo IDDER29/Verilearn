@@ -1,9 +1,11 @@
 import Link from "next/link";
 import DemoConflictPanel from "@/components/DemoConflictPanel";
+import DemoLecturePanel from "@/components/DemoLecturePanel";
 import DemoPipelinePanel from "@/components/DemoPipelinePanel";
 import { getCurrentUser } from "@/lib/auth/current";
 import { DEMO_PIPELINE_TOPIC, demoPipelineRun } from "@/lib/demo/pipeline";
 import { DEMO_TOPIC, demoSnapshot } from "@/lib/demo/scenario";
+import { demoWorkspaceData } from "@/lib/demo/workspace";
 
 export const metadata = { title: "Live demo · VeriLearn" };
 
@@ -18,6 +20,7 @@ export default async function DemoPage() {
   const user = await getCurrentUser();
   const snapshot = demoSnapshot();
   const pipelineRun = demoPipelineRun();
+  const workspace = demoWorkspaceData();
 
   return (
     <div style={{ minHeight: "100vh", padding: 26, display: "flex", justifyContent: "center" }}>
@@ -47,6 +50,8 @@ export default async function DemoPage() {
               {DEMO_TOPIC.level} · a real slice of what a verified topic looks like — this page doesn&apos;t save anything you do here.
             </div>
           </div>
+
+          <DemoLecturePanel data={workspace} />
 
           <DemoConflictPanel initial={snapshot} />
 
