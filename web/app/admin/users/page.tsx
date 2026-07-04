@@ -1,8 +1,10 @@
 import AppShell from "@/components/AppShell";
 import UsersAdmin from "@/components/admin/UsersAdmin";
+import AppealsAdmin from "@/components/admin/AppealsAdmin";
 import { requireUser } from "@/lib/auth/current";
 import { can } from "@/lib/domain/rbac";
 import { listAllUsersForAdmin } from "@/lib/services/moderation";
+import { listAppealsForAdmin } from "@/lib/services/appeals";
 
 export const metadata = { title: "Users · Admin · VeriLearn" };
 
@@ -24,7 +26,10 @@ export default async function AdminUsersPage() {
         </div>
 
         {authorized ? (
-          <UsersAdmin initial={listAllUsersForAdmin()} />
+          <>
+            <AppealsAdmin initial={listAppealsForAdmin(user.role)} />
+            <UsersAdmin initial={listAllUsersForAdmin()} />
+          </>
         ) : (
           <div style={{ background: "#fff", borderRadius: 20, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
             You don&apos;t have access to this page. Account moderation is restricted to the Trust &amp; Safety role.

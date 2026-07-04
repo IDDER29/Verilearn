@@ -19,7 +19,8 @@ export async function loginAction(formData: FormData): Promise<void> {
     token = r.token;
   } catch (e) {
     const msg = e instanceof AuthError ? e.message : "Sign-in failed.";
-    redirect(`/login?error=${encodeURIComponent(msg)}`);
+    const code = e instanceof AuthError ? e.code : undefined;
+    redirect(`/login?error=${encodeURIComponent(msg)}${code ? `&code=${code}` : ""}`);
   }
   await setSessionCookie(token, rememberMe);
   redirect("/");

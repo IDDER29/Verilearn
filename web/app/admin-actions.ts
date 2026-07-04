@@ -26,6 +26,12 @@ import {
 } from "@/lib/services/quarantine";
 import { listAuditLogForAdmin, type AdminAuditView } from "@/lib/services/audit";
 import type { AuditQuery } from "@/lib/domain/audit";
+import {
+  decideAppealForAdmin,
+  listAppealsForAdmin,
+  type AdminAppealResult,
+  type AdminAppealView,
+} from "@/lib/services/appeals";
 import { now } from "@/lib/ids";
 
 /** RBAC-gated: only a `cert:revoke`-holding role sees any real data (ADMIN-15). */
@@ -105,4 +111,20 @@ export async function listAdminAuditAction(query: AuditQuery = {}): Promise<Admi
   const user = await getCurrentUser();
   if (!user) return [];
   return listAuditLogForAdmin(user.role, query);
+}
+
+/** RBAC-gated: only a `user:ban`-holding role sees any real data (AUTH-18). */
+export async function listAdminAppealsAction(): Promise<AdminAppealView[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  return listAppealsForAdmin(user.role);
+}
+
+/** Decide a pending ban appeal (AUTH-18) — approving genuinely unbans through the same reviewer-other-than-whoever-banned gate as ADMIN-16. */
+export async function decideAppealAction(appealId: string, approve: boolean, reason: string): Promise<AdminAppealResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Please sign in again." };
+  const r = decideAppealForAdmin(user.id, user.role, appealId, approve, reason, now());
+  if (r.ok) revalidatePath("/admin/users");
+  return r;
 }

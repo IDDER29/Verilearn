@@ -20,7 +20,7 @@ describe("proxy (coarse auth gate)", () => {
   });
 
   it("lets an unauthenticated visitor through to the public pages", () => {
-    for (const path of ["/login", "/signup", "/pricing", "/demo"]) {
+    for (const path of ["/login", "/signup", "/pricing", "/demo", "/appeal"]) {
       expect(proxy(req(path)).status).toBe(200);
     }
   });

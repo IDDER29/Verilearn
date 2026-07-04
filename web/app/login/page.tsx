@@ -4,8 +4,8 @@ import { loginAction } from "@/app/auth-actions";
 
 export const metadata = { title: "Sign in · VeriLearn" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; code?: string }> }) {
+  const { error, code } = await searchParams;
   return (
     <AuthShell
       title="Welcome back 👋"
@@ -20,6 +20,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       }
     >
       <ErrorNote error={error} />
+      {code === "account_banned" && (
+        <div style={{ textAlign: "center", marginBottom: 14 }}>
+          <Link href="/appeal" style={{ color: "#c0392b", fontWeight: 800, font: "800 12.5px var(--font-nunito)", textDecoration: "none" }}>
+            Appeal this ban →
+          </Link>
+        </div>
+      )}
       <form action={loginAction} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div>
           <label style={labelStyle} htmlFor="email">Email</label>

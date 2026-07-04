@@ -8,7 +8,10 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 // /pricing is a public, unauthenticated pricing view (BILL-03).
 // /demo is the public, no-account guest showcase (TRUST-22).
-const PUBLIC = new Set(["/login", "/signup", "/pricing", "/demo"]);
+// /appeal is the real, unauthenticated ban-appeal entry point (AUTH-18) — a
+// banned account fails authenticate()/signIn() before ever reaching a signed-in
+// action, so this has to be reachable without a session.
+const PUBLIC = new Set(["/login", "/signup", "/pricing", "/demo", "/appeal"]);
 // The public certificate-verify JSON endpoint (API-03) and human-readable page
 // (TEST-11) — no session required, by design: a third party (employer, LMS)
 // confirming a printed code has no VeriLearn account.
