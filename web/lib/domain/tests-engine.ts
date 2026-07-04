@@ -177,6 +177,12 @@ export interface ReadinessSignals {
   reviewedClaims: number;
   /** Disputed claims sitting in covered sections — they suppress readiness. */
   disputedInScope?: number;
+  /**
+   * Share of the topic's graded tasks that passed (0..1), or undefined when the
+   * learner has graded no tasks. Rubric-graded tasks are transfer evidence, so a
+   * strong task record nudges readiness up and a weak one nudges it down (TASK-13).
+   */
+  taskPassRate?: number;
 }
 
 export interface ReadinessForecast {
@@ -223,6 +229,14 @@ export function predictReadiness(signals: ReadinessSignals): ReadinessForecast {
   readiness *= coverage;
   // Disputed claims in scope suppress an artificially high number.
   if (disputed > 0) readiness *= covered / (covered + disputed);
+
+  // Rubric-graded tasks are transfer evidence (TASK-13): blend a modest task
+  // factor when the learner has graded tasks, scaled by review coverage so thin
+  // data can't let it inflate. Absent taskPassRate → no change (backward-compatible).
+  if (signals.taskPassRate !== undefined) {
+    const t = clamp01(signals.taskPassRate);
+    readiness = readiness * 0.85 + t * 100 * coverage * 0.15;
+  }
 
   const bounded = Math.min(100, Math.max(0, Math.round(readiness)));
   const lowConfidence = reviewed < MIN_READINESS_RECORDS;

@@ -79,12 +79,18 @@ export function readinessFor(userId: string, topicId: string, _now: number): Rea
   const openGaps = openGapCountForClaims(userId, eligibleIds);
   const disputedInScope = topic.claims.length - eligible.length + openGaps;
 
+  // Rubric-graded tasks on this topic are transfer evidence (TASK-13): pass-rate
+  // over graded tasks, or undefined when none are graded (no effect on the forecast).
+  const gradedTasks = [...db.tasks.values()].filter((t) => t.userId === userId && t.topicId === topicId && t.passed !== undefined);
+  const taskPassRate = gradedTasks.length > 0 ? gradedTasks.filter((t) => t.passed).length / gradedTasks.length : undefined;
+
   const forecast = predictReadiness({
     retention,
     calibration,
     coveredClaims: eligible.length,
     reviewedClaims,
     disputedInScope,
+    taskPassRate,
   });
 
   return {

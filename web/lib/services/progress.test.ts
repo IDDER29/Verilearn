@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { gradeCard } from "./review";
+import { gradeSubmission } from "./tasks";
 import { focusAreas, perTopicProgress, progressFor, readinessFor, signalDisplay } from "./progress";
 
 declare global {
@@ -75,6 +76,21 @@ describe("progress signals", () => {
     expect(r.reviewed).toBe(4);
     expect(r.pct!).toBeGreaterThan(0);
     expect(r.pct!).toBeLessThanOrEqual(100);
+  });
+
+  it("TASK-13: a passed task on the topic raises predicted readiness", () => {
+    // Establish a review-backed readiness baseline (no graded tasks yet).
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c4", "sure", "good", SEED_NOW);
+    const before = readinessFor(USER, "topic_dijkstra", SEED_NOW).pct!;
+
+    // Pass the topic's rubric task → transfer evidence lifts readiness.
+    const g = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(g.passed).toBe(true);
+    const after = readinessFor(USER, "topic_dijkstra", SEED_NOW).pct!;
+    expect(after).toBeGreaterThan(before);
   });
 
   it("readiness is topic-scoped (other topics' reviews don't count)", () => {

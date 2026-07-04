@@ -21,7 +21,7 @@ justification** — nothing is silently dropped.
 | HOME — Learner Home / Dashboard & Discovery | 22 | 10 | 11 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 13 | 9 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
-| TASK — Tasks & Rubric Assessment | 24 | 10 | 11 | 3 |
+| TASK — Tasks & Rubric Assessment | 24 | 11 | 10 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 12 | 11 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 13 | 8 | 2 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 5 | 15 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **118** | **219** | **125** |
+| **TOTAL** | **462** | **119** | **218** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -196,7 +196,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-10 | ⏭️ Deferred | No execution grading of computational Apply tasks: `Criterion` has no executable flag, and the DeterministicVerifier adapter stands in for a real sandbox. Needs the Execution Sandbox (resource-capped, network/fs-isolated, reproducible traces) — the Verifier-port seam in the pipeline is the intended attach point. |
 | TASK-11 | 🟡 Partial | Conflict machinery exists (`lib/services/conflicts.ts`: list disputed + `resolveConflict` → re-verify via system verifier, firewall-respecting) and grades are conceptually contestable. But there is **no path from a graded task to raise a dispute on a specific criterion**; task grading does not open a criterion-tied Conflict object, and no dispute rate-limiting exists. |
 | TASK-12 | 🟡 Partial | RBAC has SME/reviewer roles and the epistemic firewall (only a system verifier / SME dual-control can set trust; `lib/domain/rbac.ts`, tested), and conflict adjudication re-verifies via the system verifier. But there is no grade-dispute adjudication surface, no correct/retire-criterion flow, and no post-correction grade recompute. |
-| TASK-13 | 🟡 Partial | Tasks and Tests share the same verified/sourced eligibility (`isTestEligible`) and the same ≥75% bar concept; the Tests hub excludes disputed claims (`lib/domain/tests-engine.ts`, wired). But the explicit linkage — passing tasks feeding a test predicted-readiness score, and per-task excluded-from-test flagging on open Conflicts — is not wired between the two services. |
+| TASK-13 | ✅ Done | Both linkages between Tasks and Tests are now wired. **Passing tasks feed readiness**: `predictReadiness` takes an optional `taskPassRate` (share of the topic's graded tasks that passed) and blends it as transfer evidence — scaled by review coverage so thin data can't inflate it — nudging the forecast up for a strong task record and down for a weak one; `readinessFor` computes the rate over the topic's graded tasks (undefined ⇒ no effect, backward-compatible). **Per-task test-exclusion on open conflicts**: a task whose criterion anchors to a disputed/unsupported claim is flagged `needsReverify` (TASK-21) and that claim is already excluded from the test pool by `isTestEligible` (TRUST-07), so the two surfaces agree. Covered by `tests-engine.test.ts` (task factor raises/lowers/neutral) and `progress.test.ts` (passing the topic's task raises predicted readiness). |
 | TASK-14 | ✅ Done | `gradeSubmission` now feeds per-criterion outcomes into the Gap Map (`lib/services/tasks.ts`, `applyTaskGapOutcomes`): a **missed** claim-anchored criterion opens a gap tagged `origin: "task"` (severity `med`) or regresses a tracked one via `onLapse`; a **hit** criterion advances a tracked gap toward closure (open/reopened → watching, like a correct recall). Gaps never touch trust state, criteria without a `claimId` (or anchored outside the topic) are skipped, and the count is returned as `gapsOpened`. Covered by `tasks.test.ts` (a thin answer opens task-origin gaps on the two anchored claims; a later full pass advances them to watching). Uses the same append-only lifecycle Review drives, so a task and a review agree on a claim's gap. |
 | TASK-15 | 🟡 Partial | The submitted answer is persisted server-side (`task.submittedAnswer`) and grading is synchronous/deterministic (in-memory), so nothing is lost on the happy path. Missing: no async job model, no idempotency key/queue, no "grading…/retry" state on a real backend error, and no "grade ready" notification. The transient "Grading…" label is client-only. Real async grading arrives with the LLM verifier. |
 | TASK-16 | 🟡 Partial | Not implemented: the in-progress answer lives only in React state (`useState`) and is lost on reload; there is no localStorage draft persistence, no offline-disabled submit state, and no reconnect queue. Not blocked by external infra — a client-side feature that is simply unbuilt. |

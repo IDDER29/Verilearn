@@ -163,6 +163,17 @@ describe("predictReadiness (TEST-01)", () => {
     expect(r.readiness).toBe(86);
   });
 
+  it("TASK-13: a strong task record nudges readiness up, a weak one down; absent → no change", () => {
+    const none = predictReadiness(base).readiness; // 86
+    const allPass = predictReadiness({ ...base, taskPassRate: 1 }).readiness;
+    const allFail = predictReadiness({ ...base, taskPassRate: 0 }).readiness;
+    expect(none).toBe(86);
+    expect(allPass).toBeGreaterThan(none);
+    expect(allFail).toBeLessThan(none);
+    expect(allPass).toBeLessThanOrEqual(100);
+    expect(allFail).toBeGreaterThanOrEqual(0);
+  });
+
   it("clamps out-of-range signal inputs into 0..100", () => {
     const r = predictReadiness({ retention: 5, calibration: -2, coveredClaims: 4, reviewedClaims: 4 });
     expect(r.readiness).toBeGreaterThanOrEqual(0);

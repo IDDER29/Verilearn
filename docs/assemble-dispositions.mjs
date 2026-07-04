@@ -10,7 +10,7 @@ const ROWS = [
   ["HOME", "Learner Home / Dashboard & Discovery", 22, 10, 11, 1],
   ["VERIFY", "Topic Creation & Verification Pipeline", 23, 13, 9, 1],
   ["LEARN", "Lecture & Active Listening", 23, 4, 18, 1],
-  ["TASK", "Tasks & Rubric Assessment", 24, 10, 11, 3],
+  ["TASK", "Tasks & Rubric Assessment", 24, 11, 10, 3],
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 11, 7, 4],
   ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 12, 11, 1],
   ["GAP", "Gap Map & Misconception Tracking", 23, 13, 8, 2],
