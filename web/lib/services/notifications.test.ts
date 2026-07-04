@@ -120,6 +120,40 @@ describe("notifications service", () => {
     expect(item.title).toMatch(/reopened/i);
   });
 
+  it("GAP-22: a high-severity gap emits a distinct heat-spike signal, seeded gap_1 included", () => {
+    const items = listNotifications(USER);
+    const heat = items.find((i) => i.id === "notif_gap_gap_1_heat_high");
+    expect(heat).toBeTruthy();
+    expect(heat!.kind).toBe("gap");
+    expect(heat!.title).toMatch(/hot/i);
+    expect(heat!.href).toMatch(/\/gap-map\?gap=gap_1/);
+  });
+
+  it("GAP-22: heat-spike is independent of the open/reopened transition — fires for a watching gap too", () => {
+    const db = globalThis.__verilearnDb!;
+    let g = openGap({ id: "gap_watching_hot", claimId: "topic_dijkstra_c4", topicId: "topic_dijkstra", origin: "review", severity: "high" }, SEED_NOW);
+    g = toWatching(g, SEED_NOW + 1);
+    db.gaps.set(g.id, { userId: USER, gap: g });
+
+    const heat = listNotifications(USER).find((i) => i.id === "notif_gap_gap_watching_hot_heat_high");
+    expect(heat).toBeTruthy();
+    // The plain open/reopened item only fires for open/reopened status, so a watching gap has no duplicate there.
+    expect(listNotifications(USER).some((i) => i.id.includes("gap_watching_hot") && i.id.endsWith("_watching"))).toBe(false);
+  });
+
+  it("GAP-22: no heat-spike for a low/medium-severity gap, and none once closed", () => {
+    const db = globalThis.__verilearnDb!;
+    const med = openGap({ id: "gap_med", claimId: "topic_dijkstra_c3", topicId: "topic_dijkstra", origin: "review", severity: "med" }, SEED_NOW);
+    db.gaps.set(med.id, { userId: USER, gap: med });
+    expect(listNotifications(USER).some((i) => i.id.includes("gap_med") && i.id.includes("heat"))).toBe(false);
+
+    let closedHot = openGap({ id: "gap_closed_hot", claimId: "topic_merkle_c1", topicId: "topic_merkle", origin: "review", severity: "high" }, SEED_NOW);
+    closedHot = toWatching(closedHot, SEED_NOW + 1);
+    closedHot = { ...closedHot, status: "closed" };
+    db.gaps.set(closedHot.id, { userId: USER, gap: closedHot });
+    expect(listNotifications(USER).some((i) => i.id.includes("gap_closed_hot"))).toBe(false);
+  });
+
   it("NOTIF-08: muting the gap category removes it from the feed", () => {
     const db = globalThis.__verilearnDb!;
     expect(listNotifications(USER).some((i) => i.kind === "gap")).toBe(true);
