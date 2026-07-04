@@ -41,3 +41,17 @@ export async function savePrivacyAction(patch: Partial<UserPrefs["privacy"]>): P
   revalidatePath("/settings/privacy");
   return { ok: true };
 }
+
+/** Whether the learner has already dismissed the review commit-before-reveal primer (REVIEW-01). */
+export async function reviewPrimerSeenAction(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user ? (getPrefs(user.id)?.flags.reviewPrimerSeen ?? true) : true;
+}
+
+/** Mark the review primer dismissed so it never re-shows (REVIEW-01). */
+export async function dismissReviewPrimerAction(): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false };
+  updatePrefs(user.id, "flags", { reviewPrimerSeen: true });
+  return { ok: true };
+}

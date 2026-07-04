@@ -23,7 +23,7 @@ justification** — nothing is silently dropped.
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
-| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 7 | 16 | 1 |
+| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 8 | 15 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 8 | 13 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **75** | **262** | **125** |
+| **TOTAL** | **462** | **76** | **261** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -250,7 +250,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 
 | Story | Status | Evidence / Justification |
 |-------|--------|--------------------------|
-| REVIEW-01 | 🟡 Partial | `web/app/review/page.tsx` shows the gated first card with position ("Card {n} of {TOTAL}"), progress dots, and an honesty footer explaining why committing first keeps you honest. Missing: a real one-time, per-account, dismissible primer (there is no `primerSeen` preference model), and the estimated-time figure ("~2 min left") is a hardcoded string, not computed. |
+| REVIEW-01 | ✅ Done | The session shows the gated first card with real position/progress dots, and a **real one-time, per-account, dismissible primer** now leads it: a `flags.reviewPrimerSeen` preference (`UserPrefs`, defaults false) backs a "How review works: commit before you reveal" banner in `web/app/review/page.tsx` that shows only until "Got it ✕" is clicked (`dismissReviewPrimerAction` → `updatePrefs`, gated by `reviewPrimerSeenAction`), so it never re-shows. The earlier hardcoded "~2 min left" is already replaced by the real remaining-count (REVIEW-10). Covered by a `prefs.test.ts` case (flag defaults false, persists dismissal, other sections untouched). |
 | REVIEW-02 | ✅ Done | Commit-before-reveal is wired and live. In `web/app/review/page.tsx` the "Show answer" button is `disabled` until a confidence level is picked, labeled "Pick a confidence level to reveal the answer"; selecting a level unlocks reveal and the revealed card shows "You said: {level}". The committed level is passed through `gradeCardAction` → `gradeCard` and persisted to `reviewLog` (`web/lib/services/review.ts`). The deep-link guard is now in place: `web/app/review/reveal/page.tsx` `redirect("/review")`s, so a revealed answer is unreachable without committing a confidence in a live session. Not yet enforced: the disabled-gate (REVIEW-14) confidence-gate-off branch. |
 | REVIEW-03 | 🟡 Partial | The revealed answer renders a source line (`c.source` = card `sourceRef`) and the front carries a "Verified card" marker (`web/app/review/page.tsx`). Missing: the trust badge is a static "Verified card" label, not derived from the claim's live trust state — `ReviewCardRecord` (`web/lib/store/entities.ts`) has no `trustState` field, `sourceRef` is a hardcoded `"CLRS §24.3"` in seed, and Sourced vs Verified·execution/source are not visually distinguished. |
 | REVIEW-04 | ✅ Done | FSRS engine complete + unit-tested (`web/lib/domain/fsrs.ts`), and the four rating buttons now show the card's **real projections**: `getDueCardsAction` (`web/app/review-actions.ts`) calls `nextIntervals(card.fsrs, now)` per due card and returns `formatInterval`-labelled Again/Hard/Good/Easy intervals, which `web/app/review/page.tsx` renders in place of the old hardcoded "< 1 min / 2 days / 4 days / 9 days". `formatInterval` (`web/lib/format.ts`) is pure and covered by `format.test.ts` (minute/hour/day/month/year scales + monotonicity); `gradeCard` still persists the actual reschedule. |
@@ -275,7 +275,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-23 | 🟡 Partial | `web/app/settings/danger/page.tsx` exists but is static: no "reset review history" that wipes FSRS/calibration/blind-spot/streak, no DSAR export of review/calibration data, and no retention windows. The COPPA age-gate (`web/lib/auth`) provides minor-safe defaults at signup, but review-data-specific minor handling and reset/export/deletion are unbuilt. |
 | REVIEW-24 | ⏭️ Deferred | Team shared-library review (Nice-to-Have, R2/R3 per roadmap). No shared-library topic model or team-seat model is seeded, so shared-source cards, private-vs-shared signal policy, and posting wrong-ideas into a shared Gap Map cannot exist yet. Needs the Teams/Org data model and shared-library sourcing; the individual FSRS/calibration/gap engines it would build on are in place. |
 
-Counts: total 24 — ✅ Done 7, 🟡 Partial 16, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
+Counts: total 24 — ✅ Done 8, 🟡 Partial 15, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
 
 ---
 

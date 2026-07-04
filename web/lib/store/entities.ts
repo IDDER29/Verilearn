@@ -24,6 +24,8 @@ export interface UserPrefs {
   activeListening: { predict: boolean; pause: boolean; cloze: boolean; connection: boolean; closeGate: boolean; frequency: number };
   review: { targetRetention: number; dailyLimit: number; maxIntervalDays: number; confidenceGate: boolean; drills: boolean; reminders: boolean };
   privacy: { analytics: boolean; communityVisible: boolean; emailUpdates: boolean };
+  /** One-time UI flags (dismissed primers, etc.) — not learning behavior. */
+  flags: { reviewPrimerSeen: boolean };
 }
 
 export function defaultPrefs(): UserPrefs {
@@ -32,6 +34,7 @@ export function defaultPrefs(): UserPrefs {
     activeListening: { predict: true, pause: true, cloze: false, connection: false, closeGate: true, frequency: 2 },
     review: { targetRetention: 90, dailyLimit: 40, maxIntervalDays: 365, confidenceGate: true, drills: true, reminders: true },
     privacy: { analytics: true, communityVisible: true, emailUpdates: false },
+    flags: { reviewPrimerSeen: false },
   };
 }
 

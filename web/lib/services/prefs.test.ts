@@ -51,6 +51,13 @@ describe("preferences service", () => {
     expect(p.review.targetRetention).toBe(90); // other section untouched
   });
 
+  it("REVIEW-01: the review primer flag defaults false and persists dismissal", () => {
+    expect(getPrefs(USER)!.flags.reviewPrimerSeen).toBe(false);
+    updatePrefs(USER, "flags", { reviewPrimerSeen: true });
+    expect(getPrefs(USER)!.flags.reviewPrimerSeen).toBe(true);
+    expect(getPrefs(USER)!.review.targetRetention).toBe(90); // other sections untouched
+  });
+
   it("returns null for an unknown user", () => {
     expect(getPrefs("nobody")).toBeNull();
     expect(updatePrefs("nobody", "privacy", { analytics: false })).toBeNull();

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
 import { caughtUpInfoAction, getDueCardsAction, gradeCardAction, type CaughtUpInfo, type SessionCard } from "@/app/review-actions";
+import { dismissReviewPrimerAction, reviewPrimerSeenAction } from "@/app/prefs-actions";
 import type { Rating } from "@/lib/domain/fsrs";
 
 const CONF = {
@@ -63,13 +64,20 @@ export default function ReviewPage() {
   const [saving, setSaving] = useState(false);
   const [tracked, setTracked] = useState(0);
   const [caughtUp, setCaughtUp] = useState<CaughtUpInfo | null>(null);
+  const [showPrimer, setShowPrimer] = useState(false);
 
   useEffect(() => {
     getDueCardsAction().then((cs) => {
       setCards(cs);
       if (cs.length === 0) caughtUpInfoAction().then(setCaughtUp);
+      else reviewPrimerSeenAction().then((seen) => setShowPrimer(!seen));
     });
   }, []);
+
+  function dismissPrimer() {
+    setShowPrimer(false);
+    dismissReviewPrimerAction();
+  }
 
   const TOTAL = cards?.length ?? 0;
   const c = cards && cards[card];
@@ -164,6 +172,17 @@ export default function ReviewPage() {
               Card {card + 1} of {TOTAL}
             </div>
           </div>
+
+          {/* one-time primer (REVIEW-01) — commit-before-reveal, dismissible */}
+          {showPrimer && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, background: "#f2effc", border: "1.5px solid #e3ddf6", borderRadius: 16, padding: "14px 16px" }}>
+              <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 17 }}>🧠</div>
+              <div style={{ flex: 1, minWidth: 0, font: "600 12.5px/1.55 var(--font-nunito)", color: "#4a4560" }}>
+                <b style={{ color: "#221f2e" }}>How review works:</b> commit a confidence level <i>before</i> you reveal the answer. That&apos;s what makes your calibration score honest — you can&apos;t revise the guess after seeing the result.
+              </div>
+              <button type="button" onClick={dismissPrimer} aria-label="Dismiss" style={{ border: "none", background: "none", cursor: "pointer", color: "#8b8699", font: "800 13px var(--font-nunito)", flexShrink: 0 }}>Got it ✕</button>
+            </div>
+          )}
 
           {/* progress dots */}
           <div style={{ display: "flex", gap: 7 }}>
