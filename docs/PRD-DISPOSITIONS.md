@@ -23,7 +23,7 @@ justification** — nothing is silently dropped.
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 8 | 13 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
-| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 9 | 14 | 1 |
+| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 10 | 13 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 12 | 9 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 3 | 17 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **97** | **240** | **125** |
+| **TOTAL** | **462** | **98** | **239** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -264,7 +264,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-12 | 🟡 Partial | The aggregate due count is real and cross-topic: dashboard (`web/app/page.tsx`) computes `dueCount` over `reviewCardsOf(...)` for all the user's cards, and `getDueCards` spans every topic, so a started session is inherently mixed-topic. Missing: per-topic breakdown, overdue-vs-due-today distinction, the "N beyond today's limit" daily-limit framing, and per-card source-topic labels in the session (card chrome is hardcoded "Dijkstra's algorithm"). |
 | REVIEW-13 | 🟡 Partial | The FSRS engine accepts the tuning knobs — `requestRetention` (clamped 0.5–0.99) and `maximumInterval` in `FsrsParams` (`web/lib/domain/fsrs.ts`). But `web/app/settings/review/page.tsx` is a static screen: the retention slider (90%), daily-limit (30), and max-interval (180d) have no state, no persistence, and Save/Reset are inert. No per-learner preferences model exists, and `schedule` is currently called with defaults (no per-learner params threaded through `gradeCard`). |
 | REVIEW-14 | 🟡 Partial | `web/app/settings/review/page.tsx` renders static toggles for confidence gate, seeded error-drills, and daily reminder, but they do not persist, do not affect the next session, and do not emit a reminder preference to Notifications. No user-preferences store backs them. |
-| REVIEW-15 | 🟡 Partial | Not enforced in card generation. Seed (`web/lib/store/seed.ts`) creates review cards from `dijkstra.claims.slice(0, 4)` with a "drawn from verified/sourced claims" comment but no actual trust-state filter, and there is no live eligibility recomputation. The eligibility concept exists for Tests (`web/lib/domain/tests-engine.ts` verified/sourced-only), but review cards are not gated by it and `ReviewCardRecord` carries no trust-state link. |
+| REVIEW-15 | ✅ Done | `getDueCards` now gates the deck by **live trust eligibility** (`lib/services/review.ts`, `cardClaimEligible`): a card whose underlying claim is currently `disputed`/`unsupported`/`interpretive` is held out via `isTestEligible(ledgerFor(topic).stateOf(claimId))` — the same verified/sourced bar Tests use — so review never reinforces contested content. It's **recomputed from the ledger on every call**, not a stored flag, so a claim disputed after its card was made drops out immediately and returns once resolved. The Dashboard due-count now routes through `getDueCards` too, keeping the header count consistent with the deck. Covered by `review.test.ts` (disputing a due card's claim removes it from the due list). Card *generation* is still seed-time, but eligibility is enforced at serve-time on every read, which is the stronger guarantee. |
 | REVIEW-16 | 🟡 Partial | Not implemented. `ReviewCardRecord` has no `suspended` field, there is no trust-ledger-event listener that pulls a card from the due queue on dispute/revoke, and no restore-with-FSRS-history-intact path. The trust engine (`web/lib/domain/trust.ts`) emits state changes but nothing in the review layer reacts to them. |
 | REVIEW-17 | 🟡 Partial | Happy-path server persistence only: `gradeCardAction` is a server action that writes synchronously (`web/app/review-actions.ts`). There is no local capture/queue of commits and ratings, no idempotent reconciliation, no offline/syncing UI, and no streak model — so nothing yet protects progress or streaks across a dropped connection. |
 | REVIEW-18 | ✅ Done | The honest caught-up state is now fully wired via `caughtUpInfoAction` (`web/app/review-actions.ts`, returns deck size + soonest upcoming due): `web/app/review/page.tsx` distinguishes a **brand-new learner** (zero cards → "No review deck yet — start a topic" with a `/new-topic` CTA) from a **caught-up learner** (has cards, none due → "All caught up! Your next card is due {weekday, Mon D}" computed from the real soonest `fsrs.due`), and never manufactures cards. Remaining nice-to-have: a "Review ahead" offer (REVIEW-11, still unbuilt). |

@@ -7,16 +7,28 @@
 import { calibrationScore } from "@/lib/domain/calibration";
 import { schedule, type Rating } from "@/lib/domain/fsrs";
 import { closeGap, MASTERY_THRESHOLD, onLapse, openGap, toWatching } from "@/lib/domain/gap";
-import { getDb, gapsOf, reviewCardsOf } from "@/lib/store/db";
+import { isTestEligible } from "@/lib/domain/types";
+import { getDb, gapsOf, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { ReviewCardRecord } from "@/lib/store/entities";
 import { newId } from "@/lib/ids";
 
 export type Confidence = "sure" | "unsure" | "guessing";
 
-/** Cards due for review, soonest first. */
+/** True when a card's underlying claim is currently test-eligible (verified/sourced). */
+function cardClaimEligible(card: ReviewCardRecord): boolean {
+  const topic = getDb().topics.get(card.topicId);
+  return topic ? isTestEligible(ledgerFor(topic).stateOf(card.claimId)) : false;
+}
+
+/**
+ * Cards due for review, soonest first — gated by LIVE trust eligibility (REVIEW-15):
+ * a card whose claim has become `disputed`/`unsupported`/`interpretive` is held
+ * out of the deck until it's resolved, so review never reinforces contested
+ * content. Recomputed from the ledger on each call, not a stored flag.
+ */
 export function getDueCards(userId: string, at: number): ReviewCardRecord[] {
   return reviewCardsOf(getDb(), userId)
-    .filter((c) => c.fsrs.due <= at)
+    .filter((c) => c.fsrs.due <= at && cardClaimEligible(c))
     .sort((a, b) => a.fsrs.due - b.fsrs.due);
 }
 

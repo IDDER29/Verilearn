@@ -5,6 +5,7 @@ import { StatCard, TrustBar } from "@/components/ui";
 import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
 import { listTestableTopics } from "@/lib/services/tests";
+import { getDueCards } from "@/lib/services/review";
 import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
@@ -27,7 +28,8 @@ export default async function DashboardPage() {
   if (topics.length === 0) redirect("/welcome");
   const at = now();
   const cards = reviewCardsOf(db, user.id);
-  const dueCount = cards.filter((c) => c.fsrs.due <= at).length;
+  // Eligibility-gated to match the review deck (REVIEW-15): contested claims are held out.
+  const dueCount = getDueCards(user.id, at).length;
   const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
   const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
 

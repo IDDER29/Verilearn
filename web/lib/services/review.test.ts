@@ -28,6 +28,27 @@ describe("review service", () => {
     expect(getDueCards("intruder", SEED_NOW)).toHaveLength(0);
   });
 
+  it("REVIEW-15: holds out a due card whose claim has become contested", () => {
+    const db = globalThis.__verilearnDb!;
+    const dueBefore = getDueCards(USER, SEED_NOW);
+    expect(dueBefore.length).toBe(3);
+    const target = dueBefore[0];
+    const topic = db.topics.get(target.topicId)!;
+    // The Skeptic disputes the underlying claim → live ledger state becomes disputed.
+    topic.events.push({
+      id: "ve_dispute_test",
+      claimId: target.claimId,
+      state: "disputed",
+      producedBy: "system:verifier",
+      producerVersion: "test",
+      at: SEED_NOW,
+      evidence: { method: "skeptic", detail: "contested", confidence: 0.3, resolved: false },
+    });
+    const dueAfter = getDueCards(USER, SEED_NOW);
+    expect(dueAfter.length).toBe(2); // the contested claim's card is held out
+    expect(dueAfter.some((c) => c.claimId === target.claimId)).toBe(false);
+  });
+
   it("a 'good' grade reschedules forward and logs calibration", () => {
     const before = globalThis.__verilearnDb!.reviewLog.length;
     const r = gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
