@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Sidebar, { type NavKey } from "./Sidebar";
+import OfflineBanner from "./OfflineBanner";
 
 /**
  * The VeriLearn app shell: centered lilac page, rounded shell card, and the
@@ -22,6 +23,7 @@ export default function AppShell({
         justifyContent: "center",
       }}
     >
+      <OfflineBanner />
       <div
         style={{
           width: 1340,
