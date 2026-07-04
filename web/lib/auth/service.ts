@@ -8,14 +8,19 @@ import { userByEmail } from "@/lib/store/db";
 import { defaultPrefs, type Session, type User } from "@/lib/store/entities";
 import { ageGate } from "./age";
 import { hashPassword, verifyPassword } from "./password";
-import { SESSION_TTL_MS, signToken, verifyToken } from "./session";
+import { SESSION_TTL_MS, SHORT_SESSION_TTL_MS, signToken, verifyToken } from "./session";
 
 export type AuthErrorCode =
   | "email_taken"
   | "invalid_email"
   | "weak_password"
   | "invalid_credentials"
-  | "age_gate_blocked";
+  | "age_gate_blocked"
+  | "locked_out";
+
+/** Failed-sign-in lockout/backoff thresholds (AUTH-06/AUTH-23). */
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60_000; // 15 minutes
 
 export class AuthError extends Error {
   constructor(public code: AuthErrorCode, message: string) {
@@ -38,8 +43,16 @@ export interface AuthResult {
   token: string;
 }
 
-function createSession(db: Db, userId: string, secret: string, now: number, tokenNonce: string, userAgent?: string): { token: string; session: Session } {
-  const exp = now + SESSION_TTL_MS;
+function createSession(
+  db: Db,
+  userId: string,
+  secret: string,
+  now: number,
+  tokenNonce: string,
+  userAgent?: string,
+  ttlMs: number = SESSION_TTL_MS,
+): { token: string; session: Session } {
+  const exp = now + ttlMs;
   const token = signToken({ userId, exp }, secret) + "." + tokenNonce;
   // store the signed body (without nonce) keyed for revocation lookup
   const session: Session = { token, userId, expiresAt: exp, createdAt: now, userAgent };
@@ -83,14 +96,30 @@ export function signUp(db: Db, input: SignUpInput, opts: { now: number; secret: 
 export function signIn(
   db: Db,
   input: { email: string; password: string },
-  opts: { now: number; secret: string; tokenNonce: string; userAgent?: string },
+  opts: { now: number; secret: string; tokenNonce: string; userAgent?: string; rememberMe?: boolean },
 ): AuthResult {
-  const user = userByEmail(db, input.email);
+  const email = input.email.trim().toLowerCase();
+  const attempt = db.loginAttempts.get(email);
+  if (attempt?.lockedUntil && attempt.lockedUntil > opts.now) {
+    const minutes = Math.ceil((attempt.lockedUntil - opts.now) / 60_000);
+    throw new AuthError("locked_out", `Too many failed sign-in attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`);
+  }
+
+  const user = userByEmail(db, email);
   // Uniform failure regardless of which factor was wrong (no user-enumeration).
   if (!user || !verifyPassword(input.password, user.passwordHash)) {
+    const failCount = (attempt?.failCount ?? 0) + 1;
+    const lockedUntil = failCount >= MAX_FAILED_ATTEMPTS ? opts.now + LOCKOUT_MS : undefined;
+    db.loginAttempts.set(email, { failCount, lockedUntil });
+    if (lockedUntil) {
+      throw new AuthError("locked_out", `Too many failed sign-in attempts. Try again in ${Math.ceil(LOCKOUT_MS / 60_000)} minutes.`);
+    }
     throw new AuthError("invalid_credentials", "Email or password is incorrect.");
   }
-  const { token } = createSession(db, user.id, opts.secret, opts.now, opts.tokenNonce, opts.userAgent);
+
+  db.loginAttempts.delete(email); // reset backoff on a successful sign-in
+  const ttlMs = opts.rememberMe ? SESSION_TTL_MS : SHORT_SESSION_TTL_MS;
+  const { token } = createSession(db, user.id, opts.secret, opts.now, opts.tokenNonce, opts.userAgent, ttlMs);
   return { user, token };
 }
 

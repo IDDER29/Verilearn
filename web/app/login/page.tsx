@@ -29,6 +29,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <label style={labelStyle} htmlFor="password">Password</label>
           <input id="password" name="password" type="password" required autoComplete="current-password" defaultValue="verilearn" style={fieldStyle} />
         </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, font: "700 12.5px var(--font-nunito)", color: "#6c6780", cursor: "pointer" }}>
+          <input id="rememberMe" name="rememberMe" type="checkbox" defaultChecked style={{ width: 15, height: 15 }} />
+          Remember me on this device
+        </label>
         <button type="submit" style={submitStyle}>Sign in</button>
       </form>
       <div style={{ font: "600 11.5px var(--font-nunito)", color: "#a7a1b8", textAlign: "center", marginTop: 12 }}>

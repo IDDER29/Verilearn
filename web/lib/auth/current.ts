@@ -34,14 +34,20 @@ export async function requireUser(): Promise<User> {
   return user;
 }
 
-export async function setSessionCookie(token: string): Promise<void> {
+/**
+ * Set the session cookie. `rememberMe` (default true, e.g. sign-up) makes it a
+ * persistent 30-day cookie; passing false (AUTH-06 "Remember me" unchecked)
+ * omits `maxAge` so the browser drops it as a session cookie, matching the
+ * shorter server-side session TTL (`SHORT_SESSION_TTL_MS`).
+ */
+export async function setSessionCookie(token: string, rememberMe = true): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 30 * 86_400,
+    ...(rememberMe ? { maxAge: 30 * 86_400 } : {}),
   });
 }
 

@@ -11,16 +11,17 @@ import { newId, now } from "@/lib/ids";
 export async function loginAction(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const rememberMe = formData.get("rememberMe") === "on";
   const userAgent = (await headers()).get("user-agent") ?? undefined;
   let token: string;
   try {
-    const r = signIn(getDb(), { email, password }, { now: now(), secret: sessionSecret(), tokenNonce: randomUUID(), userAgent });
+    const r = signIn(getDb(), { email, password }, { now: now(), secret: sessionSecret(), tokenNonce: randomUUID(), userAgent, rememberMe });
     token = r.token;
   } catch (e) {
     const msg = e instanceof AuthError ? e.message : "Sign-in failed.";
     redirect(`/login?error=${encodeURIComponent(msg)}`);
   }
-  await setSessionCookie(token);
+  await setSessionCookie(token, rememberMe);
   redirect("/");
 }
 

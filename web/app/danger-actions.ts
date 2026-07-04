@@ -59,6 +59,7 @@ export async function deleteAccountAction(confirm: string): Promise<{ ok: boolea
   for (const [id, g] of db.gaps) if (g.userId === user.id) db.gaps.delete(id);
   for (const [id, t] of db.tasks) if (t.userId === user.id) db.tasks.delete(id);
   for (const [tok, s] of db.sessions) if (s.userId === user.id) db.sessions.delete(tok);
+  db.loginAttempts.delete(user.email);
   await clearSessionCookie();
   redirect("/signup");
 }

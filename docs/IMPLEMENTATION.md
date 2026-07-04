@@ -81,11 +81,11 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Settings › Sessions & devices | real live session list scoped to the caller (`db.sessions`), device parsed from the real User-Agent, sign-out-one / sign-out-others / sign-out-everywhere (AUTH-12) |
 | Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
 | Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred |
-| Login / Signup | real auth + COPPA age-gate |
+| Login / Signup | real auth + COPPA age-gate; "Remember me" TTL + failed-sign-in lockout/backoff (AUTH-06/AUTH-23) |
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 320 passing across 26 files · build green.
+**Test count:** 324 passing across 26 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
@@ -123,4 +123,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the active-sessions list + multi-scope sign-out (AUTH-12) — 134 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after "Remember me" session TTL + failed-sign-in lockout/backoff (AUTH-06/AUTH-23) — 134 Done; remainder is field-polish or deferred-with-justification._

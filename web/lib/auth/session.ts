@@ -36,4 +36,5 @@ export function verifyToken(token: string | undefined, secret: string, now: numb
   }
 }
 
-export const SESSION_TTL_MS = 30 * 86_400_000; // 30 days
+export const SESSION_TTL_MS = 30 * 86_400_000; // 30 days ("remember me")
+export const SHORT_SESSION_TTL_MS = 1 * 86_400_000; // 1 day (not remembered)

@@ -93,6 +93,67 @@ describe("sign-up / sign-in", () => {
     expect(() => signIn(db, { email: "log@in.com", password: "bad" }, { now: NOW, secret: SECRET, tokenNonce: "n3" })).toThrow(/incorrect/i);
     expect(() => signIn(db, { email: "ghost@in.com", password: "whatever1" }, { now: NOW, secret: SECRET, tokenNonce: "n4" })).toThrow(/incorrect/i);
   });
+
+  it("'remember me' controls session TTL: unchecked gets a short-lived session, checked gets the full 30-day one", () => {
+    const db = createDb();
+    signUp(db, { email: "ttl@in.com", password: "hunter2pass", displayName: "T", birthYear: 1990 }, base);
+    const short = signIn(db, { email: "ttl@in.com", password: "hunter2pass" }, { now: NOW, secret: SECRET, tokenNonce: "n2" });
+    const long = signIn(db, { email: "ttl@in.com", password: "hunter2pass" }, { now: NOW, secret: SECRET, tokenNonce: "n3", rememberMe: true });
+    const shortSession = db.sessions.get(short.token)!;
+    const longSession = db.sessions.get(long.token)!;
+    expect(longSession.expiresAt - NOW).toBeGreaterThan(shortSession.expiresAt - NOW);
+    expect(shortSession.expiresAt - NOW).toBe(86_400_000); // 1 day
+    expect(longSession.expiresAt - NOW).toBe(30 * 86_400_000); // 30 days
+  });
+});
+
+describe("failed sign-in lockout/backoff (AUTH-06/AUTH-23)", () => {
+  const base = { now: NOW, secret: SECRET, userId: "u_lock", tokenNonce: "n1" };
+
+  it("locks out after 5 failed attempts and rejects even a correct password while locked", () => {
+    const db = createDb();
+    signUp(db, { email: "lockme@in.com", password: "hunter2pass", displayName: "L", birthYear: 1990 }, base);
+    for (let i = 0; i < 4; i++) {
+      expect(() => signIn(db, { email: "lockme@in.com", password: "bad" }, { now: NOW, secret: SECRET, tokenNonce: `f${i}` })).toThrow(/incorrect/i);
+    }
+    // 5th failure trips the lock
+    expect(() => signIn(db, { email: "lockme@in.com", password: "bad" }, { now: NOW, secret: SECRET, tokenNonce: "f5" })).toThrow(/too many/i);
+    // Even the correct password is rejected while locked out.
+    expect(() => signIn(db, { email: "lockme@in.com", password: "hunter2pass" }, { now: NOW + 1000, secret: SECRET, tokenNonce: "f6" })).toThrow(/too many/i);
+  });
+
+  it("unlocks after the lockout window passes, and a success resets the counter", () => {
+    const db = createDb();
+    signUp(db, { email: "unlock@in.com", password: "hunter2pass", displayName: "U", birthYear: 1990 }, base);
+    for (let i = 0; i < 5; i++) {
+      try {
+        signIn(db, { email: "unlock@in.com", password: "bad" }, { now: NOW, secret: SECRET, tokenNonce: `f${i}` });
+      } catch {
+        /* expected */
+      }
+    }
+    // Still within the 15-minute window.
+    expect(() => signIn(db, { email: "unlock@in.com", password: "hunter2pass" }, { now: NOW + 60_000, secret: SECRET, tokenNonce: "g1" })).toThrow(/too many/i);
+    // After the window, sign-in succeeds again.
+    const r = signIn(db, { email: "unlock@in.com", password: "hunter2pass" }, { now: NOW + 16 * 60_000, secret: SECRET, tokenNonce: "g2" });
+    expect(r.user.email).toBe("unlock@in.com");
+    // A prior success clears the fail counter — one bad attempt afterward doesn't relock.
+    expect(() => signIn(db, { email: "unlock@in.com", password: "bad" }, { now: NOW + 17 * 60_000, secret: SECRET, tokenNonce: "g3" })).toThrow(/incorrect/i);
+  });
+
+  it("lockout is scoped per email — a locked-out account doesn't block a different one", () => {
+    const db = createDb();
+    signUp(db, { email: "victim@in.com", password: "hunter2pass", displayName: "V", birthYear: 1990 }, base);
+    signUp(db, { email: "bystander@in.com", password: "hunter2pass", displayName: "B", birthYear: 1990 }, { ...base, userId: "u_bystander" });
+    for (let i = 0; i < 5; i++) {
+      try {
+        signIn(db, { email: "victim@in.com", password: "bad" }, { now: NOW, secret: SECRET, tokenNonce: `f${i}` });
+      } catch {
+        /* expected */
+      }
+    }
+    expect(signIn(db, { email: "bystander@in.com", password: "hunter2pass" }, { now: NOW, secret: SECRET, tokenNonce: "g1" }).user.email).toBe("bystander@in.com");
+  });
 });
 
 describe("session management (AUTH-12)", () => {
