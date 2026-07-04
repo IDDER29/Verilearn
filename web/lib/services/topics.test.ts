@@ -42,6 +42,19 @@ describe("createTopic — server-side gate (VERIFY-02)", () => {
     }
   });
 
+  it("VERIFY-15: a topic that fails verification is marked failed with the failed stage recorded", () => {
+    globalThis.__verilearnDb!.users.get(USER)!.plan = "pro";
+    // "everything" is too broad → triage refuses → the run stops, non-ok.
+    const r = createTopic(USER, { title: "everything", level: "I know a little", goal: "understand it all" });
+    expect(r.ok).toBe(true); // the topic record still exists…
+    if (r.ok) {
+      const topic = globalThis.__verilearnDb!.topics.get(r.topicId)!;
+      expect(topic.status).toBe("failed"); // …but flagged failed, never "ready"
+      const stages = topic.pipelineStages!;
+      expect(stages[stages.length - 1].status).toBe("failed"); // stopped at the failing stage
+    }
+  });
+
   it("enforces the Free 3-topic cap server-side", () => {
     // Seed user is Free with 3 topics already.
     const r = createTopic(USER, { title: "A fourth topic", level: "some background", goal: "learn it" });

@@ -326,18 +326,20 @@ export default async function DashboardPage() {
                 { color: "#b4690e", pct: pct(t.breakdown.disputed) },
               ].filter((s) => s.pct > 0);
               const status =
-                t.status === "verifying"
-                  ? { label: "◌ Verifying…", color: "#b4830f", bg: "#fbefdd" }
-                  : t.disputes > 0
-                    ? { label: `● ${t.disputes} dispute${t.disputes > 1 ? "s" : ""}`, color: "#b4690e", bg: "#fbefdd" }
-                    : t.verifiedPercent === 100
-                      ? { label: "✓ Verified", color: "#3a63b0", bg: "#e3ecfb" }
-                      : { label: "● On track", color: "#2e9c6a", bg: "#e4f4ec" };
+                t.status === "failed"
+                  ? { label: "⚠ Couldn't verify", color: "#c0392b", bg: "#fbeceb" }
+                  : t.status === "verifying"
+                    ? { label: "◌ Verifying…", color: "#b4830f", bg: "#fbefdd" }
+                    : t.disputes > 0
+                      ? { label: `● ${t.disputes} dispute${t.disputes > 1 ? "s" : ""}`, color: "#b4690e", bg: "#fbefdd" }
+                      : t.verifiedPercent === 100
+                        ? { label: "✓ Verified", color: "#3a63b0", bg: "#e3ecfb" }
+                        : { label: "● On track", color: "#2e9c6a", bg: "#e4f4ec" };
               return (
                 <div key={t.id} style={{ display: "grid", gridTemplateColumns: "1fr 150px 130px", gap: 12, alignItems: "center", padding: "14px 4px", ...(i < topics.length - 1 ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{topicEmoji(t.title)}</div>
-                    <Link href={t.status === "verifying" ? `/pipeline?id=${t.id}&topic=${encodeURIComponent(t.title)}` : "/topics"} style={{ minWidth: 0, textDecoration: "none", color: "inherit" }}>
+                    <Link href={t.status === "verifying" || t.status === "failed" ? `/pipeline?id=${t.id}&topic=${encodeURIComponent(t.title)}` : "/topics"} style={{ minWidth: 0, textDecoration: "none", color: "inherit" }}>
                       <div style={{ font: "800 14.5px var(--font-nunito)" }}>{t.title}</div>
                       <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>{t.level} · {t.claimCount} claims</div>
                     </Link>

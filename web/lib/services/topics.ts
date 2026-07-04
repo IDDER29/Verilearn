@@ -121,9 +121,10 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
     // added/curated post-creation (a Should-Have). Trust is still ledger-derived.
     sources: [],
     events: ledger.allEvents(),
-    status: run.ok ? "ready" : "verifying",
+    // Synchronous pipeline: a non-ok run is a terminal failure, not still-in-flight (VERIFY-15).
+    status: run.ok ? "ready" : "failed",
     verifiedPercent: verifiedPercent(states),
-    pipelineStages: run.stages.map((s) => ({ stage: s.stage, detail: s.detail })),
+    pipelineStages: run.stages.map((s) => ({ stage: s.stage, detail: s.detail, status: s.status })),
   };
   db.topics.set(topicId, record);
   return { ok: true, topicId };

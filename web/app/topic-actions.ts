@@ -24,15 +24,27 @@ export interface PipelineInfo {
   ok: boolean;
   title?: string;
   ready?: boolean;
-  /** Real per-stage detail from the run (VERIFY-04). */
-  stages?: { stage: string; detail: string }[];
+  /** True when the run stopped at a failed stage — drives the recoverable failure UI (VERIFY-15). */
+  failed?: boolean;
+  /** The stage key that failed (if any), so the screen can name where it stopped. */
+  failedStage?: string;
+  /** Real per-stage detail + status from the run (VERIFY-04). */
+  stages?: { stage: string; detail: string; status: "done" | "failed" }[];
 }
 
-/** Real pipeline output for a topic, for the /pipeline screen (VERIFY-04). */
+/** Real pipeline output for a topic, for the /pipeline screen (VERIFY-04/15). */
 export async function pipelineInfoAction(topicId: string): Promise<PipelineInfo> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
   const topic = getDb().topics.get(topicId);
   if (!topic || topic.ownerId !== user.id) return { ok: false };
-  return { ok: true, title: topic.title, ready: topic.status === "ready", stages: topic.pipelineStages ?? [] };
+  const stages = topic.pipelineStages ?? [];
+  return {
+    ok: true,
+    title: topic.title,
+    ready: topic.status === "ready",
+    failed: topic.status === "failed",
+    failedStage: stages.find((s) => s.status === "failed")?.stage,
+    stages,
+  };
 }

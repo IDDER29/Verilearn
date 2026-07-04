@@ -81,6 +81,7 @@ function PipelineInner() {
 
   const [stage, setStage] = useState(0); // index of the running stage; === STAGES.length when done
   const [seconds, setSeconds] = useState(0);
+  const [failure, setFailure] = useState<{ failedStage?: string } | null>(null);
   const done = stage >= STAGES.length;
   const topic = title;
 
@@ -89,6 +90,11 @@ function PipelineInner() {
     pipelineInfoAction(id).then((info) => {
       if (!info.ok) return;
       if (info.title) setTitle(info.title);
+      // A real terminal failure stops the animation and shows the recoverable state (VERIFY-15).
+      if (info.failed) {
+        setFailure({ failedStage: info.failedStage });
+        return;
+      }
       const map: Record<string, string> = {};
       for (const s of info.stages ?? []) map[s.stage] = s.detail;
       setRealDetail(map);
@@ -96,18 +102,58 @@ function PipelineInner() {
   }, [id]);
 
   useEffect(() => {
-    if (done) return;
+    if (done || failure) return;
     const t = setTimeout(() => setStage((s) => s + 1), STEP_MS);
     return () => clearTimeout(t);
-  }, [stage, done]);
+  }, [stage, done, failure]);
 
   useEffect(() => {
-    if (done) return;
+    if (done || failure) return;
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
-  }, [done]);
+  }, [done, failure]);
 
   const pct = Math.min(100, Math.round((stage / STAGES.length) * 100));
+
+  // Recoverable failure screen (VERIFY-15): the run stopped at a stage — say so
+  // honestly ("we'd rather stop than guess"), with a code and Retry/Back actions.
+  if (failure) {
+    const stageIdx = STAGE_KEYS.indexOf((failure.failedStage ?? "") as (typeof STAGE_KEYS)[number]);
+    const where = stageIdx >= 0 ? STAGES[stageIdx]?.title : failure.failedStage;
+    return (
+      <AppShell active="topics">
+        <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <BackButton href="/" />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>New topic · couldn&apos;t verify</div>
+              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{topic}</div>
+            </div>
+          </div>
+          <div role="alert" style={{ background: "#fff", borderRadius: 24, padding: "34px 32px", textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", maxWidth: 560, margin: "0 auto" }}>
+            <div style={{ width: 60, height: 60, borderRadius: 18, background: "#fbeceb", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 4l9 15.5H3z" /><path d="M12 10v4M12 17h.01" />
+              </svg>
+            </div>
+            <div style={{ font: "900 20px var(--font-nunito)", marginBottom: 8 }}>We couldn&apos;t finish verifying this topic</div>
+            <div style={{ font: "600 13.5px/1.7 var(--font-nunito)", color: "#8b8699", marginBottom: 6 }}>
+              The pipeline stopped at <b style={{ color: "#4a4560" }}>{where ?? "a verification stage"}</b> — we&apos;d rather stop than guess, so nothing here is presented as verified. No half-checked lecture was saved.
+            </div>
+            <div style={{ font: "700 11.5px var(--font-nunito)", color: "#a7a1b8", marginBottom: 20 }}>Error code VL-503 · verification incomplete</div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/new-topic" style={{ textDecoration: "none", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+                Try again
+              </Link>
+              <Link href="/" style={{ textDecoration: "none", background: "#f3f1f9", color: "#4a4560", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+                Back to library
+              </Link>
+            </div>
+          </div>
+        </main>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell active="topics">

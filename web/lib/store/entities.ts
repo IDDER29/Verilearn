@@ -75,10 +75,11 @@ export interface TopicRecord extends Topic {
   sources: Source[];
   /** append-only verification events; a TrustLedger is rebuilt from these on read */
   events: VerificationEvent[];
-  status: "verifying" | "ready";
+  /** `ready` = pipeline finished ok; `failed` = a stage stopped it (VERIFY-15); `verifying` = in flight. */
+  status: "verifying" | "ready" | "failed";
   verifiedPercent: number;
-  /** Real per-stage pipeline output (VERIFY-04), captured at creation. */
-  pipelineStages?: { stage: string; detail: string }[];
+  /** Real per-stage pipeline output (VERIFY-04), captured at creation — incl. the failed stage. */
+  pipelineStages?: { stage: string; detail: string; status: "done" | "failed" }[];
 }
 
 export interface ReviewCardRecord {
