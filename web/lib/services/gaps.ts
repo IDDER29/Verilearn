@@ -26,12 +26,27 @@ export interface GapView {
   successfulReviews: number;
   /** True when a manual, evidence-gated close is currently permitted. */
   canClose: boolean;
+  /** Numeric heat score (higher = needs attention sooner) — GAP-11. */
+  heat: number;
   /** epoch ms of the most recent history event (last transition). */
   updatedAt: number;
 }
 
 function successesFor(userId: string, claimId: string): number {
   return getDb().reviewLog.filter((r) => r.userId === userId && r.claimId === claimId && r.correct).length;
+}
+
+const SEVERITY_WEIGHT: Record<GapSeverity, number> = { low: 1, med: 2, high: 3 };
+const STATUS_WEIGHT: Record<GapStatus, number> = { reopened: 25, open: 15, watching: 5, closed: 0 };
+
+/**
+ * Heat score for triage (GAP-11): a regression (reopened) runs hottest, severity
+ * scales it, and each prior reopen in the append-only history adds to the burn.
+ * Pure over the gap's own fields.
+ */
+export function gapHeat(g: { severity: GapSeverity; status: GapStatus; history: readonly { reason: GapTransitionReason }[] }): number {
+  const reopens = g.history.filter((e) => e.reason === "reopened-lapse" || e.reason === "reopened-review-again").length;
+  return SEVERITY_WEIGHT[g.severity] * 10 + STATUS_WEIGHT[g.status] + reopens * 8;
 }
 
 /** All of the learner's gaps as display rows, most-recently-changed first. */
@@ -56,10 +71,16 @@ export function listGaps(userId: string): GapView[] {
         history: gap.history.map((e) => ({ at: e.at, to: e.to, reason: e.reason, detail: e.detail })),
         successfulReviews,
         canClose: gap.status === "watching" && successfulReviews >= MASTERY_THRESHOLD,
+        heat: gapHeat(gap),
         updatedAt: last?.at ?? 0,
       };
     })
     .sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+/** Count of open/reopened gaps on a set of claims (feeds Tests readiness, GAP-11). */
+export function openGapCountForClaims(userId: string, claimIds: Set<string>): number {
+  return gapsOf(getDb(), userId).filter(({ gap }) => claimIds.has(gap.claimId) && (gap.status === "open" || gap.status === "reopened")).length;
 }
 
 /**
@@ -88,15 +109,13 @@ export interface GapBoard {
   counts: { active: number; watching: number; closed: number; total: number };
 }
 
-const SEVERITY_RANK: Record<GapSeverity, number> = { high: 0, med: 1, low: 2 };
-
-/** Group the learner's gaps into Open/Watching/Closed columns (GAP-02). */
+/** Group the learner's gaps into Open/Watching/Closed columns, hottest-first (GAP-02/11). */
 export function gapBoard(userId: string): GapBoard {
   const gaps = listGaps(userId);
-  const bySeverity = (a: GapView, b: GapView) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] || b.updatedAt - a.updatedAt;
-  const active = gaps.filter((g) => g.status === "open" || g.status === "reopened").sort(bySeverity);
-  const watching = gaps.filter((g) => g.status === "watching").sort(bySeverity);
-  const closed = gaps.filter((g) => g.status === "closed").sort(bySeverity);
+  const byHeat = (a: GapView, b: GapView) => b.heat - a.heat || b.updatedAt - a.updatedAt;
+  const active = gaps.filter((g) => g.status === "open" || g.status === "reopened").sort(byHeat);
+  const watching = gaps.filter((g) => g.status === "watching").sort(byHeat);
+  const closed = gaps.filter((g) => g.status === "closed").sort(byHeat);
   return {
     active,
     watching,

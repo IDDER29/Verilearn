@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { closeGapById, gapBoard, listGaps } from "./gaps";
+import { closeGapById, gapBoard, gapHeat, listGaps } from "./gaps";
 import { gradeCard } from "./review";
+import { onLapse } from "@/lib/domain/gap";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -47,6 +48,22 @@ describe("gap map service", () => {
 
   it("scopes gaps to the owner", () => {
     expect(listGaps("intruder")).toHaveLength(0);
+  });
+
+  it("GAP-11: heat ranks reopened/high-severity gaps hotter and sorts the board", () => {
+    // A reopened high-severity gap should outscore a fresh low-severity open one.
+    let hot = openGap({ id: "gap_hot", claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", origin: "review", severity: "med" }, SEED_NOW);
+    hot = { ...hot, status: "watching", history: [...hot.history, { at: SEED_NOW + 1, from: "open", to: "watching", reason: "to-watching" }] };
+    hot = onLapse(hot, SEED_NOW + 2); // → reopened, severity bumped to high
+    const cold = openGap({ id: "gap_cold", claimId: "topic_dijkstra_c3", topicId: "topic_dijkstra", origin: "review", severity: "low" }, SEED_NOW);
+    expect(gapHeat(hot)).toBeGreaterThan(gapHeat(cold));
+
+    const db = globalThis.__verilearnDb!;
+    db.gaps.set("gap_hot", { userId: USER, gap: hot });
+    db.gaps.set("gap_cold", { userId: USER, gap: cold });
+    const board = gapBoard(USER);
+    // hottest active gap sorts first
+    expect(board.active[0].heat).toBeGreaterThanOrEqual(board.active[board.active.length - 1].heat);
   });
 
   it("GAP-03: manual close is evidence-gated — refused without sustained recall, allowed with it", () => {

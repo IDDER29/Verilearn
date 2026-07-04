@@ -84,14 +84,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 272 passing across 23 files · build green.
+**Test count:** 273 passing across 23 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 78 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 259 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 79 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 258 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -122,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the gap triage-filters pass (GAP-12) — 78 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the gap-heat + readiness-link pass (GAP-11) — 79 Done; remainder is field-polish or deferred-with-justification._

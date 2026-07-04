@@ -9,6 +9,7 @@ import { computeSignals, type Signals } from "@/lib/domain/signals";
 import { eligibleClaims, predictReadiness } from "@/lib/domain/tests-engine";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
 import { listTopicSummaries } from "./topics";
+import { openGapCountForClaims } from "./gaps";
 
 export interface ProgressView {
   signals: Signals;
@@ -71,7 +72,10 @@ export function readinessFor(userId: string, topicId: string, _now: number): Rea
   const cal = calibrationScore(topicReviews.map((r) => ({ confidence: r.confidence, correct: r.correct })));
   const calibration = cal.status === "ok" ? cal.score : 0;
   const reviewedClaims = new Set(topicReviews.map((r) => r.claimId)).size;
-  const disputedInScope = topic.claims.length - eligible.length;
+  // Open/reopened gaps on covered claims are unresolved misconceptions in scope —
+  // they suppress readiness alongside disputed claims (GAP-11 → Tests link).
+  const openGaps = openGapCountForClaims(userId, eligibleIds);
+  const disputedInScope = topic.claims.length - eligible.length + openGaps;
 
   const forecast = predictReadiness({
     retention,
