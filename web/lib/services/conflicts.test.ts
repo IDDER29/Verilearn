@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, ledgerFor, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { listConflicts, listRankedConflicts, listResolvedConflicts, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
+import { listConflicts, listRankedConflicts, listResolvedConflicts, raiseDispute, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
 import { isTestEligible } from "@/lib/domain/types";
 
 declare global {
@@ -102,6 +102,41 @@ describe("conflicts service", () => {
     expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "  " }]).ok).toBe(false); // 2nd blank
     expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c1", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false); // not disputed
     expect(resolveAsInterpretive("intruder", "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false); // foreign
+  });
+
+  it("TASK-11: raises a new dispute on a currently-eligible claim via the system verifier", () => {
+    const topic = globalThis.__verilearnDb!.topics.get("topic_dijkstra")!;
+    expect(ledgerFor(topic).stateOf("topic_dijkstra_c1")).not.toBe("disputed");
+    expect(listConflicts(USER).some((c) => c.claimId === "topic_dijkstra_c1")).toBe(false);
+
+    const r = raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "I think this criterion is graded too strictly");
+    expect(r.ok).toBe(true);
+    expect(r.newState).toBe("disputed");
+
+    const evs = topic.events.filter((e) => e.claimId === "topic_dijkstra_c1");
+    expect(evs[evs.length - 1].producedBy).toBe("system:verifier"); // never the learner
+    expect(listConflicts(USER).some((c) => c.claimId === "topic_dijkstra_c1")).toBe(true);
+  });
+
+  it("TASK-11: rate-limits new disputes to 3 per learner per hour, independent of other learners", () => {
+    const db = globalThis.__verilearnDb!;
+    // A different learner's recent disputes must not count against this learner's limit.
+    db.disputeLog.push({ userId: "someone_else", at: SEED_NOW }, { userId: "someone_else", at: SEED_NOW }, { userId: "someone_else", at: SEED_NOW });
+
+    expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "reason 1").ok).toBe(true);
+    expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c2", "reason 2").ok).toBe(true);
+    expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c3", "reason 3").ok).toBe(true);
+    // 4th within the hour is rate-limited, even against a different, still-eligible claim.
+    const limited = raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c4", "reason 4");
+    expect(limited.ok).toBe(false);
+    expect(limited.error).toMatch(/wait/i);
+  });
+
+  it("raiseDispute requires a reason and rejects an already-disputed / unknown / foreign claim", () => {
+    expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "   ").ok).toBe(false); // no reason
+    expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c6", "already open").ok).toBe(false); // already disputed
+    expect(raiseDispute(USER, "topic_dijkstra", "no_such_claim", "x").ok).toBe(false); // unknown claim
+    expect(raiseDispute("intruder", "topic_dijkstra", "topic_dijkstra_c1", "x").ok).toBe(false); // foreign
   });
 
   it("reopen requires a reason and rejects already-open / foreign claims (TRUST-13)", () => {

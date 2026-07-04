@@ -34,6 +34,52 @@ export function listConflicts(userId: string): ConflictItem[] {
   return out;
 }
 
+/** Dispute rate limit (TASK-11): at most this many new disputes per learner per window. */
+const DISPUTE_RATE_LIMIT = 3;
+const DISPUTE_RATE_WINDOW_MS = 60 * 60_000; // 1 hour
+
+/**
+ * Raise a NEW dispute on a claim that isn't currently disputed (TASK-11) — the
+ * entry point a graded task's criterion links to when a learner disagrees with
+ * it. Firewall-respecting like every other conflict action here: the learner
+ * supplies only a required reason, and the SYSTEM verifier (never the learner)
+ * writes the `disputed` trust state. Refuses an already-disputed, unknown, or
+ * foreign claim, and rate-limits to guard against dispute-farming (at most
+ * {@link DISPUTE_RATE_LIMIT} new disputes per learner per rolling hour).
+ */
+export function raiseDispute(userId: string, topicId: string, claimId: string, reason: string): ResolveResult {
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  const claim = topic.claims.find((c) => c.id === claimId);
+  if (!claim) return { ok: false, error: "Claim not found." };
+  if (!reason.trim()) return { ok: false, error: "Explain why you're disputing this." };
+
+  const ledger = ledgerFor(topic);
+  if (ledger.stateOf(claimId) === "disputed") return { ok: false, error: "This is already an open conflict." };
+
+  const at = now();
+  const recentCount = db.disputeLog.filter((d) => d.userId === userId && d.at > at - DISPUTE_RATE_WINDOW_MS).length;
+  if (recentCount >= DISPUTE_RATE_LIMIT) {
+    return { ok: false, error: "You've raised several disputes recently — please wait before raising another." };
+  }
+
+  ledger.record(SYSTEM, {
+    id: newId("ve"),
+    claimId,
+    state: "disputed",
+    producedBy: SYSTEM.id,
+    producerVersion: "dispute-v1",
+    at,
+    evidence: { method: "skeptic", detail: `Disputed by the learner: "${reason.trim()}"`, confidence: 0.4, resolved: false },
+  });
+
+  db.disputeLog.push({ userId, at });
+  topic.events = ledger.allEvents();
+  topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  return { ok: true, newState: ledger.stateOf(claimId) };
+}
+
 /** A conflict enriched with its topic's verified% — for importance-ranked triage (TRUST-06). */
 export interface RankedConflictItem extends ConflictItem {
   topicVerifiedPercent: number;

@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { raiseDisputeAction } from "@/app/conflict-actions";
 import { getTasksAction, gradeTaskAction } from "@/app/task-actions";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
@@ -93,6 +94,20 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
           )
         : prev,
     );
+  }
+
+  // Raise a dispute on a specific criterion's underlying claim (TASK-11) — the
+  // learner disagrees with being marked wrong, not the same as re-submitting.
+  const [disputing, setDisputing] = useState<string | null>(null);
+  const [disputed, setDisputed] = useState<Set<string>>(new Set());
+  async function disputeCriterion(claimId: string) {
+    if (!data?.topicId || disputing) return;
+    const reason = window.prompt("Why are you disputing this? (a reason is required)");
+    if (!reason || !reason.trim()) return;
+    setDisputing(claimId);
+    const r = await raiseDisputeAction(data.topicId, claimId, reason);
+    setDisputing(null);
+    if (r.ok) setDisputed((prev) => new Set(prev).add(claimId));
   }
 
   const criteria = task?.criteria ?? [];
@@ -227,7 +242,22 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
                       ) : (
                         <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, font: "700 13.5px var(--font-nunito)", color: "#9a95a8" }}>
                           <span aria-hidden style={{ width: 20, height: 20, borderRadius: 7, border: "2px solid #d8c9a3", boxSizing: "border-box", flexShrink: 0 }} />
-                          Missing: <b style={{ color: "#3a3550" }}>{c.text}</b>
+                          <span style={{ flex: 1 }}>
+                            Missing: <b style={{ color: "#3a3550" }}>{c.text}</b>
+                          </span>
+                          {c.claimId && !disputed.has(c.claimId) && (
+                            <button
+                              type="button"
+                              disabled={disputing === c.claimId}
+                              onClick={() => disputeCriterion(c.claimId!)}
+                              style={{ border: "none", background: "none", color: "#8b6fd8", font: "800 11.5px var(--font-nunito)", cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}
+                            >
+                              {disputing === c.claimId ? "Disputing…" : "Dispute this"}
+                            </button>
+                          )}
+                          {c.claimId && disputed.has(c.claimId) && (
+                            <span style={{ font: "800 11.5px var(--font-nunito)", color: "#0e8c6b", flexShrink: 0 }}>Disputed ✓</span>
+                          )}
                         </div>
                       ),
                     )}

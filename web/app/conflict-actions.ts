@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/current";
-import { reopenConflict, resolveAsInterpretive, resolveConflict, type ConflictPosition } from "@/lib/services/conflicts";
+import { raiseDispute, reopenConflict, resolveAsInterpretive, resolveConflict, type ConflictPosition } from "@/lib/services/conflicts";
 
 export interface ResolveActionResult {
   ok: boolean;
@@ -34,5 +34,17 @@ export async function reopenConflictAction(topicId: string, claimId: string, rea
   if (!user) return { ok: false, error: "Please sign in again." };
   const r = reopenConflict(user.id, topicId, claimId, reason);
   if (r.ok) revalidatePath("/topics");
+  return { ok: r.ok, error: r.error, newState: r.newState };
+}
+
+/** Raise a new dispute on a claim from a graded task's criterion (TASK-11) → system verifier records `disputed`. */
+export async function raiseDisputeAction(topicId: string, claimId: string, reason: string): Promise<ResolveActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Please sign in again." };
+  const r = raiseDispute(user.id, topicId, claimId, reason);
+  if (r.ok) {
+    revalidatePath("/topics");
+    revalidatePath("/topics/tasks");
+  }
   return { ok: r.ok, error: r.error, newState: r.newState };
 }

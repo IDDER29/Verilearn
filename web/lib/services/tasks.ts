@@ -16,7 +16,7 @@ export interface TaskView {
   prompt: string;
   /** Reference answer — only sent to the client once the learner has passed (TASK-06). */
   modelAnswer?: string;
-  criteria: { id: string; text: string; sourceId: string }[];
+  criteria: { id: string; text: string; sourceId: string; claimId?: string }[];
   submittedAnswer?: string;
   scorePct?: number;
   passed?: boolean;
@@ -38,7 +38,7 @@ function toView(task: TaskRecord): TaskView {
     prompt: task.prompt,
     // Gate the reference answer server-side: only reveal it once passed (TASK-06).
     modelAnswer: task.passed ? task.modelAnswer : undefined,
-    criteria: task.rubric.criteria.map((c) => ({ id: c.id, text: c.text, sourceId: c.sourceId })),
+    criteria: task.rubric.criteria.map((c) => ({ id: c.id, text: c.text, sourceId: c.sourceId, claimId: c.claimId })),
     submittedAnswer: task.submittedAnswer,
     scorePct: task.scorePct,
     passed: task.passed,
