@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateDisplayNameAction, updateEmailAction } from "@/app/profile-actions";
 
@@ -50,6 +50,20 @@ export default function ProfileForm({ initialName, email: initialEmail }: { init
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const dirty = name.trim() !== initialName && name.trim().length > 0;
+
+  // Dirty-state navigation guard (SETTINGS-20): warn on tab close/refresh while
+  // an unsaved display-name edit or an in-progress email change would be lost.
+  // This is a real gap the auto-saving toggle pages elsewhere don't have — those
+  // persist on every change, so there's no unsaved draft to protect.
+  useEffect(() => {
+    if (!dirty && !editingEmail) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty, editingEmail]);
 
   async function save() {
     setSaving(true);
