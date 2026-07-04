@@ -1,10 +1,24 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { StatCard, TrustBar } from "@/components/ui";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
+import { getDb, reviewCardsOf } from "@/lib/store/db";
+import { now } from "@/lib/ids";
 
 export const metadata = { title: "Dashboard · VeriLearn" };
 
-export default function DashboardPage() {
+const EMOJI: Record<string, string> = { dijkstra: "🧭", merkle: "🌳", "binary search": "🔍" };
+function topicEmoji(title: string): string {
+  const key = Object.keys(EMOJI).find((k) => title.toLowerCase().includes(k));
+  return key ? EMOJI[key] : "📗";
+}
+
+export default async function DashboardPage() {
+  const user = await requireUser();
+  const topics = listTopicSummaries(user.id);
+  const dueCount = reviewCardsOf(getDb(), user.id).filter((c) => c.fsrs.due <= now()).length;
+  const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
   return (
     <AppShell active="dashboard">
       <main
@@ -22,10 +36,10 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "900 25px var(--font-nunito)", letterSpacing: "-.02em" }}>
-                Welcome back, Adeline 👋
+                Welcome back, {user.displayName} 👋
               </div>
               <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                You have 4 reviews due and 2 open conflicts today.
+                You have {dueCount} review{dueCount === 1 ? "" : "s"} due and {conflicts} open conflict{conflicts === 1 ? "" : "s"} today.
               </div>
             </div>
             <div
@@ -248,50 +262,43 @@ export default function DashboardPage() {
               <span>Status</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 150px 130px", gap: 12, alignItems: "center", padding: "14px 4px", borderBottom: "1px solid #f5f3fa" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🧭</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ font: "800 14.5px var(--font-nunito)" }}>Dijkstra&apos;s algorithm</div>
-                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Algorithms · 6 claims</div>
+            {topics.length === 0 && (
+              <div style={{ padding: "26px 4px", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
+                No topics yet.{" "}
+                <Link href="/new-topic" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>Start your first topic →</Link>
+              </div>
+            )}
+            {topics.map((t, i) => {
+              const verified = t.breakdown.verified_execution + t.breakdown.verified_source;
+              const pct = (n: number) => Math.round((n / Math.max(1, t.claimCount)) * 100);
+              const segments = [
+                { color: "#0e8c6b", pct: pct(verified) },
+                { color: "#2d6cdf", pct: pct(t.breakdown.sourced) },
+                { color: "#b4690e", pct: pct(t.breakdown.disputed) },
+              ].filter((s) => s.pct > 0);
+              const status =
+                t.disputes > 0
+                  ? { label: `● ${t.disputes} dispute${t.disputes > 1 ? "s" : ""}`, color: "#b4690e", bg: "#fbefdd" }
+                  : t.verifiedPercent === 100
+                    ? { label: "✓ Verified", color: "#3a63b0", bg: "#e3ecfb" }
+                    : { label: "● On track", color: "#2e9c6a", bg: "#e4f4ec" };
+              return (
+                <div key={t.id} style={{ display: "grid", gridTemplateColumns: "1fr 150px 130px", gap: 12, alignItems: "center", padding: "14px 4px", ...(i < topics.length - 1 ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 14, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{topicEmoji(t.title)}</div>
+                    <Link href="/topics" style={{ minWidth: 0, textDecoration: "none", color: "inherit" }}>
+                      <div style={{ font: "800 14.5px var(--font-nunito)" }}>{t.title}</div>
+                      <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>{t.level} · {t.claimCount} claims</div>
+                    </Link>
+                  </div>
+                  <div>
+                    <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>{t.verifiedPercent}% verified</div>
+                    <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={segments} />
+                  </div>
+                  <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: status.color, background: status.bg, padding: "6px 12px", borderRadius: 10 }}>{status.label}</span>
                 </div>
-              </div>
-              <div>
-                <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>83% verified</div>
-                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 83 }]} />
-              </div>
-              <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "6px 12px", borderRadius: 10 }}>● On track</span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 150px 130px", gap: 12, alignItems: "center", padding: "14px 4px", borderBottom: "1px solid #f5f3fa" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: "#e9f7ef", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🌳</div>
-                <Link href="/topics" style={{ minWidth: 0, textDecoration: "none", color: "inherit" }}>
-                  <div style={{ font: "800 14.5px var(--font-nunito)" }}>Merkle trees</div>
-                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Cryptography · 5 claims</div>
-                </Link>
-              </div>
-              <div>
-                <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>82% verified</div>
-                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 52 }, { color: "#2d6cdf", pct: 20 }, { color: "#b4690e", pct: 10 }]} />
-              </div>
-              <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#b4690e", background: "#fbefdd", padding: "6px 12px", borderRadius: 10 }}>● 1 dispute</span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 150px 130px", gap: 12, alignItems: "center", padding: "14px 4px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: "#e2ecfb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🔍</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ font: "800 14.5px var(--font-nunito)" }}>Binary search</div>
-                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Algorithms · 5 claims</div>
-                </div>
-              </div>
-              <div>
-                <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>100% verified</div>
-                <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={[{ color: "#0e8c6b", pct: 70 }, { color: "#2d6cdf", pct: 30 }]} />
-              </div>
-              <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: "#3a63b0", background: "#e3ecfb", padding: "6px 12px", borderRadius: 10 }}>✓ Verified</span>
-            </div>
+              );
+            })}
           </div>
         </div>
 
