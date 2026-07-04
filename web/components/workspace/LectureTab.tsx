@@ -61,9 +61,52 @@ const TRUST_BADGE: Record<Trust, { label: string; color: string; bg: string }> =
   disputed: { label: "⚠️ Disputed claim", color: "#c0392b", bg: "#fbeceb" },
 };
 
+const KIND_ICON: Record<string, string> = { execution: "🔬", sandbox: "🔬", textbook: "📘", book: "📘", paper: "📄", web: "🌐", docs: "📄" };
+
+/** Map a real six-state trust value to the reader's 3-colour vocabulary. */
+function trustView(state: string): { trust: Trust; underline: string } {
+  if (state === "verified_execution") return { trust: "verified", underline: "#0e8c6b" };
+  if (state === "verified_source" || state === "sourced") return { trust: "sourced", underline: "#2d6cdf" };
+  return { trust: "disputed", underline: "#c0392b" };
+}
+
+/** Human confidence label + colour from the real verifier confidence (0..1). */
+function confLabel(state: string, conf: number): { text: string; color: string } {
+  if (state === "disputed") return { text: "Low · contested", color: "#c0392b" };
+  if (conf >= 0.85) return { text: `High · ${conf.toFixed(2)}`, color: "#2e9c6a" };
+  if (conf >= 0.6) return { text: `Medium · ${conf.toFixed(2)}`, color: "#b4830f" };
+  return { text: `Low · ${conf.toFixed(2)}`, color: "#c0392b" };
+}
+
+// The three inline prose spans map to the topic's first real claims; the disputed
+// callout maps to the topic's disputed claim. (Prose text itself is templated —
+// full lecture generation is Deferred to the LLM author.)
+const SPAN_TO_INDEX: Record<string, number> = { smallest: 0, correct: 1, pq: 2 };
+
 export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
   const [selected, setSelected] = useState<string>("correct");
-  const claim = CLAIMS[selected];
+
+  // Resolve a prose-span key to a display claim from REAL ledger data when
+  // available, falling back to the illustrative constants when data is absent.
+  const resolveClaim = (key: string): Claim => {
+    const fb = CLAIMS[key];
+    if (!data) return fb;
+    const real = key === "anygraph" ? data.claims.find((c) => c.state === "disputed") ?? null : data.claims[SPAN_TO_INDEX[key]] ?? null;
+    if (!real) return fb;
+    const tv = trustView(real.state);
+    const cl = confLabel(real.state, real.confidence);
+    return {
+      id: key,
+      claim: `"${real.text}"`,
+      trust: tv.trust,
+      underline: tv.underline,
+      source: real.source ? { icon: KIND_ICON[real.source.kind] ?? "📄", title: real.source.title, desc: real.source.detail } : undefined,
+      confidence: cl.text,
+      confidenceColor: cl.color,
+    };
+  };
+
+  const claim = resolveClaim(selected);
   const badge = TRUST_BADGE[claim.trust];
 
   // Ledger-computed aggregates (fall back to the illustrative Dijkstra numbers).
@@ -79,7 +122,7 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
   // A render helper (not a nested component) so the same span can be reused inline
   // without creating a new component type each render.
   const claimSpan = (id: string, children: React.ReactNode) => {
-    const c = CLAIMS[id];
+    const c = resolveClaim(id);
     const isSel = selected === id;
     return (
       <span
@@ -179,7 +222,7 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
           >
             <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#c0392b", marginBottom: 5 }}>⚠️ Disputed claim · the Skeptic flagged this</div>
             <div style={{ font: "700 14.5px/1.6 var(--font-nunito)", color: "#221f2e" }}>
-              &quot;It works on any weighted graph.&quot; — this fails with <b>negative edge weights</b>.{" "}
+              &quot;{data?.claims.find((c) => c.state === "disputed")?.text ?? "It works on any weighted graph."}&quot; — the Skeptic found no source that holds unconditionally.{" "}
               <button type="button" onClick={(e) => { e.stopPropagation(); onTab("conflicts"); }} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", color: "#c0392b", font: "800 14.5px var(--font-nunito)", textDecoration: "underline" }}>
                 Tap Conflicts to resolve.
               </button>

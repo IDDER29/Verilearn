@@ -13,6 +13,24 @@ export function loadWorkspaceData(userId: string, topicId?: string): WorkspaceDa
   const view = id ? getTopicView(userId, id) : null;
   if (!view) return null;
   const cov = coverageMatrix(userId, view.topic.id);
+
+  // Per-claim ledger detail (latest verification event → state, source, confidence).
+  const sourceById = new Map(view.topic.sources.map((s) => [s.id, s]));
+  const claims = view.claimStates.map((cs) => {
+    const evs = view.topic.events.filter((e) => e.claimId === cs.id);
+    const latest = evs.length ? evs[evs.length - 1] : null;
+    const src = latest?.evidence.sourceId ? sourceById.get(latest.evidence.sourceId) : undefined;
+    return {
+      id: cs.id,
+      text: cs.text,
+      sectionId: cs.sectionId,
+      state: cs.state,
+      source: src ? { title: src.title, kind: src.kind, detail: latest?.evidence.detail ?? "" } : null,
+      confidence: latest?.evidence.confidence ?? 0,
+      method: latest?.evidence.method ?? "",
+    };
+  });
+
   return {
     topicId: view.topic.id,
     title: view.topic.title,
@@ -21,6 +39,7 @@ export function loadWorkspaceData(userId: string, topicId?: string): WorkspaceDa
     sourceCount: view.topic.sources.length,
     verifiedPercent: view.verifiedPercent,
     breakdown: view.breakdown,
+    claims,
     disputedClaims: view.claimStates.filter((c) => c.state === "disputed").map((c) => ({ claimId: c.id, text: c.text })),
     coverage: cov
       ? {
