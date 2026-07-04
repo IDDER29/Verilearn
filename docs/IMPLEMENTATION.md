@@ -92,14 +92,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, audit, workspace loader — all unit-tested.
 
-**Test count:** 458 passing across 36 files · build green.
+**Test count:** 462 passing across 37 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 161 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 177 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 162 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 176 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -114,7 +114,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **177 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **176 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -130,4 +130,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after adding a real, central, append-only audit log (ADMIN-20) — `/admin/audit`, `can(role, "audit:read")`-gated and shared by `trust_safety_lead`/`platform_admin`/`compliance_dpo`, recording one entry (actor, action, target, reason, before/after) for every successful certificate revoke/reinstate, ban/unban, and quarantine/clear this session's other three admin consoles perform, queryable by actor/target-type/action and writing nothing for a rejected attempt — verified live by watching a T&S reviewer's certificate revoke appear immediately with the real reason and reviewer name while a learner is refused the page entirely — on top of a real claim quarantine console (ADMIN-14), real enforced ban/unban (ADMIN-16), the first real, RBAC-gated admin console for certificates (ADMIN-15/22), the embeddable verify badge with a narrow, verified CSP frame-ancestors carve-out (API-15), the dirty-state `beforeunload` navigation guard on the Profile edit forms (SETTINGS-20), the Community thread's real keyboard-operable vote/reply/share controls (COMM-16), real cross-topic, claim-level Dashboard search results (HOME-07), Test Detail's "Boost your odds" levers (TEST-09), the heat-spike notification for a gap whose severity reaches "high" (GAP-22), correcting AUTH-01/AUTH-02's stale "no guest demo" premise, the public certificate verify page (TEST-11), the guest demo-pipeline run and Lecture reader (VERIFY-22/LEARN-17), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 161 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after replacing the Free-tier topic cap's hardcoded `user.plan === "free"` branch with a real, versioned entitlement catalog (ADMIN-07) — `lib/domain/entitlements.ts`'s `ENTITLEMENTS` table maps every plan tier to its entitlements with a load-time well-formedness check (the same invariant-at-module-load pattern as RBAC's firewall assertion), and both the topic-creation gate and the Settings › Plan usage display now read through it, so a future tier's cap enforces itself with no new code path — on top of a real, central, append-only audit log (ADMIN-20) recording every certificate revoke/reinstate, ban/unban, and quarantine/clear from this session's other three admin consoles, a real claim quarantine console (ADMIN-14), real enforced ban/unban (ADMIN-16), the first real, RBAC-gated admin console for certificates (ADMIN-15/22), the embeddable verify badge with a narrow, verified CSP frame-ancestors carve-out (API-15), the dirty-state `beforeunload` navigation guard on the Profile edit forms (SETTINGS-20), the Community thread's real keyboard-operable vote/reply/share controls (COMM-16), real cross-topic, claim-level Dashboard search results (HOME-07), Test Detail's "Boost your odds" levers (TEST-09), the heat-spike notification for a gap whose severity reaches "high" (GAP-22), correcting AUTH-01/AUTH-02's stale "no guest demo" premise, the public certificate verify page (TEST-11), the guest demo-pipeline run and Lecture reader (VERIFY-22/LEARN-17), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 162 Done; remainder is field-polish or deferred-with-justification._

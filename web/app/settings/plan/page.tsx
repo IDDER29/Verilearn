@@ -2,7 +2,8 @@ import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
 import { requireUser } from "@/lib/auth/current";
-import { listTopicSummaries, FREE_TOPIC_CAP } from "@/lib/services/topics";
+import { listTopicSummaries } from "@/lib/services/topics";
+import { entitlementsFor } from "@/lib/domain/entitlements";
 
 export const metadata = { title: "Plan & billing · Settings · VeriLearn" };
 
@@ -12,7 +13,7 @@ export default async function SettingsPlanPage() {
   const user = await requireUser();
   const summaries = listTopicSummaries(user.id);
   const topicCount = summaries.length;
-  const cap = user.plan === "free" ? FREE_TOPIC_CAP : Infinity;
+  const cap = entitlementsFor(user.plan).maxActiveTopics;
   const planLabel = PLAN_LABEL[user.plan] ?? "Free";
   const atLimit = topicCount >= cap;
   // Real, traceable usage: every claim the pipeline has checked across the account.

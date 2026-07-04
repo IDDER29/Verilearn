@@ -6,6 +6,7 @@
 import { DeterministicVerifier, runPipeline } from "@/lib/domain/pipeline";
 import { TrustLedger, trustBreakdown, verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import { isTestEligible, type TrustState } from "@/lib/domain/types";
+import { entitlementsFor } from "@/lib/domain/entitlements";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
 import type { TopicRecord } from "@/lib/store/entities";
 import { newId, now } from "@/lib/ids";
@@ -24,8 +25,8 @@ export interface TopicSummary {
 
 const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSME: false };
 
-/** Free-plan topic cap (BILL / HOME-13). Pro is unlimited. */
-export const FREE_TOPIC_CAP = 3;
+/** Free-plan topic cap (BILL / HOME-13), read from the entitlement catalog (ADMIN-07) — Pro/Team are unlimited. */
+export const FREE_TOPIC_CAP = entitlementsFor("free").maxActiveTopics;
 
 function summarize(topic: TopicRecord): TopicSummary {
   const ledger = ledgerFor(topic);
@@ -134,8 +135,11 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
   const user = db.users.get(userId);
   if (!user) return { ok: false, error: "Not authenticated." };
   // Archived topics (BILL-12) don't count against the cap they were archived to respect.
-  if (user.plan === "free" && activeTopicCount(userId) >= FREE_TOPIC_CAP) {
-    return { ok: false, error: `Free plan is limited to ${FREE_TOPIC_CAP} topics. Upgrade to Pro for unlimited topics.` };
+  // Reads the tier's cap from the entitlement catalog (ADMIN-07), not a hardcoded branch —
+  // a future tier with a finite cap is enforced here automatically, no new code path needed.
+  const cap = entitlementsFor(user.plan).maxActiveTopics;
+  if (activeTopicCount(userId) >= cap) {
+    return { ok: false, error: `${user.plan === "free" ? "Free plan" : "Your plan"} is limited to ${cap} topics. Upgrade to Pro for unlimited topics.` };
   }
   // Server-side gate mirrors the client (VERIFY-02): all three fields required,
   // not just the title — the client gate must not be the only guard.
