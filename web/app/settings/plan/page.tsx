@@ -10,10 +10,13 @@ const PLAN_LABEL: Record<string, string> = { free: "Free", pro: "Pro", team: "Te
 
 export default async function SettingsPlanPage() {
   const user = await requireUser();
-  const topicCount = listTopicSummaries(user.id).length;
+  const summaries = listTopicSummaries(user.id);
+  const topicCount = summaries.length;
   const cap = user.plan === "free" ? 3 : Infinity;
   const planLabel = PLAN_LABEL[user.plan] ?? "Free";
   const atLimit = topicCount >= cap;
+  // Real, traceable usage: every claim the pipeline has checked across the account.
+  const claimsVerified = summaries.reduce((n, t) => n + t.claimCount, 0);
   return (
     <AppShell active="settings">
       <main
@@ -69,11 +72,11 @@ export default async function SettingsPlanPage() {
               <div style={{ width: `${cap === Infinity ? 6 : Math.min(100, Math.round((topicCount / cap) * 100))}%`, height: "100%", background: atLimit ? "#c0392b" : "#6d5bd0" }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", font: "700 12.5px var(--font-nunito)", marginBottom: 7 }}>
-              <span>Verification runs</span>
-              <span style={{ color: "#8b8699" }}>18 of 30</span>
+              <span>Claims verified</span>
+              <span style={{ color: "#8b8699" }}>{claimsVerified} across {topicCount} topic{topicCount === 1 ? "" : "s"}</span>
             </div>
             <div style={{ height: 8, borderRadius: 5, background: "#eee9f7", overflow: "hidden" }}>
-              <div style={{ width: "60%", height: "100%", background: "#6d5bd0" }} />
+              <div style={{ width: claimsVerified > 0 ? "100%" : "0%", height: "100%", background: "#6d5bd0" }} />
             </div>
             {atLimit && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", borderRadius: 12, background: "#fbeceb", font: "700 12px/1.5 var(--font-nunito)", color: "#c0392b" }}>
