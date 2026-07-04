@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { reopenConflictAction, resolveConflictAction } from "@/app/conflict-actions";
+import { reopenConflictAction, resolveConflictAction, resolveInterpretiveAction } from "@/app/conflict-actions";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 
@@ -15,6 +15,9 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
   const [constraint, setConstraint] = useState("");
   const [saving, setSaving] = useState(false);
   const [resolved, setResolved] = useState(false);
+  const [posA, setPosA] = useState("");
+  const [posB, setPosB] = useState("");
+  const [mapping, setMapping] = useState(false);
 
   const claimCount = data?.claimCount ?? 0;
   const flagged = disputes.length;
@@ -35,6 +38,17 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
     setSaving(true);
     const r = await resolveConflictAction(data.topicId, disputed.claimId, constraint);
     setSaving(false);
+    if (r.ok) {
+      setResolved(true);
+      router.refresh();
+    }
+  }
+
+  async function mapAsInterpretive() {
+    if (!data || !disputed || posA.trim().length === 0 || posB.trim().length === 0) return;
+    setMapping(true);
+    const r = await resolveInterpretiveAction(data.topicId, disputed.claimId, [{ stance: posA }, { stance: posB }]);
+    setMapping(false);
     if (r.ok) {
       setResolved(true);
       router.refresh();
@@ -172,6 +186,24 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
               style={{ border: "none", background: resolved ? "#0e8c6b" : constraint.trim().length === 0 ? "#cdc6e8" : "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: saving || resolved || constraint.trim().length === 0 ? "default" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", whiteSpace: "nowrap" }}
             >
               {resolved ? "Resolved ✓" : saving ? "Re-verifying…" : "Record resolution"}
+            </button>
+          </div>
+
+          {/* interpretive path — map ≥2 positions instead of forcing a winner (TRUST-10) */}
+          <div style={{ marginTop: 22, paddingTop: 20, borderTop: "1px dashed #e6e1f2" }}>
+            <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#9a95a8", marginBottom: 4 }}>Or: both positions genuinely hold</div>
+            <div style={{ font: "600 12.5px/1.6 var(--font-nunito)", color: "#8b8699", marginBottom: 12 }}>If this is legitimately contested, map the competing positions instead of picking one. It records as <b>Interpretive ⇄</b> — kept out of single-answer tests rather than certified.</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+              <input value={posA} onChange={(e) => setPosA(e.target.value)} placeholder="Position A" style={{ boxSizing: "border-box", width: "100%", border: "1.5px solid #ece8f4", borderRadius: 12, padding: "11px 13px", font: "600 13px var(--font-nunito)", background: "#fbfafd", outline: "none" }} />
+              <input value={posB} onChange={(e) => setPosB(e.target.value)} placeholder="Position B" style={{ boxSizing: "border-box", width: "100%", border: "1.5px solid #ece8f4", borderRadius: 12, padding: "11px 13px", font: "600 13px var(--font-nunito)", background: "#fbfafd", outline: "none" }} />
+            </div>
+            <button
+              type="button"
+              onClick={mapAsInterpretive}
+              disabled={mapping || resolved || !data || posA.trim().length === 0 || posB.trim().length === 0}
+              style={{ border: "1.5px solid #6d5bd0", background: "#f7f5fd", color: "#6d5bd0", font: "800 13px var(--font-nunito)", padding: "10px 18px", borderRadius: 12, cursor: mapping || resolved || posA.trim().length === 0 || posB.trim().length === 0 ? "default" : "pointer", opacity: posA.trim().length === 0 || posB.trim().length === 0 ? 0.55 : 1 }}
+            >
+              {mapping ? "Mapping…" : "⇄ Map as interpretive"}
             </button>
           </div>
         </div>

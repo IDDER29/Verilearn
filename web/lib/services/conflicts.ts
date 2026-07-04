@@ -80,6 +80,55 @@ export function resolveConflict(userId: string, topicId: string, claimId: string
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
 
+/** One mapped stance in an interpretive resolution — a position with optional backing source. */
+export interface ConflictPosition {
+  stance: string;
+  sourceId?: string;
+}
+
+/**
+ * Resolve a disputed claim as INTERPRETIVE (TRUST-10): rather than picking a
+ * single winner, the learner maps ≥2 genuinely-competing positions (each may
+ * cite a source). The SYSTEM verifier records an `interpretive` event — the
+ * claim is NOT certified and stays out of single-answer test pools
+ * (`isTestEligible` false), which is the correct epistemic outcome for a
+ * contested claim. The learner supplies the positions; the system writes state.
+ */
+export function resolveAsInterpretive(userId: string, topicId: string, claimId: string, positions: ConflictPosition[]): ResolveResult {
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  const claim = topic.claims.find((c) => c.id === claimId);
+  if (!claim) return { ok: false, error: "Claim not found." };
+
+  const ledger = ledgerFor(topic);
+  if (ledger.stateOf(claimId) !== "disputed") return { ok: false, error: "This claim is not disputed." };
+
+  const mapped = positions.map((p) => ({ stance: p.stance.trim(), sourceId: p.sourceId })).filter((p) => p.stance.length > 0);
+  if (mapped.length < 2) return { ok: false, error: "Map at least two competing positions to record an interpretive resolution." };
+
+  const cited = mapped.find((p) => p.sourceId)?.sourceId;
+  ledger.record(SYSTEM, {
+    id: newId("ve"),
+    claimId,
+    state: "interpretive",
+    producedBy: SYSTEM.id,
+    producerVersion: "interpretive-v1",
+    at: now(),
+    evidence: {
+      method: cited ? "citation" : "skeptic",
+      sourceId: cited,
+      detail: `Mapped ${mapped.length} competing positions: ${mapped.map((p) => `"${p.stance}"`).join(" vs ")}`,
+      confidence: 0.5,
+      resolved: true,
+    },
+  });
+
+  topic.events = ledger.allEvents();
+  topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  return { ok: true, newState: ledger.stateOf(claimId) };
+}
+
 /** A claim that was disputed and later resolved — a candidate for reopening (TRUST-13). */
 export interface ResolvedConflictItem {
   topicId: string;

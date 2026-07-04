@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, ledgerFor, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { listConflicts, listResolvedConflicts, reopenConflict, resolveConflict } from "./conflicts";
+import { listConflicts, listResolvedConflicts, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
+import { isTestEligible } from "@/lib/domain/types";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -67,6 +68,29 @@ describe("conflicts service", () => {
     // back in the open-conflicts pool, out of the resolved list
     expect(listConflicts(USER).some((c) => c.claimId === "topic_dijkstra_c6")).toBe(true);
     expect(listResolvedConflicts(USER, "topic_dijkstra").map((c) => c.claimId)).not.toContain("topic_dijkstra_c6");
+  });
+
+  it("maps ≥2 competing positions to an interpretive state, out of test pools (TRUST-10)", () => {
+    const r = resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [
+      { stance: "correct only on non-negative weights" },
+      { stance: "'weighted' implies non-negative in this course's context" },
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.newState).toBe("interpretive");
+    const topic = globalThis.__verilearnDb!.topics.get("topic_dijkstra")!;
+    expect(ledgerFor(topic).stateOf("topic_dijkstra_c6")).toBe("interpretive");
+    expect(isTestEligible("interpretive")).toBe(false); // stays out of single-answer tests
+    // written by the system verifier, and no longer an open conflict
+    const evs = topic.events.filter((e) => e.claimId === "topic_dijkstra_c6");
+    expect(evs[evs.length - 1].producedBy).toBe("system:verifier");
+    expect(listConflicts(USER).some((c) => c.claimId === "topic_dijkstra_c6")).toBe(false);
+  });
+
+  it("interpretive resolution needs ≥2 positions and a disputed, owned claim (TRUST-10)", () => {
+    expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "only one side" }]).ok).toBe(false);
+    expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "  " }]).ok).toBe(false); // 2nd blank
+    expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c1", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false); // not disputed
+    expect(resolveAsInterpretive("intruder", "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false); // foreign
   });
 
   it("reopen requires a reason and rejects already-open / foreign claims (TRUST-13)", () => {
