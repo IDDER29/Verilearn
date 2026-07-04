@@ -94,14 +94,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, audit, workspace loader — all unit-tested.
 
-**Test count:** 497 passing across 40 files · build green.
+**Test count:** 498 passing across 40 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 168 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 170 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 169 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 169 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -116,7 +116,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **170 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **169 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -131,4 +131,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after surfacing the tests-engine's own `reducedCoverage` signal on Test Detail (TEST-20) — `buildTest` already computed it honestly (never padding a test with ineligible claims), but nothing showed it; `TestSessionInfo` now threads through `reducedCoverage` and a real `excludedCount`, and Test Detail renders an honest "Reduced coverage" banner exactly when it's true. This story stays Partial — the zero-question "not startable" block and blocking-item routing are a separate, larger piece — but the specific gap its own evidence flagged ("computed but not surfaced") is closed. Recent momentum: a real "Learn next" row on the Dashboard (HOME-21), certificate-revocation propagation on a claim downgrade (TEST-13), a real ban-appeal flow (AUTH-18), and a data-driven Review › Discuss screen (REVIEW-08, which also fixed a severe pre-existing production bug in `/review`). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 168 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after correcting a stale REVIEW-16 disposition — it claimed card suspension-on-dispute was "not implemented," but `cardClaimEligible` (`lib/services/review.ts`) already recomputes a card's eligibility from the LIVE ledger on every `getDueCards`/`getReviewAheadCards` call, holding out any card whose claim goes disputed/unsupported/interpretive — a deliberate architectural choice over a stored `suspended` flag + event listener, since a stored flag risks drifting from the ledger it mirrors. The genuinely missing half — proving restoration keeps the FSRS schedule intact — is now a real test: dispute a due card's claim, resolve it via the real `resolveConflict` engine, and confirm the card reappears with the exact same `fsrs.due` it started with, since suspension never touches the card record to begin with. Recent momentum: surfacing the tests-engine's `reducedCoverage` signal on Test Detail (TEST-20), a real "Learn next" row on the Dashboard (HOME-21), certificate-revocation propagation on a claim downgrade (TEST-13), and a real ban-appeal flow (AUTH-18). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 169 Done; remainder is field-polish or deferred-with-justification._

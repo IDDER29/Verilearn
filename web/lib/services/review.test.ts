@@ -5,6 +5,7 @@ import { seedDb } from "@/lib/store/seed";
 import { calibrationFor, dueBreakdown, fsrsParamsFor, getDiscussContext, gradeCard, getDueCards, getReviewAheadCards, getSessionCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
 import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
+import { resolveConflict } from "./conflicts";
 
 // The service reads the process singleton via getDb(); seed that singleton.
 declare global {
@@ -116,6 +117,34 @@ describe("review service", () => {
     const dueAfter = getDueCards(USER, SEED_NOW);
     expect(dueAfter.length).toBe(2); // the contested claim's card is held out
     expect(dueAfter.some((c) => c.claimId === target.claimId)).toBe(false);
+  });
+
+  it("REVIEW-16: a card genuinely restores — with its FSRS schedule untouched — once the dispute resolves", () => {
+    const db = globalThis.__verilearnDb!;
+    const target = getDueCards(USER, SEED_NOW)[0];
+    const originalDue = target.fsrs.due;
+    const topic = db.topics.get(target.topicId)!;
+
+    topic.events.push({
+      id: "ve_dispute_restore",
+      claimId: target.claimId,
+      state: "disputed",
+      producedBy: "system:verifier",
+      producerVersion: "test",
+      at: SEED_NOW,
+      evidence: { method: "skeptic", detail: "contested", confidence: 0.3, resolved: false },
+    });
+    expect(getDueCards(USER, SEED_NOW).some((c) => c.id === target.id)).toBe(false);
+
+    // Resolving the conflict re-verifies the claim via the real conflicts engine —
+    // no card/FSRS state is ever touched by suspension or restoration; the card's
+    // own schedule was never mutated, so it simply becomes visible again.
+    const r = resolveConflict(USER, target.topicId, target.claimId, { constraint: "holds under the stated assumptions" });
+    expect(r.ok).toBe(true);
+
+    const restored = getDueCards(USER, SEED_NOW).find((c) => c.id === target.id);
+    expect(restored).toBeTruthy();
+    expect(restored!.fsrs.due).toBe(originalDue); // untouched — nothing to "restore," it was never mutated
   });
 
   it("BILL-12: holds out a due card whose topic is archived, and gradeCard refuses to grade it", () => {
