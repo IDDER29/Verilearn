@@ -60,6 +60,9 @@ export interface Session {
   token: string;
   userId: string;
   expiresAt: number;
+  createdAt: number;
+  /** Raw request User-Agent captured at sign-in, if the client sent one (AUTH-12). */
+  userAgent?: string;
 }
 
 export interface Org {

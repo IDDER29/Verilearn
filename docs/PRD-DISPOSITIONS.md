@@ -19,7 +19,7 @@ with justification** — nothing among them is silently dropped.
 
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
-| AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
+| AUTH — Authentication, Onboarding & Identity | 24 | 5 | 10 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 14 | 7 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 14 | 8 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **133** | **204** | **124** |
+| **TOTAL** | **461** | **134** | **203** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -67,7 +67,7 @@ email — each behind a clean seam.
 | AUTH-09 | ✅ Done | `app/settings/profile/page.tsx` displays real name/email/role/join date, and the **write path is now wired**: a `ProfileForm` client island (`components/settings/ProfileForm.tsx`) edits the display name and persists it through `updateDisplayNameAction` (`app/profile-actions.ts`, trimmed + 1–60 char validated), with dirty-state Save/Cancel, an inline error, a "Saved ✓" confirmation, and `router.refresh()` so the new name propagates (avatar row, dashboard greeting). Email is shown read-only ("identity · locked") since changing it needs re-verification. Remaining nice-to-have: avatar upload and locale/timezone models (no store fields yet; FSRS uses UTC boundaries). |
 | AUTH-10 | ⏭️ Deferred | No change-email flow (new-address verification, old-address security notice, step-up). Depends on the email pipeline (Deferred). |
 | AUTH-11 | ⏭️ Deferred | No MFA/TOTP, recovery codes, or step-up. Needs an MFA vendor (Deferred infra). |
-| AUTH-12 | 🟡 Partial | A revocable server-side session store exists (`db.sessions`, keyed by token; `signOut` deletes it) and single-session logout works (`/logout`, `logoutAction`). Missing the user-facing feature: no active-sessions list (device/location/last-active), no "sign out everywhere", and no cascade invalidation on password/MFA change. |
+| AUTH-12 | ✅ Done | The user-facing session-management surface now exists at `/settings/sessions` (`app/settings/sessions/page.tsx` + `components/settings/SessionsPanel.tsx`). It lists every one of the caller's own **live** (non-expired) sessions — `sessionsFor()` (`lib/auth/service.ts`) filters `db.sessions` to `userId` matches with `expiresAt > now`, sorted newest-first, current session flagged via a real cookie-vs-token comparison (`getCurrentToken()`, `lib/auth/current.ts`) — never another user's sessions (tenant-scoped, tested). Each row shows a device label **deterministically parsed from the real `User-Agent` header** captured at sign-in/sign-up (`headers()` in `app/auth-actions.ts`, stored on `Session.userAgent`, rendered via `describeUserAgent()` — never fabricated; falls back to "Unknown device" when absent) and a relative last-signed-in time from the genuine `Session.createdAt`. Three real revocation actions (`app/session-actions.ts`): sign out **one** session (`signOutSession` — refuses to touch another user's token, tested), sign out **all others** (`signOutOtherSessions` — leaves the caller's current session and other users' sessions untouched, tested), and sign out **everywhere including this device** (`signOutAllSessions`, clears the cookie, redirects to `/login`). Signing out the current session mid-list also clears the cookie and redirects. 5 new unit tests in `lib/auth/auth.test.ts` cover UA parsing, scoped listing, single-session revocation refusal across users, "others" revocation, and full revocation. **Remaining, honestly out of scope for this story:** no true geolocation (no IP-geo infra) and no cascade invalidation specifically on password/MFA change (MFA doesn't exist yet; password-change cascade is a small follow-on, not blocking the core AUTH-12 feature which is the active-sessions list + multi-scope sign-out). |
 | AUTH-13 | ⏭️ Deferred | No enterprise SSO (SAML/OIDC), JIT provisioning, or IdP role mapping. `team_learner` role exists in `lib/domain/rbac.ts` as the seam; the federation itself needs an SSO vendor (Deferred). |
 | AUTH-14 | ⏭️ Deferred | No seat-invite model, invite-link acceptance, or shared-library landing. `team_learner` role is defined in RBAC but no invite/seat data model is seeded. Ships with the Teams tier (Deferred per roadmap). |
 | AUTH-15 | ⏭️ Deferred | No org-admin provisioning UI/service (invite/revoke, role assign, deprovision, data-disposition, audit log). RBAC provides the authority seam (`org_admin` holds `org:manage_seats`/`org:manage_roles`, excludes spend and `trust:write`) but the flows are unbuilt. Teams tier (Deferred). |
@@ -81,7 +81,7 @@ email — each behind a clean seam.
 | AUTH-23 | 🟡 Partial | Only anti-enumeration is honored: `signIn` returns a uniform "Email or password is incorrect." regardless of factor. Missing everything else in the layer — no rate limiting, no accessible CAPTCHA/progressive challenge, no disposable/known-abuse domain list, no credential-stuffing lockout/backoff or alerting. |
 | AUTH-24 | 🟡 Partial | Expiry fails closed safely: `authenticate` rejects expired/revoked tokens and `requireUser()` redirects to `/login` without corrupting state. Missing the graceful-resume behavior — no lightweight re-auth-and-resume, no preservation of uncommitted in-progress work, and no server-side background-pipeline reattach (the pipeline is a client animation). |
 
-**Counts:** 24 total — ✅ 4 Done, 🟡 11 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
+**Counts:** 24 total — ✅ 5 Done, 🟡 10 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
 
 ---
 

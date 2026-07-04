@@ -21,6 +21,12 @@ export async function getCurrentUser(): Promise<User | null> {
   return authenticate(getDb(), token, sessionSecret(), Date.now());
 }
 
+/** The raw session token for the current request, if any (AUTH-12: identifying "this device" among a session list). */
+export async function getCurrentToken(): Promise<string | undefined> {
+  const store = await cookies();
+  return store.get(SESSION_COOKIE)?.value;
+}
+
 /** Route guard: return the user or redirect to /login. */
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();

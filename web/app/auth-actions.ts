@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, sessionSecret, setSessionCookie } from "@/lib/auth/current";
 import { AuthError, signIn, signUp } from "@/lib/auth/service";
@@ -10,9 +11,10 @@ import { newId, now } from "@/lib/ids";
 export async function loginAction(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const userAgent = (await headers()).get("user-agent") ?? undefined;
   let token: string;
   try {
-    const r = signIn(getDb(), { email, password }, { now: now(), secret: sessionSecret(), tokenNonce: randomUUID() });
+    const r = signIn(getDb(), { email, password }, { now: now(), secret: sessionSecret(), tokenNonce: randomUUID(), userAgent });
     token = r.token;
   } catch (e) {
     const msg = e instanceof AuthError ? e.message : "Sign-in failed.";
@@ -32,12 +34,13 @@ export async function signupAction(formData: FormData): Promise<void> {
   // across a validation failure too, so retrying doesn't lose it.
   const planRaw = String(formData.get("plan") ?? "");
   const plan = planRaw === "pro" || planRaw === "team" ? planRaw : undefined;
+  const userAgent = (await headers()).get("user-agent") ?? undefined;
   let token: string;
   try {
     const r = signUp(
       getDb(),
       { email, password, displayName, birthYear },
-      { now: now(), secret: sessionSecret(), userId: newId("user"), tokenNonce: randomUUID() },
+      { now: now(), secret: sessionSecret(), userId: newId("user"), tokenNonce: randomUUID(), userAgent },
     );
     token = r.token;
   } catch (e) {

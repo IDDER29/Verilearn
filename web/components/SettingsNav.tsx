@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 export type SettingsKey =
   | "profile"
   | "plan"
+  | "sessions"
   | "verification"
   | "active-listening"
   | "review"
@@ -51,6 +52,17 @@ const SECTIONS: Section[] = [
           <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
             <rect x="2" y="6" width="20" height="13" rx="2.5" />
             <path d="M2 10h20" />
+          </svg>
+        ),
+      },
+      {
+        key: "sessions",
+        label: <>Sessions &amp; devices</>,
+        href: "/settings/sessions",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+            <rect x="4" y="4" width="16" height="11" rx="2" />
+            <path d="M9 20h6M12 15v5" />
           </svg>
         ),
       },
