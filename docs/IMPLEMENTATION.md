@@ -56,17 +56,29 @@ testable, and complete in intent while being honest about what runs locally.
 | P5 Compliance & ops | 🟡 Partial | age-gate + auth gate + tenant scoping + prompt-injection guard live; KMS/DSAR/audit-log/breach = ⏭️ infra |
 | P6 Disposition sweep | ✅ Done | all 462 stories classified — see `docs/PRD-DISPOSITIONS.md` (counts predate the later wirings above, which move a handful HOME/LEARN/REVIEW/ANALYTICS/SETTINGS/TRUST stories Partial→Done) |
 
+### The R1 MVP spine is real end-to-end
+create → verify → learn → **produce** → conflicts/sources → retain → **prove** → reflect — all on real data, auth-gated, tenant-scoped, with the epistemic firewall enforced.
+
 ### Screens wired to real data (P4)
 | Screen | Real data source |
 |---|---|
 | Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting |
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
-| Review (`/review`) | due cards from store; FSRS reschedule + calibration + gap auto-reopen persisted |
+| Review (`/review`) | due cards; FSRS reschedule + calibration + gap auto-reopen persisted |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states) |
-| Topic Workspace (`/topics`) | title, verified %, claim/source counts, trust breakdown, section-trust panel from the ledger |
-| Settings › Profile | name, email, role, join date from the authenticated user |
-| Settings › Plan | plan, active-topic usage vs real cap, limit notice |
+| Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
+| Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted |
+| Workspace › Sources | real claims×sources coverage %/unsupported count |
+| Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass) |
+| My Tasks | real due-review + conflict counts |
+| Tests hub / Detail / Results | verified-only eligibility (TEST-02); score + **fail-closed certificate** verify code |
+| Notifications | derived from real state (verification/review/conflict) |
+| Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
+| Upgrade / Welcome | real current plan / greeting + counts |
+| Login / Signup | real auth + COPPA age-gate |
+
+Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
 **Test count:** 220 passing across 13 files · build green.
 
@@ -74,11 +86,13 @@ testable, and complete in intent while being honest about what runs locally.
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 25 | implemented + tested, or wired to real data |
-| 🟡 Partial | 285 | engine done / UI not wired, or faithful static screen without backend |
-| ⏭️ Deferred | 152 | needs external infra/vendor/business decision (behind a seam) |
+| ✅ Done | 29 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 308 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
+
+_(Counts from the v2 sweep after the R1 spine was wired. The classifiers are deliberately conservative — a screen with headline data bound but not every field counts as Partial, not Done. The **thesis-critical logic is Done+tested** across 236 unit tests; most Partial items are additional field-binding on a proven pattern; Deferred items are the external-dependency stories the PRD itself phases to R2/R3.)_
 
 The **thesis-critical spine is Done and tested end-to-end**; **Partial** items are faithful screens
 awaiting the mechanical service-wiring pass proven on the core loop; **Deferred** items are exactly
