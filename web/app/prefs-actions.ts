@@ -42,6 +42,16 @@ export async function savePrivacyAction(patch: Partial<UserPrefs["privacy"]>): P
   return { ok: true };
 }
 
+/** Per-category in-app notification opt-in (NOTIF-08). */
+export async function saveNotificationPrefsAction(patch: Partial<UserPrefs["notifications"]>): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false };
+  updatePrefs(user.id, "notifications", patch);
+  revalidatePath("/settings/privacy");
+  revalidatePath("/notifications");
+  return { ok: true };
+}
+
 /** Whether the learner has already dismissed the review commit-before-reveal primer (REVIEW-01). */
 export async function reviewPrimerSeenAction(): Promise<boolean> {
   const user = await getCurrentUser();

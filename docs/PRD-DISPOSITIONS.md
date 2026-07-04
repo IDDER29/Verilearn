@@ -28,7 +28,7 @@ justification** — nothing is silently dropped.
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
-| NOTIF — Notifications, Reminders & Messaging | 24 | 4 | 11 | 9 |
+| NOTIF — Notifications, Reminders & Messaging | 24 | 5 | 10 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 7 | 5 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 11 | 9 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 5 | 15 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **117** | **220** | **125** |
+| **TOTAL** | **462** | **118** | **219** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -431,7 +431,7 @@ The domain is implemented as a single read-only derived view (`web/lib/services/
 | NOTIF-05 | 🟡 Partial | No streak-at-risk nudge exists. The review log substrate is present but no streak length is computed and no engagement-nudge path, suppress toggle, or frequency cap is built in the notifications layer. Nothing external blocks an in-app version; simply unimplemented. |
 | NOTIF-06 | ✅ Done | The notifications service now emits a **`test` kind**: for every topic with test-eligible claims (`listTestableTopics`), a "'{title}' checkpoint is ready · N verified claims eligible" item deep-links to that topic's Test Detail (`/tests/{id}?topic={id}`). The notifications page renders the new kind with its own icon/treatment, and `notifications.test.ts` asserts the test item is emitted with a `/tests/` href. Remaining nice-to-haves: results-ready / retake-available / attempts-low variants (need the persisted-attempt model, TEST runner-Deferred). |
 | NOTIF-07 | 🟡 Partial | Filter chips (All · Tests · Verification · Community) render (`notifications/page.tsx:74-114`) but are **purely static** — no click handlers, no state, no filtering; the active chip is hard-coded to "All". Each item does carry a stable primary `kind`/category (`notifications.ts:11`), so the data model supports filtering; the interaction does not. |
-| NOTIF-08 | 🟡 Partial | No per-category × per-channel preference model. Settings → Review and Settings → Privacy screens exist but are static toggles with no user-preferences store (`app/settings/review/page.tsx`, `app/settings/privacy/page.tsx`); nothing is enforced at emit time (there is no emit). Transactional/optional split and channel matrix unbuilt. |
+| NOTIF-08 | ✅ Done | A **per-category** notification preference model is now real and **enforced at feed time**. `UserPrefs.notifications` (`verification` / `conflict` / `review` / `test`, all default on) is persisted through the shared prefs store, and `listNotifications` filters the derived feed so a **muted category never reaches the notification center** (unknown/absent prefs default to on — no silent suppression). Settings › Privacy hosts the four **category toggles** (`role="switch"`), wired to `saveNotificationPrefsAction` → `updatePrefs`, which revalidates `/notifications`. Covered by `notifications.test.ts` (muting `conflict` drops conflict items while other categories stay). Remaining nuance: the second axis — **per-channel** (email / push) delivery — is deferred with the email/push transport itself (the UI says so); in-app is the R1 channel. |
 | NOTIF-09 | 🟡 Partial | Deep-links point to stable static routes (`/topics`, `/review`, `/topics/conflicts`) that won't hard-404, but there is **no click-time authorization/existence resolution, no tombstone state, no access-change message, and no dismiss/expired marking**. Graceful stale-link handling is not implemented. |
 | NOTIF-10 | ⏭️ Deferred | In-app is the only channel; there is no email/push fan-out, retry/backoff, bounce tracking, or channel-health auto-disable. The "canonical in-app record survives channel failure" invariant needs the transactional-email/push vendor (Deferred infra) to have any other channel to fail. Seam: a durable notification store + channel adapters would sit behind `listNotifications`. |
 | NOTIF-11 | ⏭️ Deferred | Community domain has no seeded data model (R2/R3 per roadmap). No reply/mention/promotion notifications exist; needs the Community data model and events before any notification can be rendered. |

@@ -38,6 +38,17 @@ describe("notifications service", () => {
     expect(verify.href).toMatch(/\/topics\?topic=.+/); // opens that specific topic
   });
 
+  it("NOTIF-08: muting a category removes it from the derived feed", () => {
+    const db = globalThis.__verilearnDb!;
+    expect(listNotifications(USER).some((i) => i.kind === "conflict")).toBe(true);
+    // Opt out of the conflict category.
+    db.users.get(USER)!.prefs.notifications.conflict = false;
+    const after = listNotifications(USER);
+    expect(after.some((i) => i.kind === "conflict")).toBe(false);
+    // Other categories are untouched.
+    expect(after.some((i) => i.kind === "verification")).toBe(true);
+  });
+
   it("mark-all-read persists and drops the unread count to zero (NOTIF-01)", () => {
     expect(unreadNotificationCount(USER)).toBeGreaterThan(0);
     markAllNotificationsRead(USER);

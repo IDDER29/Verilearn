@@ -6,11 +6,19 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
-import { getPrefsAction, savePrivacyAction } from "@/app/prefs-actions";
+import { getPrefsAction, savePrivacyAction, saveNotificationPrefsAction } from "@/app/prefs-actions";
 import { exportDataAction } from "@/app/export-actions";
 import type { UserPrefs } from "@/lib/store/entities";
 
 type Privacy = UserPrefs["privacy"];
+type Notif = UserPrefs["notifications"];
+
+const NOTIF_ROWS: { key: keyof Notif; label: string; desc: string }[] = [
+  { key: "verification", label: "Topic verified & ready", desc: "When a topic finishes verifying" },
+  { key: "conflict", label: "The Skeptic flags a claim", desc: "A new conflict to adjudicate" },
+  { key: "review", label: "Reviews due", desc: "Spaced-review reminders" },
+  { key: "test", label: "Test checkpoint ready", desc: "A topic has enough verified claims to test" },
+];
 
 function Toggle({ on, disabled, onClick }: { on: boolean; disabled?: boolean; onClick: () => void }) {
   return (
@@ -41,11 +49,15 @@ function Toggle({ on, disabled, onClick }: { on: boolean; disabled?: boolean; on
 
 export default function SettingsPrivacyPage() {
   const [privacy, setPrivacy] = useState<Privacy | null>(null);
+  const [notif, setNotif] = useState<Notif | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
 
   useEffect(() => {
-    getPrefsAction().then((p) => setPrivacy(p?.privacy ?? null));
+    getPrefsAction().then((p) => {
+      setPrivacy(p?.privacy ?? null);
+      setNotif(p?.notifications ?? null);
+    });
   }, []);
 
   const loaded = privacy !== null;
@@ -55,6 +67,13 @@ export default function SettingsPrivacyPage() {
     const next = { ...privacy, [key]: !privacy[key] };
     setPrivacy(next);
     await savePrivacyAction({ [key]: next[key] });
+  }
+
+  async function toggleNotif(key: keyof Notif) {
+    if (!notif) return;
+    const next = { ...notif, [key]: !notif[key] };
+    setNotif(next);
+    await saveNotificationPrefsAction({ [key]: next[key] });
   }
 
   async function exportData() {
@@ -143,6 +162,23 @@ export default function SettingsPrivacyPage() {
                 <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Occasional tips &amp; feature news</div>
               </div>
               <Toggle on={!!privacy?.emailUpdates} disabled={!loaded} onClick={() => toggle("emailUpdates")} />
+            </div>
+          </div>
+
+          {/* notification categories (NOTIF-08) — muting a category drops it from the feed */}
+          <div style={{ background: "#fff", borderRadius: 20, padding: "8px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+            <div style={{ font: "800 15px var(--font-nunito)", padding: "18px 0 6px" }}>Notifications</div>
+            {NOTIF_ROWS.map((row, i) => (
+              <div key={row.key} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 0", ...(i < NOTIF_ROWS.length - 1 ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "800 14px var(--font-nunito)" }}>{row.label}</div>
+                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>{row.desc}</div>
+                </div>
+                <Toggle on={notif ? notif[row.key] : true} disabled={notif === null} onClick={() => toggleNotif(row.key)} />
+              </div>
+            ))}
+            <div style={{ font: "600 11px var(--font-nunito)", color: "#a7a1b8", padding: "0 0 14px" }}>
+              These control the in-app notification center. Email &amp; push channels are coming with the notifications service.
             </div>
           </div>
 
