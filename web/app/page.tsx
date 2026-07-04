@@ -91,6 +91,7 @@ export default async function DashboardPage() {
               </svg>
               <input
                 placeholder="Search topics…"
+                aria-label="Search topics"
                 style={{
                   border: "none",
                   outline: "none",
@@ -275,9 +276,9 @@ export default async function DashboardPage() {
           </div>
 
           {/* class list */}
-          <div style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+          <section aria-label="My topics" style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-              <span style={{ font: "900 18px var(--font-nunito)", letterSpacing: "-.01em", whiteSpace: "nowrap" }}>My topics</span>
+              <h2 style={{ margin: 0, font: "900 18px var(--font-nunito)", letterSpacing: "-.01em", whiteSpace: "nowrap" }}>My topics</h2>
               <Link
                 href="/topics"
                 style={{
@@ -343,13 +344,20 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <div style={{ font: "800 12px var(--font-nunito)", marginBottom: 6 }}>{t.verifiedPercent}% verified</div>
-                    <TrustBar height={7} radius={4} gap={1} track="#eee9f7" segments={segments} />
+                    <TrustBar
+                      height={7}
+                      radius={4}
+                      gap={1}
+                      track="#eee9f7"
+                      segments={segments}
+                      ariaLabel={`Trust: ${verified} verified, ${t.breakdown.sourced} sourced, ${t.breakdown.disputed} disputed of ${t.claimCount} claims`}
+                    />
                   </div>
                   <span style={{ justifySelf: "start", font: "800 11.5px var(--font-nunito)", color: status.color, background: status.bg, padding: "6px 12px", borderRadius: 10 }}>{status.label}</span>
                 </div>
               );
             })}
-          </div>
+          </section>
         </div>
 
         {/* ---- RIGHT PANEL ---- */}

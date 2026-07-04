@@ -226,6 +226,7 @@ export function TrustBar({
   radius = 5,
   track = "#efeaf6",
   gap = 0,
+  ariaLabel,
   style,
 }: {
   /** each segment: a color and a width (0–100, share of the whole bar) */
@@ -235,10 +236,20 @@ export function TrustBar({
   track?: string;
   /** px gap between segments (leaves track showing through) */
   gap?: number;
+  /**
+   * Accessible text alternative for the segmented bar (HOME-15). When provided,
+   * the bar is exposed as `role="img"` with this label so trust is never
+   * conveyed by colour alone; when omitted, the bar is decorative
+   * (`aria-hidden`) and meaning must come from adjacent text.
+   */
+  ariaLabel?: string;
   style?: CSSProperties;
 }) {
   return (
-    <div style={{ display: "flex", gap, height, borderRadius: radius, background: track, overflow: "hidden", ...style }}>
+    <div
+      style={{ display: "flex", gap, height, borderRadius: radius, background: track, overflow: "hidden", ...style }}
+      {...(ariaLabel ? { role: "img", "aria-label": ariaLabel } : { "aria-hidden": true })}
+    >
       {segments.map((s, i) => (
         <span key={i} style={{ width: `${s.pct}%`, height: "100%", background: s.color }} />
       ))}
