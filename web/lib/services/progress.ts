@@ -11,6 +11,48 @@ import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
 import { listTopicSummaries } from "./topics";
 import { openGapCountForClaims } from "./gaps";
 
+export interface RetentionPoint {
+  /** Epoch ms at the start of the week bucket. */
+  weekStart: number;
+  /** Short axis label, e.g. "w3". */
+  label: string;
+  /** Recall rate for reviews in this week (0..1), or null when the week has no reviews. */
+  retention: number | null;
+  reviews: number;
+}
+
+export interface RetentionSeries {
+  points: RetentionPoint[];
+  /** True once ≥2 weeks carry data — below that a trend line would be dishonest. */
+  hasEnough: boolean;
+  weeks: number;
+}
+
+/**
+ * Real time-bucketed retention series (ANALYTICS-05): recall rate per week over
+ * the trailing `weeks`, straight from the review log. A week with no reviews is
+ * `null` (a gap in the line, not a fabricated 0), and `hasEnough` is false until
+ * at least two weeks carry data so the UI can show an honest "not enough history".
+ */
+export function retentionSeries(userId: string, at: number, weeks = 6): RetentionSeries {
+  const WEEK = 7 * 86_400_000;
+  const log = getDb().reviewLog.filter((r) => r.userId === userId);
+  const points: RetentionPoint[] = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const start = at - (i + 1) * WEEK;
+    const end = at - i * WEEK;
+    const inWeek = log.filter((r) => r.at > start && r.at <= end);
+    const correct = inWeek.filter((r) => r.correct).length;
+    points.push({
+      weekStart: start,
+      label: `w${weeks - i}`,
+      retention: inWeek.length ? correct / inWeek.length : null,
+      reviews: inWeek.length,
+    });
+  }
+  return { points, hasEnough: points.filter((p) => p.retention !== null).length >= 2, weeks };
+}
+
 export interface ProgressView {
   signals: Signals;
   reviewCount: number;

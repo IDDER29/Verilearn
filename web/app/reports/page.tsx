@@ -1,7 +1,8 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
-import { focusAreas, perTopicProgress, progressFor, signalDisplay } from "@/lib/services/progress";
+import { focusAreas, perTopicProgress, progressFor, retentionSeries, signalDisplay } from "@/lib/services/progress";
+import { now } from "@/lib/ids";
 import type { Signal } from "@/lib/domain/signals";
 
 export const metadata = { title: "Progress · VeriLearn" };
@@ -32,6 +33,16 @@ export default async function ReportsPage() {
   const user = await requireUser();
   const { signals, calibration } = progressFor(user.id);
   const calibSub = calibration ? CALIB_DIRECTION[calibration.direction] : "Confidence vs. reality";
+
+  // Real weekly retention series for the trend chart (ANALYTICS-05).
+  const series = retentionSeries(user.id, now(), 6);
+  const CW = 620, PAD = 10, TOP = 20, BOT = 190;
+  const xAt = (i: number) => PAD + (i * (CW - 2 * PAD)) / (series.weeks - 1);
+  const yAt = (r: number) => BOT - r * (BOT - TOP);
+  const linePts = series.points
+    .map((p, i) => ({ x: xAt(i), y: p.retention !== null ? yAt(p.retention) : null, pct: p.retention }))
+    .filter((p): p is { x: number; y: number; pct: number } => p.y !== null);
+  const linePath = linePts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(0)} ${p.y.toFixed(0)}`).join(" ");
   const topicRows = perTopicProgress(user.id);
   const allFocus = focusAreas(user.id);
   const focus = allFocus.slice(0, 3);
@@ -123,36 +134,36 @@ export default async function ReportsPage() {
               <div style={{ display: "flex", gap: 14, font: "700 11.5px var(--font-nunito)" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#3a63b0" }}>
                   <span style={{ width: 11, height: 11, borderRadius: 4, background: "#3a63b0" }} />
-                  Retention
-                </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#2e9c6a" }}>
-                  <span style={{ width: 11, height: 11, borderRadius: 4, background: "#2e9c6a" }} />
-                  Transfer
+                  Weekly recall
                 </span>
               </div>
             </div>
-            <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 20 }}>Trending up as you keep reviews on schedule.</div>
+            <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 20 }}>
+              Recall rate per week, straight from your review log — last {series.weeks} weeks.
+            </div>
 
-            {/* svg line chart */}
-            <div style={{ position: "relative" }}>
-              <svg viewBox="0 0 620 200" style={{ width: "100%", height: "auto", display: "block" }}>
-                {/* gridlines */}
-                <line x1="0" y1="20" x2="620" y2="20" stroke="#f0edf6" strokeWidth="1.5" />
-                <line x1="0" y1="70" x2="620" y2="70" stroke="#f0edf6" strokeWidth="1.5" />
-                <line x1="0" y1="120" x2="620" y2="120" stroke="#f0edf6" strokeWidth="1.5" />
-                <line x1="0" y1="170" x2="620" y2="170" stroke="#f0edf6" strokeWidth="1.5" />
-                {/* retention area + line */}
-                <path d="M10 150 L110 128 L210 132 L310 96 L410 88 L510 70 L610 58 L610 190 L10 190 Z" fill="#3a63b0" opacity="0.08" />
-                <path d="M10 150 L110 128 L210 132 L310 96 L410 88 L510 70 L610 58" fill="none" stroke="#3a63b0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="610" cy="58" r="5" fill="#3a63b0" stroke="#fff" strokeWidth="2.5" />
-                {/* transfer line */}
-                <path d="M10 172 L110 160 L210 150 L310 140 L410 122 L510 108 L610 96" fill="none" stroke="#2e9c6a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 0" />
-                <circle cx="610" cy="96" r="5" fill="#2e9c6a" stroke="#fff" strokeWidth="2.5" />
-              </svg>
-              <div style={{ display: "flex", justifyContent: "space-between", font: "700 10.5px var(--font-nunito)", color: "#a7a1b8", marginTop: 8, padding: "0 4px" }}>
-                <span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span><span>Wk 5</span><span>Wk 6</span><span>Now</span>
+            {series.hasEnough ? (
+              /* real weekly retention line (ANALYTICS-05) */
+              <div style={{ position: "relative" }}>
+                <svg viewBox="0 0 620 200" role="img" aria-label={`Weekly retention: ${linePts.map((p) => `${Math.round(p.pct * 100)}%`).join(", ")}`} style={{ width: "100%", height: "auto", display: "block" }}>
+                  <line x1="0" y1="20" x2="620" y2="20" stroke="#f0edf6" strokeWidth="1.5" />
+                  <line x1="0" y1="70" x2="620" y2="70" stroke="#f0edf6" strokeWidth="1.5" />
+                  <line x1="0" y1="120" x2="620" y2="120" stroke="#f0edf6" strokeWidth="1.5" />
+                  <line x1="0" y1="170" x2="620" y2="170" stroke="#f0edf6" strokeWidth="1.5" />
+                  <path d={linePath} fill="none" stroke="#3a63b0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  {linePts.map((p, i) => (
+                    <circle key={i} cx={p.x} cy={p.y} r={i === linePts.length - 1 ? 5 : 3.5} fill="#3a63b0" stroke="#fff" strokeWidth="2.5" />
+                  ))}
+                </svg>
+                <div style={{ display: "flex", justifyContent: "space-between", font: "700 10.5px var(--font-nunito)", color: "#a7a1b8", marginTop: 8, padding: "0 4px" }}>
+                  {series.points.map((p) => <span key={p.weekStart}>{p.label}</span>)}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{ background: "#faf9fc", borderRadius: 16, padding: "34px 20px", textAlign: "center", font: "600 13px/1.6 var(--font-nunito)", color: "#8b8699" }}>
+                Not enough review history yet — the trend line fills in once you&apos;ve reviewed across at least two weeks. Keep your reviews on schedule and it&apos;ll appear here.
+              </div>
+            )}
           </div>
 
           {/* where to focus */}

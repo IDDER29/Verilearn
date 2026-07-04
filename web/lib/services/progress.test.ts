@@ -3,7 +3,7 @@ import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { gradeCard } from "./review";
 import { gradeSubmission } from "./tasks";
-import { focusAreas, perTopicProgress, progressFor, readinessFor, signalDisplay } from "./progress";
+import { focusAreas, perTopicProgress, progressFor, readinessFor, retentionSeries, signalDisplay } from "./progress";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -121,6 +121,24 @@ describe("progress signals", () => {
     // topics with no data read honestly, never a fabricated verdict
     const merkle = focus.find((f) => f.topicId === "topic_merkle")!;
     expect(merkle.reason).toBe("not enough data yet");
+  });
+
+  it("ANALYTICS-05: weekly retention series is honest-empty until ≥2 weeks carry data", () => {
+    const WEEK = 7 * 86_400_000;
+    // No reviews yet → not enough history, every bucket null.
+    const empty = retentionSeries(USER, SEED_NOW, 6);
+    expect(empty.hasEnough).toBe(false);
+    expect(empty.points.length).toBe(6);
+    expect(empty.points.every((p) => p.retention === null)).toBe(true);
+
+    // Review across two distinct weeks → the series becomes trustworthy.
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW - WEEK); // last week: correct
+    gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", SEED_NOW - 100); // this week: lapse
+    const filled = retentionSeries(USER, SEED_NOW, 6);
+    expect(filled.hasEnough).toBe(true);
+    const withData = filled.points.filter((p) => p.retention !== null);
+    expect(withData.length).toBe(2);
+    expect(retentionSeries("intruder", SEED_NOW, 6).hasEnough).toBe(false);
   });
 
   it("signalDisplay renders empty and populated states honestly", () => {
