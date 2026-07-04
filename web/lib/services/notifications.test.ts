@@ -28,6 +28,16 @@ describe("notifications service", () => {
     expect(testItem!.href).toContain("/tests/");
   });
 
+  it("deep-links conflict + verification notifications to the exact target (NOTIF-02/03)", () => {
+    const items = listNotifications(USER);
+    const conflict = items.find((i) => i.kind === "conflict")!;
+    // links to the exact claim, opened in the adjudication UI
+    expect(conflict.href).toMatch(/\/topics\/conflicts\?topic=.+&claim=.+/);
+    expect(conflict.title).toContain("in “"); // names the topic, not a generic string
+    const verify = items.find((i) => i.kind === "verification")!;
+    expect(verify.href).toMatch(/\/topics\?topic=.+/); // opens that specific topic
+  });
+
   it("mark-all-read persists and drops the unread count to zero (NOTIF-01)", () => {
     expect(unreadNotificationCount(USER)).toBeGreaterThan(0);
     markAllNotificationsRead(USER);

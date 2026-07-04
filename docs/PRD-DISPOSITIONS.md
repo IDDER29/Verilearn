@@ -28,7 +28,7 @@ justification** — nothing is silently dropped.
 | TEST — Tests, Certificates & Verification | 23 | 3 | 17 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
-| NOTIF — Notifications, Reminders & Messaging | 24 | 2 | 13 | 9 |
+| NOTIF — Notifications, Reminders & Messaging | 24 | 3 | 12 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 5 | 7 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 11 | 9 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **94** | **243** | **125** |
+| **TOTAL** | **462** | **95** | **242** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -425,8 +425,8 @@ The domain is implemented as a single read-only derived view (`web/lib/services/
 | Story | Status | Evidence / Justification |
 |-------|--------|--------------------------|
 | NOTIF-01 | ✅ Done | The center is wired to real data with **persistent read-state**: `db.readNotifications` (a namespaced `${userId} ${id}` set) backs `listNotifications` (each item's `unread` now reflects whether it's been read), plus `markAllNotificationsRead` + `unreadNotificationCount` (`lib/services/notifications.ts`). The "Mark all read" button is a real client island (`MarkAllReadButton` → `markAllReadAction`) that disables at zero-unread and refreshes; the header count and the Dashboard bell dot both read the real unread count. Covered by `notifications.test.ts` (read-state persists, per-user, count→0). Remaining nice-to-haves: Today/Earlier bucketing (derived items carry no per-event timestamp yet), 90-day retention, and pagination. |
-| NOTIF-02 | 🟡 Partial | Verification-done notification is real: ready topics emit `"…is verified and ready"` with the actual `verifiedPercent` (`notifications.ts:26-35`), so coverage is not embellished. Missing: **failure/stalled** verification never surfaces (only `status === "ready"` is scanned); no per-terminal-event emit or dedup on re-runs; deep-links to `/topics` not the specific workspace; deleted-topic suppression not handled. |
-| NOTIF-03 | 🟡 Partial | Conflict notifications are wired to real disputed claims, categorized `conflict`, showing topic + claim excerpt and deep-linking to the Conflicts surface (`notifications.ts:49-58`). Reads as a pointer, certifies nothing. Missing: title is generic (`"The Skeptic flagged a disputed claim"`), link is to `/topics/conflicts` not the **exact** Conflict by ID; no real-time emit; no resolved/withdrawn handling. |
+| NOTIF-02 | 🟡 Partial | Verification-done notification is real: ready topics emit `"…is verified and ready"` with the actual `verifiedPercent` (`notifications.ts`), so coverage is not embellished, and it now **deep-links to that specific topic** (`/topics?topic={id}`). Still Missing: **failure/stalled** verification never surfaces (only `status === "ready"` is scanned) — surfacing failed/stuck runs needs the async verification-job model (VERIFY-05, deferred); no per-terminal-event emit/dedup on re-runs; deleted-topic suppression not handled. |
+| NOTIF-03 | ✅ Done | Conflict notifications are derived from real disputed claims (`notifications.ts`), categorized `conflict`, and now (a) carry a **specific title** naming the topic — `The Skeptic flagged a claim in "{topic}"` — and (b) **deep-link to the exact conflict** at `/topics/conflicts?topic={id}&claim={id}`, which pre-selects that dispute in the adjudication UI (via `focusClaimId`). Because the feed is derived live from `listConflicts` (open disputes only), a **resolved/withdrawn** conflict automatically drops off on the next load — no stale pointer. It reads as a pointer and certifies nothing. Covered by `notifications.test.ts` (exact deep-link + topic-named title). Remaining nuance: real-time push emit (vs. on-load derivation) is R2 push infra. |
 | NOTIF-04 | 🟡 Partial | An aggregated single review-due item exists — one notification with a portfolio-wide due count read from the FSRS scheduler, never per-card (`notifications.ts:37-47`), deep-linking `/review`, and suppressed when zero are due. Missing: it is an in-app derived view, not a **scheduled/timed batched reminder**; no delivery at a configured time, no honoring of the (static) Settings → Review "Daily reminder" toggle, no email channel, no timezone logic. |
 | NOTIF-05 | 🟡 Partial | No streak-at-risk nudge exists. The review log substrate is present but no streak length is computed and no engagement-nudge path, suppress toggle, or frequency cap is built in the notifications layer. Nothing external blocks an in-app version; simply unimplemented. |
 | NOTIF-06 | ✅ Done | The notifications service now emits a **`test` kind**: for every topic with test-eligible claims (`listTestableTopics`), a "'{title}' checkpoint is ready · N verified claims eligible" item deep-links to that topic's Test Detail (`/tests/{id}?topic={id}`). The notifications page renders the new kind with its own icon/treatment, and `notifications.test.ts` asserts the test item is emitted with a `/tests/` href. Remaining nice-to-haves: results-ready / retake-available / attempts-low variants (need the persisted-attempt model, TEST runner-Deferred). |
