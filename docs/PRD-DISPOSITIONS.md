@@ -18,7 +18,7 @@ justification** — nothing is silently dropped.
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
-| HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
+| HOME — Learner Home / Dashboard & Discovery | 22 | 7 | 14 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 11 | 11 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 7 | 14 | 3 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **86** | **251** | **125** |
+| **TOTAL** | **462** | **87** | **250** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -96,7 +96,7 @@ email — each behind a clean seam.
 | HOME-07 | 🟡 Partial | No claim-level trust-state search exists (no `disputed`/`unsupported`/`interpretive` operators, no results surface). The building blocks are present — the trust ledger exposes per-claim `TrustState` and `isTestEligible`/`trustBreakdown` — but there is no search index or query UI over decomposed claims. Essentially unimplemented beyond the underlying ledger data. |
 | HOME-08 | ✅ Done | The Dashboard "Upcoming tests" panel (`app/page.tsx`) is now wired to `listTestableTopics` (`lib/services/tests.ts`): it lists the real topics with eligible claims (filtered `eligibleCount > 0`), each showing the topic's level and real eligible-claim count, routing per-entry to Test Detail (`/tests/[slug]?topic=<id>`), with a live "{n} ready" badge and an honest empty state ("No tests ready yet — verify a topic's claims to unlock one"). Remaining nice-to-have: a real per-test deadline/scheduling model (none exists yet — eligibility, not a due date, drives the list). |
 | HOME-09 | ✅ Done | Real open-conflicts count appears in the Dashboard header and the "To review" panel's "Resolve {conflicts} conflicts" row is now a **live link into the Conflicts surface** (`/topics/conflicts`), with the zero-state reassurance wired ("No open conflicts — nice"). The count is summed from ledger `disputes` (`app/page.tsx`), and the Conflicts tab there lists each disputed claim and re-verifies via the system verifier. Remaining nice-to-have: passing the single most-urgent topic/claim as deep-link context (today it lands on the full Conflicts list). |
-| HOME-10 | 🟡 Partial | `createTopic` sets `status: run.ok ? "ready" : "verifying"` (`lib/services/topics.ts:115`) and `TopicSummary.status` carries it; the animated 6-stage `/pipeline` screen exists. But the Dashboard topic row (`app/page.tsx:279-298`) **ignores** the status field — it only renders dispute/verified/on-track chips, never a live "Verifying… (stage N of 6)" state, never a "ready" cue, and does not block entry of an in-pipeline topic or show a failed-verification error/retry path on Home. |
+| HOME-10 | ✅ Done | The Dashboard topic row now **respects the real `status` field** (`app/page.tsx`): a topic still verifying (or that failed verification, `run.ok === false`) shows a "◌ Verifying…" chip instead of the dispute/verified/on-track chips, and its row routes to the `/pipeline?id=…` screen (to watch the run) rather than into the workspace — so an in-pipeline topic isn't entered as if ready. `createTopic` sets `status: run.ok ? "ready" : "verifying"` and `TopicSummary.status` carries it. Remaining nice-to-haves (tied to the Deferred async-job model, VERIFY-05): a live "stage N of 6" figure on the row and an explicit failed-verification Retry affordance on Home. |
 | HOME-11 | ✅ Done | The Dashboard stat cards now show **real, traceable numbers** (`app/page.tsx`): "Verified topics" = `topics.length`, "Claims checked" = `Σ claimCount` across the learner's topics, "Certificates" = live count of the learner's non-revoked `CertificateRecord`s. Every figure is derived from a real record (no hardcoded vanity metrics), satisfying the "every number traceable" invariant; they read genuine values (and the zero-topic case is redirected to `/welcome`, HOME-01). Remaining nice-to-have: explicit drill-through links from each card to its underlying records. |
 | HOME-12 | 🟡 Partial | No guest/demo path. Every Home route calls `requireUser()` which redirects unauthenticated visitors to `/login` (`lib/auth/current.ts:27`); a grep for guest/demo/ephemeral finds only seed/rbac references, no unauthenticated no-persistence render path, no demo topic, no "sign up to keep this" conversion CTA. Needs an isolated guest render path (internal, not vendor-blocked). |
 | HOME-13 | 🟡 Partial | The Free 3-topic cap is **really enforced** in `createTopic` (`lib/services/topics.ts:83-85`, "Free plan is limited to 3 topics… Upgrade to Pro") and surfaced as an inline error in New Topic (`app/new-topic/page.tsx:105`); Settings › Plan shows real plan label, `topicCount` vs `cap` usage bar, and at-limit styling (`app/settings/plan/page.tsx:14-69`); `/upgrade` reads the real `user.plan`. Missing on **Home**: no plan-aware "Go Verified Pro" upgrade nudge, and the Dashboard hero "Start a topic" always routes to `/new-topic` rather than to Upgrade when a Free learner is at cap. Enforcement is at `createTopic`, not at the Home CTA boundary. |
@@ -110,7 +110,7 @@ email — each behind a clean seam.
 | HOME-21 | 🟡 Partial | The `/welcome` "Or start from an example" curated row (`app/welcome/page.tsx:94-121`) acts as the cheap/curated fallback suggestions the story describes and routes into New Topic — but there is no "learn next" suggestions row on the actual Dashboard, suggestions are not pre-filled into New Topic, not transparent about "why they appear", and not personalized (adjacent subjects / prerequisites of open topics). |
 | HOME-22 | 🟡 Partial | A real 12-role RBAC matrix exists (`lib/domain/rbac.ts`), and Home correctly grants no ledger-mutation power to anyone (Home is read-and-route). But `components/AppShell.tsx` / the sidebar are **not role-branched** — there are no instructor-specific cohort/assignment/reporting entry points on Home, and no coexistence of learner + educator contexts. Depends on the Educator domain surfaces. |
 
-**Counts:** 22 total — ✅ 6 Done · 🟡 15 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 22 total — ✅ 7 Done · 🟡 14 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
 
 ---
 
