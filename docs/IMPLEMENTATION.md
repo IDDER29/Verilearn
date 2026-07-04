@@ -42,7 +42,7 @@ testable, and complete in intent while being honest about what runs locally.
 - **P3 — Application/API layer**: server actions / route handlers over the domain, entitlement checks.
 - **P4 — UI wiring**: replace mock data in screens with the engine (core loop first).
 - **P5 — Compliance & ops hooks**: PII redaction, audit log, data export/delete, breach-flag, degradation.
-- **P6 — Story disposition sweep**: every one of the 462 stories marked Done/Partial/Deferred/Out-of-scope.
+- **P6 — Story disposition sweep**: every enumerated story marked Done/Partial/Deferred/Out-of-scope (461 of the PRD's 462 — NOTIF-12 has no row in the sweep, a pre-existing numbering gap, not a dropped story).
 
 ## Progress
 
@@ -54,7 +54,7 @@ testable, and complete in intent while being honest about what runs locally.
 | P3 Services & API | ✅ Done (core loop) | topics + review services; server actions for create/grade; 🟡 remaining domains' services pending |
 | P4 UI wiring | 🟡 8 areas wired | real data on: Dashboard, New Topic (create+cap), Pipeline, Review (FSRS persist), Progress (4 signals), Topic Workspace header/trust panel, Settings Profile + Plan; ~20 screens still faithful-static |
 | P5 Compliance & ops | 🟡 Partial | age-gate + auth gate + tenant scoping + prompt-injection guard live; KMS/DSAR/audit-log/breach = ⏭️ infra |
-| P6 Disposition sweep | ✅ Done | all 462 stories classified — see `docs/PRD-DISPOSITIONS.md` (counts predate the later wirings above, which move a handful HOME/LEARN/REVIEW/ANALYTICS/SETTINGS/TRUST stories Partial→Done) |
+| P6 Disposition sweep | ✅ Done | all 461 enumerated stories classified — see `docs/PRD-DISPOSITIONS.md` (counts predate the many later wirings above, which have since moved a large number of stories across every domain Partial→Done) |
 
 ### The R1 MVP spine is real end-to-end
 create → verify → learn → **produce** → conflicts/sources → retain → **prove** → reflect — all on real data, auth-gated, tenant-scoped, with the epistemic firewall enforced.
@@ -82,21 +82,21 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred |
 | Login / Signup | real auth + COPPA age-gate |
 
-Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
+Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 307 passing across 25 files · build green.
+**Test count:** 311 passing across 26 files · build green.
 
-## Roadmap accounting (462 stories — 100% accounted for)
+## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 131 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 206 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
-| ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
+| ✅ Done | 132 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 205 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
-| **Total** | **462** | every story classified; nothing silently dropped |
+| **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
 
-_(The classifiers are deliberately conservative — a screen with headline data bound but not every field counts as Partial, not Done. The **thesis-critical logic is Done+tested** across 246 unit tests; most Partial items are additional field-binding on a proven pattern; Deferred items are the external-dependency stories the PRD itself phases to R2/R3.)_
+_(The classifiers are deliberately conservative — a screen with headline data bound but not every field counts as Partial, not Done. The **thesis-critical logic is Done+tested**; most Partial items are additional field-binding on a proven pattern; Deferred items are the external-dependency stories the PRD itself phases to R2/R3.)_
 
 The **thesis-critical spine is Done and tested end-to-end**; **Partial** items are faithful screens
 awaiting the mechanical service-wiring pass proven on the core loop; **Deferred** items are exactly
@@ -122,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the public pricing view + plan-intent hold-state (BILL-03) — 131 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the public certificate-verify API (API-03) and a documentation-count reconciliation (461 enumerated stories, not 462 — see roadmap-accounting note) — 132 Done; remainder is field-polish or deferred-with-justification._

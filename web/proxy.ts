@@ -8,10 +8,12 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 // /pricing is a public, unauthenticated pricing view (BILL-03).
 const PUBLIC = new Set(["/login", "/signup", "/pricing"]);
+// The public certificate-verify endpoint (API-03) — no session required, by design.
+const PUBLIC_PREFIXES = ["/api/verify/"];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.has(pathname)) return NextResponse.next();
+  if (PUBLIC.has(pathname) || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
   const hasSession = req.cookies.has("vl_session");
   if (!hasSession) {
     const url = req.nextUrl.clone();

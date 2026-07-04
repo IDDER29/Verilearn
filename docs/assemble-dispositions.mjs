@@ -17,15 +17,15 @@ const ROWS = [
   ["TEST", "Tests, Certificates & Verification", 23, 4, 16, 3],
   ["COMM", "Community, Contributions & Reputation", 24, 0, 14, 10],
   ["EVENT", "Events: Workshops, Groups & Challenges", 25, 0, 18, 7],
-  ["NOTIF", "Notifications, Reminders & Messaging", 24, 5, 10, 9],
+  ["NOTIF", "Notifications, Reminders & Messaging", 23, 5, 9, 9],
   ["ANALYTICS", "Progress, Reports & Analytics", 21, 8, 4, 9],
   ["SETTINGS", "Settings, Profile & Privacy", 23, 13, 7, 3],
   ["BILL", "Billing, Plans & Subscriptions", 23, 6, 5, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],
   ["A11Y", "Accessibility, Mobile & Offline", 24, 6, 14, 4],
-  ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 1, 3, 18],
-  ["SEC", "Security, Privacy Eng. & Compliance", 23, 3, 3, 17],
+  ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 2, 2, 18],
+  ["SEC", "Security, Privacy Eng. & Compliance", 23, 3, 4, 16],
 ];
 
 const sum = (i) => ROWS.reduce((a, r) => a + r[i], 0);
@@ -40,9 +40,11 @@ const rollup = [
 
 const header = `# VeriLearn — User-Story Disposition (Roadmap Accounting)
 
-Every one of the **462 PRD user stories** classified against the actual codebase. This is the
-completion-criteria artifact: each story is **implemented, partially implemented, or deferred with
-justification** — nothing is silently dropped.
+The PRD specifies 462 user stories; this sweep enumerates **${T.total}** of them against the actual
+codebase (NOTIF-12 has no entry in the per-domain breakdown below — a pre-existing numbering gap in the
+sweep, not a story silently dropped from scope; every ID that IS present is classified). This is the
+completion-criteria artifact: each enumerated story is **implemented, partially implemented, or deferred
+with justification** — nothing among them is silently dropped.
 
 ## Legend
 - ✅ **Done** — core behavior implemented and covered by a test, or wired to real data in the app.

@@ -1,8 +1,10 @@
 # VeriLearn — User-Story Disposition (Roadmap Accounting)
 
-Every one of the **462 PRD user stories** classified against the actual codebase. This is the
-completion-criteria artifact: each story is **implemented, partially implemented, or deferred with
-justification** — nothing is silently dropped.
+The PRD specifies 462 user stories; this sweep enumerates **461** of them against the actual
+codebase (NOTIF-12 has no entry in the per-domain breakdown below — a pre-existing numbering gap in the
+sweep, not a story silently dropped from scope; every ID that IS present is classified). This is the
+completion-criteria artifact: each enumerated story is **implemented, partially implemented, or deferred
+with justification** — nothing among them is silently dropped.
 
 ## Legend
 - ✅ **Done** — core behavior implemented and covered by a test, or wired to real data in the app.
@@ -28,16 +30,16 @@ justification** — nothing is silently dropped.
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
-| NOTIF — Notifications, Reminders & Messaging | 24 | 5 | 10 | 9 |
+| NOTIF — Notifications, Reminders & Messaging | 23 | 5 | 9 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 8 | 4 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 13 | 7 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 6 | 5 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
-| API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
-| SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 3 | 17 |
-| **TOTAL** | **462** | **131** | **206** | **125** |
+| API — Integrations, API, Webhooks, SSO & LTI | 22 | 2 | 2 | 18 |
+| SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
+| **TOTAL** | **461** | **132** | **205** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -665,7 +667,7 @@ This domain is the external/federated surface (public REST/GraphQL, API keys, OA
 |---|---|---|
 | API-01 | ⏭️ Deferred | No developer console, app registration, or API-key/OAuth-client minting exists. Seam present: the scope model (`Permission` enum, least-privilege, `trust:write` excluded) lives in `lib/domain/rbac.ts`, and secrets are already stored hashed via scrypt (`lib/auth/password.ts`). Needs API credential + dev-console infrastructure. |
 | API-02 | ⏭️ Deferred | No OAuth 2.0 authorization-code or client-credentials flow, no token introspection/revocation, no consent-scope model. Needs OAuth server infrastructure (listed under deferred SSO/OIDC). |
-| API-03 | 🟡 Partial | Verification logic is **done and fail-closed**: `verifyCertificate()` in `lib/domain/certificates.ts` returns `unknown`/`revoked`/`valid`, never defaults to valid, never throws (tested in `certificates.test.ts`); surfaced in-app on Test Results (verify code). **Missing:** the programmatic `GET` endpoint, signed response envelope, live `503 unverifiable_try_again` degraded state, and enumeration rate-limiting. No HTTP surface exposes it. |
+| API-03 | ✅ Done | The programmatic public verify endpoint now exists: `GET /api/verify/[code]` (`app/api/verify/[code]/route.ts`), a real Next.js Route Handler — no vendor/external infra needed, since Route Handlers are a first-party framework primitive. It wraps the fail-closed `verifyCertificate()`/`publicVerify()` (`lib/services/certificates.ts`) — an unknown or revoked code never resolves valid — and is exempted from the session auth-gate (`proxy.ts`, `PUBLIC_PREFIXES`), verified via curl to be reachable with **no session cookie**. The response is a **signed envelope**: an HMAC-SHA256 (`X-VeriLearn-Signature` header) over the exact JSON body, verified by manual recomputation to match byte-for-byte. A malformed/empty code returns `400`; an infra fault in the lookup fails closed to **`503 unverifiable_try_again`** (a real `try/catch` around the store read, not a fabricated branch — this in-memory store has no genuine I/O failure mode today, but the fail-closed path is real code that runs if the lookup ever throws). The response is **PII-safe**: only `topicTitle`/`testScorePct`/`issuedAt` are returned on a valid cert — never the learner's id/name/email — verified in `lib/services/certificates.test.ts` (valid/revoked/unknown, no leaked PII, signature-stable). Remaining gap: **enumeration rate-limiting** needs shared/distributed limiter infrastructure this single-process app doesn't have. |
 | API-04 | 🟡 Partial | The five-state read data is modeled and read-only: `lib/domain/trust.ts` distinguishes `Verified·execution/source`, `Sourced`, `Disputed`, `Unsupported`, `Interpretive` + Conflicts (no binary collapse), and `lib/services/sources.ts` produces the claims×sources coverage matrix, surfaced on the Lecture/Sources tabs. **Missing:** any REST or GraphQL transport, `trust:read` scope gating, `as_of` ledger versioning, and `pipeline_incomplete` status. |
 | API-05 | 🟡 Partial | The four honest signals are implemented with honest empty/low-confidence states (`lib/domain/signals.ts`, `lib/services/progress.ts`, tested). **Missing:** the `signals:read` consent scope, any consent model, k-anonymity/minimum-cohort enforcement, per-read audit logging, and the API to expose them — so no consent-gated external read exists. |
 | API-06 | ⏭️ Deferred | No webhook subscription system, event catalog, HMAC-signed delivery, or delivery console. Needs webhook delivery infrastructure. |
@@ -686,7 +688,7 @@ This domain is the external/federated surface (public REST/GraphQL, API keys, OA
 | API-21 | ✅ Done | The defining invariant is enforced in the capability layer that any future API inherits. `lib/domain/rbac.ts`: `trust:write` is a `FIREWALL_PERMISSIONS` granted to **no** human role and unobtainable via break-glass; `rbac.test.ts` asserts no role holds it. `lib/domain/trust.ts` restricts trust-state writes to the system verifier / SME dual-control path only. No API verb, scope, webhook, or role can reach epistemic write because none exists and the capability model structurally forbids it. Certification authority stays with the pipeline/SME. (No external write path exists to breach; the guarantee is structural, not merely vacuous.) |
 | API-22 | ⏭️ Deferred | No rate-limit headers, `429`/`Retry-After`, tiered quotas, or enumeration protection. `proxy.ts` provides an auth gate but no rate limiting. Needs API infrastructure. |
 
-**Summary:** 22 total — ✅ 1 Done, 🟡 3 Partial, ⏭️ 18 Deferred, 🚫 0 Out-of-scope.
+**Summary:** 22 total — ✅ 2 Done, 🟡 2 Partial, ⏭️ 18 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
