@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton } from "@/components/ui";
 import { createTopicAction } from "@/app/topic-actions";
@@ -72,10 +72,16 @@ function GoalPill({ goal, selected, onClick }: { goal: Goal; selected: boolean; 
   );
 }
 
-export default function NewTopicPage() {
+/**
+ * Reads `?topic=` / `?level=` deep-link params from a welcome-screen example
+ * on-ramp (HOME-02) to pre-fill the form — falling back to the illustrative
+ * defaults when the page is opened directly (e.g. from the sidebar).
+ */
+function NewTopicInner() {
   const router = useRouter();
-  const [topic, setTopic] = useState("Merkle trees");
-  const [level, setLevel] = useState("Comfortable with hashing; new to tree structures and cryptographic proofs.");
+  const params = useSearchParams();
+  const [topic, setTopic] = useState(params.get("topic") || "Merkle trees");
+  const [level, setLevel] = useState(params.get("level") || "Comfortable with hashing; new to tree structures and cryptographic proofs.");
   const [goal, setGoal] = useState<number | null>(0);
   const [tried, setTried] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -277,5 +283,13 @@ export default function NewTopicPage() {
         </div>
       </main>
     </AppShell>
+  );
+}
+
+export default function NewTopicPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewTopicInner />
+    </Suspense>
   );
 }

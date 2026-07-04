@@ -6,9 +6,9 @@ import { listTopicSummaries } from "@/lib/services/topics";
 export const metadata = { title: "Welcome · VeriLearn" };
 
 const EXAMPLES = [
-  { emoji: "🧭", bg: "#efe9ff", title: "Dijkstra's algorithm", meta: "Algorithms · beginner" },
-  { emoji: "🌳", bg: "#e9f7ef", title: "Merkle trees", meta: "Cryptography · intermediate" },
-  { emoji: "🔍", bg: "#e2ecfb", title: "Binary search", meta: "Algorithms · beginner" },
+  { emoji: "🧭", bg: "#efe9ff", title: "Dijkstra's algorithm", meta: "Algorithms · beginner", level: "New to graph algorithms; comfortable with basic data structures." },
+  { emoji: "🌳", bg: "#e9f7ef", title: "Merkle trees", meta: "Cryptography · intermediate", level: "Comfortable with hashing; new to tree structures and cryptographic proofs." },
+  { emoji: "🔍", bg: "#e2ecfb", title: "Binary search", meta: "Algorithms · beginner", level: "Know arrays and loops; new to divide-and-conquer thinking." },
 ];
 
 export default async function WelcomePage() {
@@ -91,7 +91,9 @@ export default async function WelcomePage() {
             </div>
           </div>
 
-          {/* example on-ramps */}
+          {/* example on-ramps — only for a genuinely new account (HOME-02): once the
+              learner has their own topics, curated examples no longer apply. */}
+          {isNew && (
           <div>
             <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#a7a1b8", marginBottom: 12 }}>
               Or start from an example
@@ -100,7 +102,7 @@ export default async function WelcomePage() {
               {EXAMPLES.map((e) => (
                 <Link
                   key={e.title}
-                  href="/new-topic"
+                  href={`/new-topic?topic=${encodeURIComponent(e.title)}&level=${encodeURIComponent(e.level)}`}
                   style={{
                     textDecoration: "none",
                     color: "inherit",
@@ -119,6 +121,7 @@ export default async function WelcomePage() {
               ))}
             </div>
           </div>
+          )}
 
           {/* how it works, 3 steps */}
           <div style={{ background: "#fff", borderRadius: 22, padding: "24px 26px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
