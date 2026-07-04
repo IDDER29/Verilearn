@@ -5,7 +5,7 @@
  */
 import type { Db } from "@/lib/store/db";
 import { userByEmail } from "@/lib/store/db";
-import type { Session, User } from "@/lib/store/entities";
+import { defaultPrefs, type Session, type User } from "@/lib/store/entities";
 import { ageGate } from "./age";
 import { hashPassword, verifyPassword } from "./password";
 import { SESSION_TTL_MS, signToken, verifyToken } from "./session";
@@ -65,6 +65,15 @@ export function signUp(db: Db, input: SignUpInput, opts: { now: number; secret: 
     ageBand: gate.band,
     plan: "free",
     createdAt: opts.now,
+    prefs: (() => {
+      const p = defaultPrefs();
+      // Minor-safe defaults (SEC-11): no community visibility or email for minors.
+      if (gate.minorSafeDefaults) {
+        p.privacy.communityVisible = false;
+        p.privacy.emailUpdates = false;
+      }
+      return p;
+    })(),
   };
   db.users.set(user.id, user);
   const { token } = createSession(db, user.id, opts.secret, opts.now, opts.tokenNonce);

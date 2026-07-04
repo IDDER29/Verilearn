@@ -9,7 +9,7 @@ import { openGap } from "@/lib/domain/gap";
 import { TrustLedger, verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { Claim, Source, TrustState, VerificationEvent } from "@/lib/domain/types";
 import type { Db } from "./db";
-import type { TopicRecord, User } from "./entities";
+import { defaultPrefs, type TopicRecord, type User } from "./entities";
 
 const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSME: false };
 
@@ -88,6 +88,7 @@ export function seedDb(db: Db, now: number): void {
     ageBand: "adult",
     plan: "free",
     createdAt: now,
+    prefs: defaultPrefs(),
   };
   db.users.set(user.id, user);
 

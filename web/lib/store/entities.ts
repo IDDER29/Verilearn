@@ -11,6 +11,25 @@ import type { Role } from "@/lib/domain/rbac";
 
 export type AgeBand = "adult" | "minor" | "unknown";
 
+/**
+ * Learner preferences. Verification/active-listening/review settings apply to
+ * FUTURE lectures/sessions only — they never mutate the trust ledger (SETTINGS-08 /
+ * invariant I1). Privacy toggles govern analytics/visibility/email.
+ */
+export interface UserPrefs {
+  activeListening: { predict: boolean; pause: boolean; cloze: boolean; connection: boolean; closeGate: boolean; frequency: number };
+  review: { targetRetention: number; dailyLimit: number; maxIntervalDays: number; confidenceGate: boolean; drills: boolean; reminders: boolean };
+  privacy: { analytics: boolean; communityVisible: boolean; emailUpdates: boolean };
+}
+
+export function defaultPrefs(): UserPrefs {
+  return {
+    activeListening: { predict: true, pause: true, cloze: false, connection: false, closeGate: true, frequency: 2 },
+    review: { targetRetention: 90, dailyLimit: 40, maxIntervalDays: 365, confidenceGate: true, drills: true, reminders: true },
+    privacy: { analytics: true, communityVisible: true, emailUpdates: false },
+  };
+}
+
 export interface User {
   id: string;
   email: string;
@@ -23,6 +42,7 @@ export interface User {
   ageBand: AgeBand;
   plan: "free" | "pro" | "team";
   createdAt: number;
+  prefs: UserPrefs;
 }
 
 export interface Session {
