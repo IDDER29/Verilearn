@@ -48,6 +48,18 @@ describe("test session (prove loop)", () => {
     expect(s.passBar).toBe(75);
   });
 
+  it("discloses reduced coverage honestly rather than padding with ineligible claims (TEST-20)", () => {
+    // Dijkstra has one disputed claim seeded — coverage is genuinely reduced.
+    const dijkstra = buildSession(USER, "topic_dijkstra")!;
+    expect(dijkstra.reducedCoverage).toBe(true);
+    expect(dijkstra.excludedCount).toBe(1);
+
+    // Binary search has no disputed/unsupported claims seeded — full coverage.
+    const binsearch = buildSession(USER, "topic_binsearch")!;
+    expect(binsearch.reducedCoverage).toBe(false);
+    expect(binsearch.excludedCount).toBe(0);
+  });
+
   it("a passing score issues + persists a certificate; a failing one does not", () => {
     const before = globalThis.__verilearnDb!.certificates.size; // a seeded cert already exists (ADMIN-15/22 fixture)
     const pass = submitTest(USER, "topic_dijkstra", 5, 5);

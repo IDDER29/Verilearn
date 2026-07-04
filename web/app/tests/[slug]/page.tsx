@@ -126,6 +126,15 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
             </div>
           </div>
 
+          {/* reduced coverage (TEST-20): the engine never pads with ineligible claims —
+              when that means fewer questions than the topic's full claim count, say so. */}
+          {session?.reducedCoverage && (
+            <div style={{ display: "flex", alignItems: "center", gap: 9, background: "#fbefdd", border: "1.5px solid #f0dcae", borderRadius: 14, padding: "12px 15px", font: "700 12.5px/1.5 var(--font-nunito)", color: "#9a7f2a" }}>
+              <span aria-hidden style={{ fontSize: 16 }}>⚠️</span>
+              Reduced coverage — {session.excludedCount} of this topic&apos;s claim{session.excludedCount === 1 ? "" : "s"} couldn&apos;t be included (disputed, unsourced, or under review), so this test draws from fewer questions than the topic&apos;s full claim count.
+            </div>
+          )}
+
           {/* format strip */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
             <div style={{ background: "#fff", borderRadius: 18, padding: "16px 18px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>

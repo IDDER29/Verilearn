@@ -20,6 +20,10 @@ export interface TestSessionInfo {
   questionCount: number;
   durationMs: number;
   passBar: number;
+  /** True when the topic has claims that couldn't make the test (disputed/unsupported/interpretive/quarantined) — coverage is disclosed, never padded (TEST-20). */
+  reducedCoverage: boolean;
+  /** How many of the topic's claims were left out of the test. */
+  excludedCount: number;
 }
 
 /** Format a test for a topic from its eligible claims (returns null if none). */
@@ -38,6 +42,8 @@ export function buildSession(userId: string, topicId: string): TestSessionInfo |
     questionCount: built.questions.length,
     durationMs: TEST_DURATION_MS,
     passBar: TEST_PASS_BAR,
+    reducedCoverage: built.reducedCoverage,
+    excludedCount: topic.claims.length - built.questions.length,
   };
 }
 
