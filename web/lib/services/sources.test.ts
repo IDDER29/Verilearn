@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { addSourceForClaim, coverageMatrix } from "./sources";
+import { addSourceForClaim, coverageMatrix, removeSource, setPreferredSource } from "./sources";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -52,6 +52,35 @@ describe("coverage matrix", () => {
     expect(row.state).toBe("sourced");
     expect(row.cells.some((c) => c.state !== null)).toBe(true); // a cell is now filled
     expect(after.backedCount).toBe(before.backedCount + 1);
+  });
+
+  it("TRUST-11: setPreferredSource marks exactly one source preferred", () => {
+    const db = globalThis.__verilearnDb!;
+    const topic = db.topics.get("topic_dijkstra")!;
+    const target = topic.sources[1].id;
+    expect(setPreferredSource(USER, "topic_dijkstra", target).ok).toBe(true);
+    expect(topic.sources.filter((s) => s.preferred)).toHaveLength(1);
+    expect(topic.sources.find((s) => s.preferred)!.id).toBe(target);
+  });
+
+  it("TRUST-11: removing a source fail-closes claims it solely backed to unsupported", () => {
+    const before = coverageMatrix(USER, "topic_dijkstra")!;
+    // find a source that backs at least one claim
+    const src = before.sources.find((s) => before.rows.some((r) => r.cells.some((c) => c.sourceId === s.id && c.state !== null)))!;
+    const backed = before.rows.filter((r) => {
+      const cell = r.cells.find((c) => c.sourceId === src.id);
+      return cell?.state !== null && r.cells.every((c) => c.sourceId === src.id || c.state === null);
+    });
+
+    const r = removeSource(USER, "topic_dijkstra", src.id);
+    expect(r.ok).toBe(true);
+    expect(r.downgraded).toBe(backed.length);
+
+    const after = coverageMatrix(USER, "topic_dijkstra")!;
+    expect(after.sources.some((s) => s.id === src.id)).toBe(false); // source gone
+    for (const b of backed) {
+      expect(after.rows.find((rr) => rr.claimId === b.claimId)!.state).toBe("unsupported");
+    }
   });
 
   it("refuses to re-source an already-backed claim and enforces a title", () => {

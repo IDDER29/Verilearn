@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 import type { TrustState } from "@/lib/domain/types";
-import { addSourceAction } from "@/app/source-actions";
+import { addSourceAction, removeSourceAction, setPreferredSourceAction } from "@/app/source-actions";
 
 /** One matrix cell coloured by how (if at all) a source backs the claim. */
 function Cell({ filled, state, rowUnsupported }: { filled: boolean; state: TrustState | null; rowUnsupported: boolean }) {
@@ -93,6 +93,19 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
     }
   }
 
+  async function prefer(sourceId: string) {
+    if (!data) return;
+    const r = await setPreferredSourceAction(data.topicId, sourceId);
+    if (r.ok) router.refresh();
+  }
+
+  async function remove(sourceId: string, backs: number) {
+    if (!data) return;
+    if (backs > 0 && !window.confirm(`This source backs ${backs} claim${backs === 1 ? "" : "s"}. Removing it will fail-close ${backs === 1 ? "that claim" : "those claims"} to unsupported until re-backed. Remove it?`)) return;
+    const r = await removeSourceAction(data.topicId, sourceId);
+    if (r.ok) router.refresh();
+  }
+
   return (
     <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
       {/* breadcrumb */}
@@ -139,6 +152,14 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
             </div>
             <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>
               Backs {cov?.backsBySource[s.id] ?? 0} claim{(cov?.backsBySource[s.id] ?? 0) === 1 ? "" : "s"}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,.06)" }}>
+              {s.preferred ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "800 10.5px var(--font-nunito)", color: "#6d5bd0" }}>★ Preferred</span>
+              ) : (
+                <button type="button" onClick={() => prefer(s.id)} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", font: "800 10.5px var(--font-nunito)", color: "#8b8699" }}>☆ Prefer</button>
+              )}
+              <button type="button" onClick={() => remove(s.id, cov?.backsBySource[s.id] ?? 0)} style={{ marginLeft: "auto", border: "none", background: "none", padding: 0, cursor: "pointer", font: "800 10.5px var(--font-nunito)", color: "#c0392b" }}>Remove</button>
             </div>
           </div>
         ))}

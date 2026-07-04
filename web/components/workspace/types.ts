@@ -29,7 +29,7 @@ export interface WorkspaceData {
   claims: LectureClaim[];
   disputedClaims: { claimId: string; text: string }[];
   coverage: {
-    sources: { id: string; title: string; kind: string }[];
+    sources: { id: string; title: string; kind: string; preferred: boolean }[];
     rows: { claimId: string; claimText: string; state: TrustState; cells: { sourceId: string; filled: boolean; state: TrustState | null }[] }[];
     coveragePercent: number;
     backedCount: number;

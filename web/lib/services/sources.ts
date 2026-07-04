@@ -115,3 +115,60 @@ export function addSourceForClaim(
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
   return { ok: true, newState: ledger.stateOf(claimId), sourceId: source.id };
 }
+
+/** Mark one source as the topic's preferred citation (exactly one per topic, TRUST-11). */
+export function setPreferredSource(userId: string, topicId: string, sourceId: string): { ok: boolean; error?: string } {
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  if (!topic.sources.some((s) => s.id === sourceId)) return { ok: false, error: "Source not found." };
+  for (const s of topic.sources) s.preferred = s.id === sourceId;
+  return { ok: true };
+}
+
+export interface RemoveSourceResult {
+  ok: boolean;
+  error?: string;
+  /** Claims that lost their only backing and were fail-closed to `unsupported`. */
+  downgraded: number;
+}
+
+/**
+ * Remove a source from a topic (TRUST-11). Any claim whose current backing cited
+ * this source, with no other present source backing it, is fail-closed to
+ * `unsupported` via a SYSTEM event — the "removing the only backing source →
+ * unsupported" invariant, kept consistent between ledger and coverage.
+ */
+export function removeSource(userId: string, topicId: string, sourceId: string): RemoveSourceResult {
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found.", downgraded: 0 };
+  if (!topic.sources.some((s) => s.id === sourceId)) return { ok: false, error: "Source not found.", downgraded: 0 };
+
+  topic.sources = topic.sources.filter((s) => s.id !== sourceId);
+  const remaining = new Set(topic.sources.map((s) => s.id));
+
+  const ledger = ledgerFor(topic);
+  const at = now();
+  let downgraded = 0;
+  for (const claim of topic.claims) {
+    const ev = ledger.evidenceOf(claim.id);
+    // Backing cited the removed source and nothing present still backs it.
+    if (ev?.sourceId === sourceId && !remaining.has(ev.sourceId)) {
+      ledger.record(SYSTEM, {
+        id: newId("ve"),
+        claimId: claim.id,
+        state: "unsupported",
+        producedBy: SYSTEM.id,
+        producerVersion: "remove-source-v1",
+        at,
+        evidence: { method: "none", detail: "Backing source removed by the learner", confidence: 0, resolved: false },
+      });
+      downgraded += 1;
+    }
+  }
+
+  topic.events = ledger.allEvents();
+  topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  return { ok: true, downgraded };
+}
