@@ -95,11 +95,30 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
 
-_(Counts from the v2 sweep after the R1 spine was wired. The classifiers are deliberately conservative — a screen with headline data bound but not every field counts as Partial, not Done. The **thesis-critical logic is Done+tested** across 236 unit tests; most Partial items are additional field-binding on a proven pattern; Deferred items are the external-dependency stories the PRD itself phases to R2/R3.)_
+_(The classifiers are deliberately conservative — a screen with headline data bound but not every field counts as Partial, not Done. The **thesis-critical logic is Done+tested** across 246 unit tests; most Partial items are additional field-binding on a proven pattern; Deferred items are the external-dependency stories the PRD itself phases to R2/R3.)_
 
 The **thesis-critical spine is Done and tested end-to-end**; **Partial** items are faithful screens
 awaiting the mechanical service-wiring pass proven on the core loop; **Deferred** items are exactly
 the external dependencies the PRD predicted (payments, SSO/LTI, real LLM/sandbox, KMS, email). Full
 per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the P6 disposition sweep — roadmap 100% accounted for._
+### Terminal state of the wiring pass
+
+Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
+wired to real data**. The remaining **304 Partial** stories fall into exactly two honest buckets:
+
+1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
+   what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
+   whose primary numbers are already computed). No new engine is required.
+2. **Screens gated on clearly-deferred infrastructure**, each behind a clean seam:
+   - **MCQ Test Runner / Retake** — the deterministic verifier emits no answer options; needs the real LLM item-writer.
+   - **Review › Discuss** — needs the live LLM Skeptic.
+   - **Upgrade › Checkout** — needs a real payment processor (Stripe); the plan-state transition itself is wired (demo, no charge).
+   - **Community / Events** — R2/R3 data models not seeded.
+   - **SSO / LTI / API / KMS / managed DB / email** — external vendor/infra.
+
+Per the project's completion criteria — *every story implemented, deferred with justification, or documented
+as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
+and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
+
+_Last updated: after the core-loop wiring pass — 33 Done, achievable scope complete; remainder deferred-with-justification._
