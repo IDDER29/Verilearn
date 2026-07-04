@@ -118,6 +118,21 @@ export interface GapRecord {
 }
 
 /**
+ * A claim under active T&S review (ADMIN-14): an admin override layered on
+ * top of the trust ledger, not a trust state itself — the claim's real
+ * verified/sourced/disputed state is untouched, but a quarantined claim is
+ * held out of tests and review the same way a disputed one already is
+ * (reusing the existing `isTestEligible` bar), until a reviewer clears it.
+ */
+export interface QuarantineRecord {
+  claimId: string;
+  topicId: string;
+  reason: string;
+  quarantinedAt: number;
+  quarantinedBy: string;
+}
+
+/**
  * A seeded error-drill (ANALYTICS-07 / REVIEW-06): a statement salted into
  * review that may be true or may be the deliberate seeded error, testing
  * whether the learner catches it rather than pattern-matching. Content is

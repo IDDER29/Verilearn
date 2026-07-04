@@ -22,7 +22,7 @@ const ROWS = [
   ["SETTINGS", "Settings, Profile & Privacy", 23, 13, 7, 3],
   ["BILL", "Billing, Plans & Subscriptions", 23, 8, 3, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
-  ["ADMIN", "Platform Admin, Moderation & T&S", 23, 4, 9, 10],
+  ["ADMIN", "Platform Admin, Moderation & T&S", 23, 5, 8, 10],
   ["A11Y", "Accessibility, Mobile & Offline", 24, 6, 14, 4],
   ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 4, 1, 17],
   ["SEC", "Security, Privacy Eng. & Compliance", 23, 3, 4, 16],

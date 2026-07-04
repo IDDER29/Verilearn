@@ -17,6 +17,13 @@ import {
   type AdminModerationResult,
   type AdminUserView,
 } from "@/lib/services/moderation";
+import {
+  listAllClaimsForAdmin,
+  quarantineClaimForAdmin,
+  unquarantineClaimForAdmin,
+  type AdminClaimView,
+  type AdminQuarantineResult,
+} from "@/lib/services/quarantine";
 import { now } from "@/lib/ids";
 
 /** RBAC-gated: only a `cert:revoke`-holding role sees any real data (ADMIN-15). */
@@ -64,5 +71,29 @@ export async function unbanUserAction(targetUserId: string, reason: string): Pro
   if (!user) return { ok: false, error: "Please sign in again." };
   const r = unbanUserForAdmin(user.id, user.role, targetUserId, reason, now());
   if (r.ok) revalidatePath("/admin/users");
+  return r;
+}
+
+/** RBAC-gated: only an `integrity:quarantine`-holding role sees any real data (ADMIN-14). */
+export async function listAdminClaimsAction(): Promise<AdminClaimView[]> {
+  const user = await getCurrentUser();
+  if (!user || !can(user.role, "integrity:quarantine")) return [];
+  return listAllClaimsForAdmin();
+}
+
+export async function quarantineClaimAction(claimId: string, topicId: string, reason: string): Promise<AdminQuarantineResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Please sign in again." };
+  const r = quarantineClaimForAdmin(user.id, user.role, claimId, topicId, reason, now());
+  if (r.ok) revalidatePath("/admin/quarantine");
+  return r;
+}
+
+/** Clear a claim's quarantine (ADMIN-14) — never touches the claim's real ledger-derived trust state. */
+export async function unquarantineClaimAction(claimId: string): Promise<AdminQuarantineResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Please sign in again." };
+  const r = unquarantineClaimForAdmin(user.role, claimId);
+  if (r.ok) revalidatePath("/admin/quarantine");
   return r;
 }

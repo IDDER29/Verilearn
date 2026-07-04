@@ -12,6 +12,7 @@ import type { ReviewLogEntry } from "@/lib/store/entities";
 import { listTopicSummaries } from "./topics";
 import { openGapCountForClaims } from "./gaps";
 import { blindSpotOutcomes } from "./drills";
+import { isQuarantined } from "./quarantine";
 import { now } from "@/lib/ids";
 
 /** Trend-delta comparison window for the four signals (ANALYTICS-01): "vs. 7 days ago". */
@@ -134,7 +135,8 @@ export function readinessFor(userId: string, topicId: string, _now: number): Rea
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { pct: null, lowConfidence: true, basis: "not enough data yet", reviewed: 0, covered: 0 };
 
-  const eligible = eligibleClaims(topic.claims, ledgerFor(topic));
+  // A quarantined claim (ADMIN-14) is held out the same way a disputed one is.
+  const eligible = eligibleClaims(topic.claims, ledgerFor(topic)).filter((c) => !isQuarantined(c.id));
   const eligibleIds = new Set(eligible.map((c) => c.id));
   const topicReviews = db.reviewLog.filter((r) => r.userId === userId && r.topicId === topicId && eligibleIds.has(r.claimId));
 

@@ -5,6 +5,7 @@
  */
 import { eligibleClaims } from "@/lib/domain/tests-engine";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
+import { isQuarantined } from "./quarantine";
 
 export interface TestableTopic {
   topicId: string;
@@ -20,7 +21,9 @@ export interface TestableTopic {
 export function listTestableTopics(userId: string): TestableTopic[] {
   return topicsOf(getDb(), userId).map((topic) => {
     const ledger = ledgerFor(topic);
-    const eligible = eligibleClaims(topic.claims, ledger);
+    // A quarantined claim (ADMIN-14) is held out the same way a disputed one is —
+    // a T&S override layered on top of the trust ledger, not a ledger state itself.
+    const eligible = eligibleClaims(topic.claims, ledger).filter((c) => !isQuarantined(c.id));
     const claimCount = topic.claims.length;
     return {
       topicId: topic.id,

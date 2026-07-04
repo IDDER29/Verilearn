@@ -87,17 +87,18 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Live demo (`/demo`) | public, no-account guest showcase — a true no-login guest demo (AUTH-01), reachable via `proxy.ts`'s allowlist; real `TrustLedger` engine over a fixed scenario, firewall-respecting resolve, nothing persisted (TRUST-22); real six-stage pipeline run over a fixed canned topic, same engine a signed-in `createTopic` uses (VERIFY-22); real Lecture reader with live per-claim trust badges from the same ledger (LEARN-17) |
 | Admin › Certificates (`/admin/certificates`) | the first real, RBAC-gated admin console screen (ADMIN-15/22): `can(role, "cert:revoke")` actually gates the page — a learner sees an honest "no access" state, a seeded `trust_safety_lead` sees real certificates and can revoke/reinstate them, with the reviewer-other-than-actor rule genuinely enforced (verified live: same reviewer refused, a different one succeeds) |
 | Admin › Users (`/admin/users`) | real ban/unban console (ADMIN-16), `can(role, "user:ban")`-gated the same way: banning a learner ends every one of their live sessions immediately and blocks their next sign-in with a distinct "account suspended" message (not a silent password failure); unban requires a genuinely different `trust_safety_lead` reviewer than whoever banned — verified live end-to-end, including the banned learner being unable to sign in and then able to again once unbanned |
+| Admin › Claim quarantine (`/admin/quarantine`) | real quarantine console (ADMIN-14), `can(role, "integrity:quarantine")`-gated: a quarantined claim is held out of Tests, Progress readiness, and Review the same way a disputed claim already is, without touching its real trust state — verified live: quarantining the claim behind a due review card makes it genuinely vanish from the learner's live review session, and clearing it restores full eligibility |
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 436 passing across 33 files · build green.
+**Test count:** 446 passing across 34 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 159 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 179 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 160 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 178 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -112,7 +113,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **179 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **178 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -128,4 +129,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after adding real, enforced ban/unban (ADMIN-16) — `/admin/users`, wired to `can(role, "user:ban")`, ends every live session immediately on ban, blocks the next sign-in with a distinct message, and requires a genuinely different reviewer to unban, all verified live end-to-end — on top of the first real, RBAC-gated admin console for certificates (ADMIN-15/22), the embeddable verify badge with a narrow, verified CSP frame-ancestors carve-out (API-15), the dirty-state `beforeunload` navigation guard on the Profile edit forms (SETTINGS-20), the Community thread's real keyboard-operable vote/reply/share controls (COMM-16), real cross-topic, claim-level Dashboard search results (HOME-07), Test Detail's "Boost your odds" levers (TEST-09), the heat-spike notification for a gap whose severity reaches "high" (GAP-22), correcting AUTH-01/AUTH-02's stale "no guest demo" premise, the public certificate verify page (TEST-11), the guest demo-pipeline run and Lecture reader (VERIFY-22/LEARN-17), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 159 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after adding a real claim quarantine console (ADMIN-14) — `/admin/quarantine`, wired to `can(role, "integrity:quarantine")`, holding a quarantined claim out of Tests/Progress-readiness/Review the same way a disputed claim already is, without touching its real ledger state, verified live by watching a claim genuinely vanish from a learner's due review session — on top of real, enforced ban/unban (ADMIN-16), the first real, RBAC-gated admin console for certificates (ADMIN-15/22), the embeddable verify badge with a narrow, verified CSP frame-ancestors carve-out (API-15), the dirty-state `beforeunload` navigation guard on the Profile edit forms (SETTINGS-20), the Community thread's real keyboard-operable vote/reply/share controls (COMM-16), real cross-topic, claim-level Dashboard search results (HOME-07), Test Detail's "Boost your odds" levers (TEST-09), the heat-spike notification for a gap whose severity reaches "high" (GAP-22), correcting AUTH-01/AUTH-02's stale "no guest demo" premise, the public certificate verify page (TEST-11), the guest demo-pipeline run and Lecture reader (VERIFY-22/LEARN-17), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 160 Done; remainder is field-polish or deferred-with-justification._

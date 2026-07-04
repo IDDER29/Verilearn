@@ -9,6 +9,7 @@ import { onLapse, openGap } from "@/lib/domain/gap";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 import type { CertificateRecord } from "@/lib/store/entities";
 import { newId, now } from "@/lib/ids";
+import { isQuarantined } from "./quarantine";
 
 export const TEST_DURATION_MS = 20 * 60_000;
 export const TEST_PASS_BAR = 75;
@@ -26,7 +27,11 @@ export function buildSession(userId: string, topicId: string): TestSessionInfo |
   const topic = getDb().topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return null;
   const ledger = ledgerFor(topic);
-  const built = buildTest({ claims: topic.claims, ledger, count: topic.claims.length, now: now() });
+  // A quarantined claim (ADMIN-14) is filtered out before the pure engine ever
+  // sees it — a T&S override layered on top of the trust ledger, not a ledger
+  // state itself, so the engine's own eligibility rules stay untouched.
+  const claims = topic.claims.filter((c) => !isQuarantined(c.id));
+  const built = buildTest({ claims, ledger, count: claims.length, now: now() });
   return {
     topicId,
     title: topic.title,

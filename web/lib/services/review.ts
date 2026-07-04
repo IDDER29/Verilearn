@@ -12,13 +12,14 @@ import { isTestEligible } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { ReviewCardRecord } from "@/lib/store/entities";
 import { newId } from "@/lib/ids";
+import { isQuarantined } from "./quarantine";
 
 export type Confidence = "sure" | "unsure" | "guessing";
 
-/** True when a card's underlying claim is currently test-eligible (verified/sourced). */
+/** True when a card's underlying claim is currently test-eligible (verified/sourced) and not under T&S quarantine (ADMIN-14). */
 function cardClaimEligible(card: ReviewCardRecord): boolean {
   const topic = getDb().topics.get(card.topicId);
-  return topic ? isTestEligible(ledgerFor(topic).stateOf(card.claimId)) : false;
+  return !!topic && isTestEligible(ledgerFor(topic).stateOf(card.claimId)) && !isQuarantined(card.claimId);
 }
 
 /** True when a card's topic has been archived by a Free-plan downgrade (BILL-12) — read-only until reactivated. */
