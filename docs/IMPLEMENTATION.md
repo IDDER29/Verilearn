@@ -84,18 +84,18 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Checkout (`/upgrade/checkout`) | real billing-cycle toggle recomputes the order summary; "Pay" runs the same real (demo, no-charge) plan activation as elsewhere (BILL-04) |
 | Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred — now consistent with Checkout's real activation |
 | Login / Signup | real auth + COPPA age-gate; "Remember me" TTL + failed-sign-in lockout/backoff (AUTH-06/AUTH-23) |
-| Live demo (`/demo`) | public, no-account guest showcase; real `TrustLedger` engine over a fixed scenario, firewall-respecting resolve, nothing persisted (TRUST-22) |
+| Live demo (`/demo`) | public, no-account guest showcase; real `TrustLedger` engine over a fixed scenario, firewall-respecting resolve, nothing persisted (TRUST-22); real six-stage pipeline run over a fixed canned topic, same engine a signed-in `createTopic` uses (VERIFY-22) |
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 394 passing across 28 files · build green.
+**Test count:** 397 passing across 29 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 148 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 189 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 149 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 188 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -110,7 +110,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **189 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **188 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -126,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after linking the real no-account `/demo` guest path (HOME-12) from the Login redirect target, a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 148 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after a real guest demo-pipeline run on `/demo` (VERIFY-22), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 149 Done; remainder is field-polish or deferred-with-justification._

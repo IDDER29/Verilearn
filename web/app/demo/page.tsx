@@ -1,6 +1,8 @@
 import Link from "next/link";
 import DemoConflictPanel from "@/components/DemoConflictPanel";
+import DemoPipelinePanel from "@/components/DemoPipelinePanel";
 import { getCurrentUser } from "@/lib/auth/current";
+import { DEMO_PIPELINE_TOPIC, demoPipelineRun } from "@/lib/demo/pipeline";
 import { DEMO_TOPIC, demoSnapshot } from "@/lib/demo/scenario";
 
 export const metadata = { title: "Live demo · VeriLearn" };
@@ -15,6 +17,7 @@ export const metadata = { title: "Live demo · VeriLearn" };
 export default async function DemoPage() {
   const user = await getCurrentUser();
   const snapshot = demoSnapshot();
+  const pipelineRun = demoPipelineRun();
 
   return (
     <div style={{ minHeight: "100vh", padding: 26, display: "flex", justifyContent: "center" }}>
@@ -46,6 +49,8 @@ export default async function DemoPage() {
           </div>
 
           <DemoConflictPanel initial={snapshot} />
+
+          <DemoPipelinePanel run={pipelineRun} topicTitle={DEMO_PIPELINE_TOPIC.title} />
 
           <div style={{ textAlign: "center", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
             Ready for your own topics? <Link href="/signup" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>Sign up free</Link>

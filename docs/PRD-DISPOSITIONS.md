@@ -21,7 +21,7 @@ with justification** — nothing among them is silently dropped.
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 5 | 10 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 14 | 7 | 1 |
-| VERIFY — Topic Creation & Verification Pipeline | 23 | 14 | 8 | 1 |
+| VERIFY — Topic Creation & Verification Pipeline | 23 | 15 | 7 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 13 | 8 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 12 | 6 | 4 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **148** | **189** | **124** |
+| **TOTAL** | **461** | **149** | **188** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -141,10 +141,10 @@ email — each behind a clean seam.
 | VERIFY-19 | ✅ Done | Both defenses are now built and tested. **Injection**: `sanitizeTopicInput` strips/flags "ignore previous instructions", "auto-certify", "bypass the skeptic", role-override, etc. (load-bearing per its tests). **Content-policy refusal** (new): `topicPolicyViolation` (`lib/domain/pipeline.ts`) refuses a topic whose *subject* is disallowed — weapons/explosives construction, chem/bio weapons, illicit-drug synthesis, malware-for-harm, CSAM, self-harm methods — and `runPipeline` gates it **at triage** (checking the raw title so injection-stripping can't smuggle a banned subject through), failing the stage with a `content policy: refused` reason and running no teach/decompose stages. Deliberately narrow (a construction/synthesis verb must sit next to the harmful object) so dual-use security/education topics ("how ransomware spreads", "how TLS works", "the Haber process") pass — verified in `pipeline.test.ts`. Remaining nuance: per-account abuse **rate-limiting / creation-freeze** is throttling infra adjacent to the deferred async-job/ops layer. |
 | VERIFY-20 | 🟡 Partial | The firewall half is done and tested: no human role (including admin/root) has `trust:write` in the RBAC matrix (`lib/domain/rbac.ts`, `rbac.test.ts`), the ledger's epistemic firewall rejects non-verifier actors, and every event stamps `producerVersion` (model-version tagging for audit/rollback). Missing: admin operational tooling — restart stuck jobs, capacity scaling, model rollout/rollback — which needs the (absent) async job infra. |
 | VERIFY-21 | 🟡 Partial | The invariant is enforced: the support role is firewalled from `trust:write`/certification via RBAC, so support can never fabricate a verification result, and "ready" only comes from a genuine `runPipeline` completion. Missing: the actual support-recovery feature — scoped-consent re-queue/restart of a stuck job and its audit trail — which depends on the not-yet-built background job system. |
-| VERIFY-22 | 🟡 Partial | Only the RBAC seam exists: a `guest` role scoped to `topic:read`/`claim:read` (`lib/domain/rbac.ts`, tested "guest is read-only / limited"). There is no ephemeral demo-pipeline route or UI, no canned-topic run, and no conversion CTA — the guest demo surface itself is not built. (Nice-to-Have.) |
+| VERIFY-22 | ✅ Done | The guest demo pipeline surface is now real: `demoPipelineRun` (`lib/demo/pipeline.ts`) runs the actual six-stage `runPipeline` engine — the same `DeterministicVerifier` a signed-in `createTopic` uses — over a fixed, hardcoded topic spec ("Merkle trees") with a fresh, throwaway `TrustLedger`, never touching `db`. `/demo` (the existing no-account guest route, TRUST-22) now renders its real per-stage output (`DemoPipelinePanel`): all six stages, each stage's genuine detail string ("2 sources gathered", "2/2 claims matched to sources", …), and an honest ready/stopped-early summary — a static, server-rendered result rather than a fake timed animation, since the guest can see the actual completed run. The existing conversion CTA ("Sign up free") and the `guest` RBAC scoping (`topic:read`/`claim:read` only, tested) were already in place. Covered by `lib/demo/pipeline.test.ts` (completes all 6 stages; deterministic — same output every call; every claim carries a real ledger-derived trust state). Nice-to-Have story, closed: canned (not user-customizable) by design, matching what the story asked for. |
 | VERIFY-23 | 🟡 Partial | Instructors can run the full pipeline (`createTopic`) and review the resulting trust bar, coverage matrix, and disputed claims in the Topic Workspace, and are firewalled from flipping trust states (no human `trust:write`). Missing: request-SME-review affordance, publishing a vetted topic into a shared Teams library, and cohort assignment — no Teams-library data model is seeded. (Nice-to-Have.) |
 
-Count summary: 23 stories — 11 Done, 11 Partial, 1 Deferred, 0 Out-of-scope.
+Count summary: 23 stories — 15 Done, 7 Partial, 1 Deferred, 0 Out-of-scope.
 
 ---
 
