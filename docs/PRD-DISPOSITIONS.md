@@ -24,7 +24,7 @@ justification** — nothing is silently dropped.
 | TASK — Tasks & Rubric Assessment | 24 | 9 | 12 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 10 | 13 | 1 |
-| GAP — Gap Map & Misconception Tracking | 23 | 12 | 9 | 2 |
+| GAP — Gap Map & Misconception Tracking | 23 | 13 | 8 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 3 | 17 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **105** | **232** | **125** |
+| **TOTAL** | **462** | **106** | **231** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -300,7 +300,7 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-13 | ✅ Done | Progress's "Where to focus" panel is now driven by real signals (`focusAreas`, ANALYTICS-04) **and each row is a clickable `Link` into the Gap Map** (`/gap-map`, `app/reports/page.tsx`), so a learner can jump from a weak-signal topic straight to its tracked misconceptions. Remaining nice-to-have: an inline "create a gap" affordance (gaps are auto-created from real lapses/misses rather than hand-authored, by design). |
 | GAP-14 | 🟡 Partial | RBAC 12-role matrix exists (`web/lib/rbac.ts`) and enforces no human `trust:write`. No cohort misconception aggregate view, no progress-visibility policy, no minimum-cohort-size floor, and no multi-learner cohort data are built. |
 | GAP-15 | 🟡 Partial | `GapRecord` is per-`userId` and the store enforces OWNER/TENANT scoping; gaps reference claims read-only (engine never touches trust state). The shared-library/team-seat flow (inherited read-only trust, personal-gap coexistence) is not seeded or exercised. |
-| GAP-16 | 🟡 Partial | Engine models status/severity/`reopened` as explicit text values (never color/position alone), which is the data prerequisite. No board UI exists, so keyboard operability, focus management, announced transitions, and single-column reflow are unbuilt. |
+| GAP-16 | ✅ Done | The Gap Board is built and accessible (`components/GapBoard.tsx`): status and severity render as **text badges** ("Open"/"Watching"/"↻ Reopened"/"✓ Closed", "High"/"Medium"/"Low") — never colour/position alone; the three columns are semantic `role="list"`/`role="listitem"` groups with labelled headings and per-column counts; the filter chips are a labelled `role="group"` of `aria-pressed` `<button>`s (keyboard-operable), and a `role="status" aria-live="polite"` region **announces the filtered result on change** ("N gaps shown: X open, Y watching, Z closed"). All actions (Practice/Adjudicate links, evidence-gated close) are native focusable controls. Remaining nuance: single-column **mobile reflow** is part of the cross-cutting A11Y/mobile sweep (the app shell is currently a fixed desktop width). |
 | GAP-17 | 🟡 Partial | The no-fabrication firewall philosophy is embodied in the domain (append-only history, evidence-gated transitions). No Support restore tooling, pre-incident snapshots, scoped-consent flow, or gap audit log exist (`app/support/page.tsx` is static). |
 | GAP-18 | 🟡 Partial | COPPA age-gate / minor-safe defaults exist in auth. No DSAR export of gaps+origins+history+threads, no retention/deletion propagation, and threads are unmodeled — Privacy lists them but nothing serializes them. |
 | GAP-19 | 🟡 Partial | The "never a false state" invariant is real and tested: illegal transitions are no-ops returning the same reference, `closeGap` refuses closure by fiat, `gradeCard` persists atomically. Missing infra: offline queue, optimistic-concurrency/etag guards, and stale-write reconciliation (store is in-memory). |

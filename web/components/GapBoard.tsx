@@ -41,7 +41,7 @@ function GapCard({ g }: { g: GapView }) {
   const st = STATUS_BADGE[g.status];
   const actionable = g.status !== "closed";
   return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
+    <div role="listitem" style={{ background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
         <span style={{ font: "800 10px var(--font-nunito)", color: st.color, background: st.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{st.label}</span>
         <span style={{ font: "800 10px var(--font-nunito)", color: sev.color, background: sev.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{sev.label}</span>
@@ -89,7 +89,9 @@ function Column({ title, tone, gaps, empty }: { title: string; tone: string; gap
       {gaps.length === 0 ? (
         <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#a7a1b8", background: "#faf9fc", borderRadius: 14, padding: "16px 14px" }}>{empty}</div>
       ) : (
-        gaps.map((g) => <GapCard key={g.id} g={g} />)
+        <div role="list" aria-label={`${title} gaps`} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {gaps.map((g) => <GapCard key={g.id} g={g} />)}
+        </div>
       )}
     </div>
   );
@@ -113,7 +115,7 @@ export default function GapBoard({ board }: { board: GapBoardData }) {
 
   return (
     <>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8 }} role="group" aria-label="Filter gaps">
         {CHIPS.map((c) => {
           const on = filter === c.key;
           return (
@@ -128,6 +130,11 @@ export default function GapBoard({ board }: { board: GapBoardData }) {
             </button>
           );
         })}
+      </div>
+
+      {/* Announce the filtered result to assistive tech on filter change (GAP-16). */}
+      <div role="status" aria-live="polite" className="vl-sr-only">
+        {shown} gap{shown === 1 ? "" : "s"} shown: {active.length} open, {watching.length} watching, {closed.length} closed.
       </div>
 
       {shown === 0 ? (
