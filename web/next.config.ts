@@ -31,9 +31,32 @@ const SECURITY_HEADERS = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+/**
+ * The one deliberate, narrow carve-out from app-wide anti-framing (API-15): a
+ * public verify badge exists specifically to be embedded on a third-party
+ * page (a resume site, a profile), so it needs to allow framing from any
+ * origin. It carries no learner PII (enforced at the data layer by
+ * `publicVerify`), so there is nothing sensitive to leak by allowing this.
+ * Every other route keeps the strict `frame-ancestors 'none'` default above.
+ *
+ * Next applies matching `headers()` entries in order, and for the SAME header
+ * key the LAST match wins — so this entry is listed after the catch-all,
+ * overriding its Content-Security-Policy for this one route. `X-Frame-Options`
+ * has no "allow any origin" value (only DENY/SAMEORIGIN), so the catch-all's
+ * `DENY` is still technically present here too; per spec, browsers that
+ * support CSP `frame-ancestors` treat it as authoritative over `X-Frame-
+ * Options` when both are sent, so this override is still effective in every
+ * evergreen browser.
+ */
+const badgeCsp = csp.replace("frame-ancestors 'none'", "frame-ancestors *");
+const BADGE_HEADERS = [{ key: "Content-Security-Policy", value: badgeCsp }];
+
 const nextConfig: NextConfig = {
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      { source: "/verify/:code/badge", headers: BADGE_HEADERS },
+    ];
   },
 };
 

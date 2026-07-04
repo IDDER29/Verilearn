@@ -37,9 +37,9 @@ with justification** — nothing among them is silently dropped.
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
-| API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
+| API — Integrations, API, Webhooks, SSO & LTI | 22 | 4 | 1 | 17 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **155** | **182** | **124** |
+| **TOTAL** | **461** | **156** | **182** | **123** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -679,7 +679,7 @@ This domain is the external/federated surface (public REST/GraphQL, API keys, OA
 | API-12 | ⏭️ Deferred | No LTI Deep Linking content picker or deep-link JWT. Depends on LTI infrastructure (API-11). |
 | API-13 | ⏭️ Deferred | No LTI AGS line-item score passback. The graded score exists internally (`lib/services/testsession.ts`, `tests-engine.ts`) but there is no LMS passback transport. Needs LTI infrastructure. |
 | API-14 | ⏭️ Deferred | No passback layer, so no retry/reconcile queue or idempotent re-send. Depends on API-13. Needs LTI infrastructure. |
-| API-15 | ⏭️ Deferred | No embeddable verify widget/badge and no public (no-account) verify page. Seam present: `verifyCertificate()` is the fail-closed backend a widget would be a thin client of. Needs the public HTTP verify endpoint (API-03) + embed/iframe infrastructure. |
+| API-15 | ✅ Done | Corrected from a stale reading — both prerequisites this row named are now built: the public HTTP verify endpoint (API-03) and a public, no-account verify page (`/verify/[code]`, TEST-11). The embeddable badge itself now exists too: `/verify/[code]/badge` (`app/verify/[code]/badge/page.tsx`) is a compact, thin client of the same fail-closed `publicVerify()`, meant to be embedded on a third-party page (a resume site, a profile). App-wide anti-framing (`frame-ancestors 'none'`, clickjacking hardening) would otherwise block this — `next.config.ts` carves out exactly this one route to `frame-ancestors *`, since a verification badge exists specifically to be framed elsewhere and carries no learner PII. Verified in a real browser against a genuine cross-origin `http://` host: the badge iframe loads and renders; the full `/verify/[code]` page (no carve-out) stays blocked, confirming the carve-out is scoped to only the badge route. |
 | API-16 | ⏭️ Deferred | No bulk export (CSV/JSON roster/completion/cert/aggregate-signal) or import/bulk-invite, no async export jobs or signed download links. Needs export/import infrastructure + k-anonymity enforcement. |
 | API-17 | ⏭️ Deferred | No Zapier-style connector, triggers, or actions. Would ride on the (unbuilt) public API/webhook surface; needs that plus connector-vendor work. |
 | API-18 | ⏭️ Deferred | No test-mode credentials, isolated sandbox dataset, on-demand test webhook triggering, or `wrong_mode` errors. The deterministic in-memory seed (`lib/store`) is a fixture, not a mode-scoped sandbox credential system. Needs API infrastructure. |
@@ -688,7 +688,7 @@ This domain is the external/federated surface (public REST/GraphQL, API keys, OA
 | API-21 | ✅ Done | The defining invariant is enforced in the capability layer that any future API inherits. `lib/domain/rbac.ts`: `trust:write` is a `FIREWALL_PERMISSIONS` granted to **no** human role and unobtainable via break-glass; `rbac.test.ts` asserts no role holds it. `lib/domain/trust.ts` restricts trust-state writes to the system verifier / SME dual-control path only. No API verb, scope, webhook, or role can reach epistemic write because none exists and the capability model structurally forbids it. Certification authority stays with the pipeline/SME. (No external write path exists to breach; the guarantee is structural, not merely vacuous.) |
 | API-22 | ⏭️ Deferred | No rate-limit headers, `429`/`Retry-After`, tiered quotas, or enumeration protection. `proxy.ts` provides an auth gate but no rate limiting. Needs API infrastructure. |
 
-**Summary:** 22 total — ✅ 3 Done, 🟡 1 Partial, ⏭️ 18 Deferred, 🚫 0 Out-of-scope.
+**Summary:** 22 total — ✅ 4 Done, 🟡 1 Partial, ⏭️ 17 Deferred, 🚫 0 Out-of-scope.
 
 ---
 

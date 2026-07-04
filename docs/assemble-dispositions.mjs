@@ -24,7 +24,7 @@ const ROWS = [
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],
   ["A11Y", "Accessibility, Mobile & Offline", 24, 6, 14, 4],
-  ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 3, 1, 18],
+  ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 4, 1, 17],
   ["SEC", "Security, Privacy Eng. & Compliance", 23, 3, 4, 16],
 ];
 
