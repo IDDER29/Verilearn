@@ -1,8 +1,25 @@
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { progressFor, signalDisplay } from "@/lib/services/progress";
+import type { Signal } from "@/lib/domain/signals";
 
 export const metadata = { title: "Progress · VeriLearn" };
 
-export default function ReportsPage() {
+const CONF_CHIP: Record<Signal["confidence"], { label: string; color: string }> = {
+  none: { label: "new", color: "#a7a1b8" },
+  low: { label: "low", color: "#b4830f" },
+  ok: { label: "ok", color: "#2e9c6a" },
+};
+
+export default async function ReportsPage() {
+  const user = await requireUser();
+  const { signals } = progressFor(user.id);
+  const SIGNAL_CARDS = [
+    { s: signals.retention, bg: "#eef2fb", stroke: "#3a63b0", label: "Retention", labelColor: "#3a63b0", sub: "How much you recall over time", subColor: "#7d90b5", icon: <path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5" /> },
+    { s: signals.transfer, bg: "#eef7f1", stroke: "#2e9c6a", label: "Transfer", labelColor: "#2e9c6a", sub: "Applying it to new problems", subColor: "#6ba888", icon: <path d="M4 17l5-5-5-5M12 19h8" /> },
+    { s: signals.calibration, bg: "#f3eefc", stroke: "#6d5bd0", label: "Calibration", labelColor: "#6d5bd0", sub: "Confidence vs. reality", subColor: "#948ab5", icon: <><path d="M12 3a9 9 0 100 18M12 3a9 9 0 019 9h-9z" /><path d="M12 12l4-4" /></> },
+    { s: signals.blindSpot, bg: "#fbf3e4", stroke: "#c99a2b", label: "Drill detection", labelColor: "#b4830f", sub: "Catching seeded errors", subColor: "#b09257", icon: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></> },
+  ];
   return (
     <AppShell active="reports">
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -26,86 +43,29 @@ export default function ReportsPage() {
           </button>
         </div>
 
-        {/* four signal cards */}
+        {/* four signal cards — real values, honest empty/low-confidence states */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
-          {/* retention */}
-          <div style={{ background: "#eef2fb", borderRadius: 20, padding: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5" />
-                </svg>
+          {SIGNAL_CARDS.map((card) => {
+            const disp = signalDisplay(card.s.value, card.s.confidence);
+            const chip = CONF_CHIP[card.s.confidence];
+            return (
+              <div key={card.label} style={{ background: card.bg, borderRadius: 20, padding: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={card.stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                      {card.icon}
+                    </svg>
+                  </div>
+                  <span style={{ font: "800 10px var(--font-nunito)", color: chip.color, background: "#ffffffaa", padding: "3px 8px", borderRadius: 8, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                    {chip.label}
+                  </span>
+                </div>
+                <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>{disp.text}</div>
+                <div style={{ font: "800 13px var(--font-nunito)", color: card.labelColor, marginTop: 4 }}>{card.label}</div>
+                <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: card.subColor, marginTop: 5 }}>{card.sub}</div>
               </div>
-              <span style={{ display: "flex", alignItems: "center", gap: 3, font: "800 11px var(--font-nunito)", color: "#2e9c6a" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 15l6-6 6 6" />
-                </svg>
-                4%
-              </span>
-            </div>
-            <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>74%</div>
-            <div style={{ font: "800 13px var(--font-nunito)", color: "#3a63b0", marginTop: 4 }}>Retention</div>
-            <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#7d90b5", marginTop: 5 }}>How much you recall over time</div>
-          </div>
-          {/* transfer */}
-          <div style={{ background: "#eef7f1", borderRadius: 20, padding: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 17l5-5-5-5M12 19h8" />
-                </svg>
-              </div>
-              <span style={{ display: "flex", alignItems: "center", gap: 3, font: "800 11px var(--font-nunito)", color: "#2e9c6a" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 15l6-6 6 6" />
-                </svg>
-                7%
-              </span>
-            </div>
-            <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>61%</div>
-            <div style={{ font: "800 13px var(--font-nunito)", color: "#2e9c6a", marginTop: 4 }}>Transfer</div>
-            <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#6ba888", marginTop: 5 }}>Applying it to new problems</div>
-          </div>
-          {/* calibration */}
-          <div style={{ background: "#f3eefc", borderRadius: 20, padding: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3a9 9 0 100 18M12 3a9 9 0 019 9h-9z" />
-                  <path d="M12 12l4-4" />
-                </svg>
-              </div>
-              <span style={{ display: "flex", alignItems: "center", gap: 3, font: "800 11px var(--font-nunito)", color: "#2e9c6a" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 15l6-6 6 6" />
-                </svg>
-                2%
-              </span>
-            </div>
-            <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>82%</div>
-            <div style={{ font: "800 13px var(--font-nunito)", color: "#6d5bd0", marginTop: 4 }}>Calibration</div>
-            <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#948ab5", marginTop: 5 }}>Confidence vs. reality</div>
-          </div>
-          {/* drill detection */}
-          <div style={{ background: "#fbf3e4", borderRadius: 20, padding: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-              <span style={{ display: "flex", alignItems: "center", gap: 3, font: "800 11px var(--font-nunito)", color: "#c0392b" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 9l-6 6-6-6" />
-                </svg>
-                3%
-              </span>
-            </div>
-            <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>63%</div>
-            <div style={{ font: "800 13px var(--font-nunito)", color: "#b4830f", marginTop: 4 }}>Drill detection</div>
-            <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#b09257", marginTop: 5 }}>Catching seeded errors</div>
-          </div>
+            );
+          })}
         </div>
 
         {/* chart + focus */}
