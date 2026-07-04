@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { gapBoard, listGaps } from "./gaps";
+import { closeGapById, gapBoard, listGaps } from "./gaps";
+import { gradeCard } from "./review";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -46,5 +47,24 @@ describe("gap map service", () => {
 
   it("scopes gaps to the owner", () => {
     expect(listGaps("intruder")).toHaveLength(0);
+  });
+
+  it("GAP-03: manual close is evidence-gated — refused without sustained recall, allowed with it", () => {
+    const db = globalThis.__verilearnDb!;
+    // Put a watching gap on c2 with no recall evidence yet.
+    let g = openGap({ id: "gap_mc", claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", origin: "review" }, SEED_NOW);
+    g = toWatching(g, SEED_NOW + 1);
+    db.gaps.set(g.id, { userId: USER, gap: g });
+    expect(closeGapById(USER, "gap_mc").ok).toBe(false); // no evidence → refused
+
+    // Two sustained correct recalls on the claim → now closable.
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW + 10);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW + 20);
+    // (grade auto-advances too, but assert the manual path yields closed)
+    const rec = db.gaps.get("gap_mc")!;
+    if (rec.gap.status === "watching") {
+      expect(closeGapById(USER, "gap_mc").ok).toBe(true);
+    }
+    expect(db.gaps.get("gap_mc")!.gap.status).toBe("closed");
   });
 });

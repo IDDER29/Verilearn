@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import GapCloseButton from "@/components/GapCloseButton";
 import { requireUser } from "@/lib/auth/current";
 import { gapBoard, type GapView } from "@/lib/services/gaps";
 
@@ -54,6 +55,15 @@ function GapCard({ g }: { g: GapView }) {
           {CLAIM_TRUST[g.claimState].label}
         </div>
       )}
+      {/* append-only history trail + manual evidence-gated close (GAP-03) */}
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f0edf6", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <span style={{ font: "700 10px var(--font-nunito)", color: "#a7a1b8" }}>
+          {g.history.length} event{g.history.length === 1 ? "" : "s"} · {g.successfulReviews} recall{g.successfulReviews === 1 ? "" : "s"}
+        </span>
+        {g.status === "watching" && (
+          <GapCloseButton gapId={g.id} canClose={g.canClose} hint={`needs ${Math.max(0, 2 - g.successfulReviews)} more to close`} />
+        )}
+      </div>
     </Link>
   );
 }
