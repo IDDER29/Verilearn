@@ -281,10 +281,12 @@ export default async function TestResultsPage({
             <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 20, color: "#fff" }}>
               <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>🎓 Certificate minted</div>
               <div style={{ font: "600 12px/1.6 var(--font-nunito)", color: "#c9c3d8", marginBottom: 12 }}>
-                Verified by score against sourced claims — anyone can confirm it with this code.
+                Verified by score against sourced claims — anyone can confirm it at the link below.
               </div>
-              <div
+              <Link
+                href={`/verify/${verifyCode}`}
                 style={{
+                  display: "block",
                   font: "800 14px var(--font-nunito)",
                   letterSpacing: ".06em",
                   color: "#fff",
@@ -293,10 +295,11 @@ export default async function TestResultsPage({
                   borderRadius: 12,
                   padding: "11px 14px",
                   textAlign: "center",
+                  textDecoration: "none",
                 }}
               >
-                {verifyCode}
-              </div>
+                {verifyCode} · verify →
+              </Link>
             </div>
           ) : (
             <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 20, color: "#fff" }}>

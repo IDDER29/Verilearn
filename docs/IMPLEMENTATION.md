@@ -74,7 +74,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass); real `localStorage` draft persistence + offline-disabled submit (TASK-16); "Dispute this" opens a real, rate-limited conflict on a missed criterion's claim (TASK-11) |
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
 | Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed; a missed seeded error-drill opens/reopens a gap too (origin `drill`, GAP-07); `?gap=<id>` scrolls to + highlights the exact card (NOTIF-23 jump-to-section) |
-| Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code |
+| Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code, now a real link to a public, unauthenticated `/verify/[code]` page (TEST-11) |
 | Notifications | derived from real state (verification/review/conflict/test/streak/gap) with persistent read-state + working Mark-all-read + working filter chips (NOTIF-07) + streak-at-risk nudge (NOTIF-05) + gap-opened/reopened nudge (NOTIF-23) |
 | Settings › Verification / Active-listening / Review / Privacy | real prefs, auto-save with a genuine success toast + real rollback-on-failure ("Couldn't save — reverted", SETTINGS-20); ledger provably untouched |
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap; real password-confirmed **change-email** action (SETTINGS-03) |
@@ -88,14 +88,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 397 passing across 29 files · build green.
+**Test count:** 402 passing across 30 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 149 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 188 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 150 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 187 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -110,7 +110,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **188 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **187 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -126,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after a real guest demo-pipeline run on `/demo` (VERIFY-22), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 149 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after a real public certificate verify page at `/verify/[code]` (TEST-11), on top of the guest demo-pipeline run on `/demo` (VERIFY-22), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), feeding missed seeded error-drills into the Gap Map (GAP-07), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 150 Done; remainder is field-polish or deferred-with-justification._

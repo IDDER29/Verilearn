@@ -14,7 +14,7 @@ const ROWS = [
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 12, 6, 4],
   ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 15, 8, 1],
   ["GAP", "Gap Map & Misconception Tracking", 23, 14, 7, 2],
-  ["TEST", "Tests, Certificates & Verification", 23, 4, 16, 3],
+  ["TEST", "Tests, Certificates & Verification", 23, 5, 15, 3],
   ["COMM", "Community, Contributions & Reputation", 24, 0, 14, 10],
   ["EVENT", "Events: Workshops, Groups & Challenges", 25, 0, 18, 7],
   ["NOTIF", "Notifications, Reminders & Messaging", 23, 8, 6, 9],

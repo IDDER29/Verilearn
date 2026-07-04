@@ -218,7 +218,10 @@ export default async function TestsPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ font: "800 13.5px var(--font-nunito)" }}>{topicTitle(c.topicId)} — Checkpoint</div>
                     <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>
-                      {c.revoked ? "Revoked" : "Verified"} · {c.verifyCode}
+                      {c.revoked ? "Revoked" : "Verified"} ·{" "}
+                      <Link href={`/verify/${c.verifyCode}`} style={{ color: "#6d5bd0", textDecoration: "none", fontWeight: 700 }}>
+                        {c.verifyCode}
+                      </Link>
                     </div>
                   </div>
                   <span style={{ font: "900 15px var(--font-nunito)", color: passed ? "#2e9c6a" : "#c0392b" }}>

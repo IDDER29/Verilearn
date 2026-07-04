@@ -9,8 +9,10 @@ import { NextResponse, type NextRequest } from "next/server";
 // /pricing is a public, unauthenticated pricing view (BILL-03).
 // /demo is the public, no-account guest showcase (TRUST-22).
 const PUBLIC = new Set(["/login", "/signup", "/pricing", "/demo"]);
-// The public certificate-verify endpoint (API-03) — no session required, by design.
-const PUBLIC_PREFIXES = ["/api/verify/"];
+// The public certificate-verify JSON endpoint (API-03) and human-readable page
+// (TEST-11) — no session required, by design: a third party (employer, LMS)
+// confirming a printed code has no VeriLearn account.
+const PUBLIC_PREFIXES = ["/api/verify/", "/verify/"];
 // JSON API routes that DO require auth, but should fail with a JSON 401 from the
 // route handler itself (via getCurrentUser()) rather than an HTML redirect to
 // /login — the right shape for a fetch/API client (API-04).
