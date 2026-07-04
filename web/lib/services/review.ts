@@ -8,7 +8,7 @@ import { calibrationScore } from "@/lib/domain/calibration";
 import { retrievability, schedule, type FsrsParams, type Rating } from "@/lib/domain/fsrs";
 import { getPrefs } from "./prefs";
 import { closeGap, MASTERY_THRESHOLD, noteOriginHit, onLapse, openGap, toWatching } from "@/lib/domain/gap";
-import { isTestEligible } from "@/lib/domain/types";
+import { isTestEligible, type TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { ReviewCardRecord } from "@/lib/store/entities";
 import { newId } from "@/lib/ids";
@@ -180,6 +180,45 @@ export function gradeCard(userId: string, cardId: string, confidence: Confidence
     }
   }
   return { ok: true, nextDue: card.fsrs.due, gapReopened, gapAdvanced, gapClosed };
+}
+
+export interface DiscussContext {
+  cardId: string;
+  topicId: string;
+  topicTitle: string;
+  claimId: string;
+  claimText: string;
+  trustState: TrustState;
+  source: { title: string; kind: string; detail: string } | null;
+}
+
+/**
+ * The real claim/card a "Discuss this answer" hand-off is about (REVIEW-08) —
+ * the Discuss screen used to show a hardcoded Dijkstra example regardless of
+ * which card the learner actually disagreed with. Scoped to the owner; null
+ * for an unknown card, someone else's card, or a topic that's gone archived.
+ */
+export function getDiscussContext(userId: string, cardId: string): DiscussContext | null {
+  const db = getDb();
+  const card = db.reviewCards.get(cardId);
+  if (!card || card.userId !== userId) return null;
+  const topic = db.topics.get(card.topicId);
+  if (!topic) return null;
+  const claim = topic.claims.find((c) => c.id === card.claimId);
+  if (!claim) return null;
+  const ledger = ledgerFor(topic);
+  const evs = topic.events.filter((e) => e.claimId === claim.id);
+  const latest = evs.length ? evs[evs.length - 1] : null;
+  const src = latest?.evidence.sourceId ? topic.sources.find((s) => s.id === latest.evidence.sourceId) : undefined;
+  return {
+    cardId,
+    topicId: topic.id,
+    topicTitle: topic.title,
+    claimId: claim.id,
+    claimText: claim.text,
+    trustState: ledger.stateOf(claim.id),
+    source: src ? { title: src.title, kind: src.kind, detail: latest?.evidence.detail ?? "" } : null,
+  };
 }
 
 /** Calibration summary for the learner from the review log (feeds Progress). */

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, getSessionCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
+import { calibrationFor, dueBreakdown, fsrsParamsFor, getDiscussContext, gradeCard, getDueCards, getReviewAheadCards, getSessionCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
 import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
 
@@ -246,5 +246,21 @@ describe("review service", () => {
     expect(ret.correct).toBe(1);
     // calibration exists (may be insufficient_data under 5 records — both shapes are valid)
     expect(calibrationFor(USER)).toBeTruthy();
+  });
+});
+
+describe("getDiscussContext (REVIEW-08) — the real claim behind a Discuss hand-off", () => {
+  it("resolves the real claim, live trust state, and source for the card's owner", () => {
+    const ctx = getDiscussContext(USER, "rc_topic_dijkstra_c2")!;
+    expect(ctx.claimId).toBe("topic_dijkstra_c2");
+    expect(ctx.claimText).toBe("The greedy choice is guaranteed to be correct.");
+    expect(ctx.topicId).toBe("topic_dijkstra");
+    expect(ctx.trustState).toBe("verified_source");
+    expect(ctx.source?.title).toBeTruthy();
+  });
+
+  it("returns null for an unknown card, or a card owned by someone else", () => {
+    expect(getDiscussContext(USER, "nope")).toBeNull();
+    expect(getDiscussContext("intruder", "rc_topic_dijkstra_c2")).toBeNull();
   });
 });

@@ -74,6 +74,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass); real `localStorage` draft persistence + offline-disabled submit (TASK-16); "Dispute this" opens a real, rate-limited conflict on a missed criterion's claim (TASK-11) |
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
 | Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed; all five miss channels (review/task/test/drill/conflict) auto-create or regress a gap through the SAME per-claim record rather than forking — `contributingOrigins` makes this an explicit, auditable cross-origin merge (GAP-07), shown as an "Also caught via: …" line when more than one channel has hit a gap; `?gap=<id>` scrolls to + highlights the exact card (NOTIF-23 jump-to-section) |
+| Review › Discuss (`/review/discuss`) | the real card/claim the learner tapped "Discuss this answer" on (`?card=`), its live trust state and source — no longer a hardcoded Dijkstra example; "Raise a conflict" and "Track as a gap" call the same real `raiseDisputeAction`/`gradeCardAction` the Conflicts tab and live review session use (REVIEW-08); the Skeptic's reply stays a labeled sample pending the Deferred LLM Skeptic |
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code, now a real link to a public, unauthenticated `/verify/[code]` page (TEST-11) plus an embeddable `/verify/[code]/badge` for third-party sites (API-15); "Boost your odds" levers now name the real weakest section's due-card count and the real disputed-claim count, each hiding once cleared, with an honest "you're ready" state (TEST-09) |
 | Notifications | derived from real state (verification/review/conflict/test/streak/gap) with persistent read-state + working Mark-all-read + working filter chips (NOTIF-07) + streak-at-risk nudge (NOTIF-05) + gap-opened/reopened nudge (NOTIF-23) + a distinct heat-spike nudge once a gap's real severity reaches "high" (GAP-22) |
 | Settings › Verification / Active-listening / Review / Privacy | real prefs, auto-save with a genuine success toast + real rollback-on-failure ("Couldn't save — reverted", SETTINGS-20); ledger provably untouched |
@@ -92,14 +93,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, audit, workspace loader — all unit-tested.
 
-**Test count:** 475 passing across 38 files · build green.
+**Test count:** 477 passing across 38 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 164 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 174 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 165 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 173 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -114,14 +115,13 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **174 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **173 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
    whose primary numbers are already computed). No new engine is required.
 2. **Screens gated on clearly-deferred infrastructure**, each behind a clean seam:
    - **MCQ Test Runner / Retake** — the deterministic verifier emits no answer options; needs the real LLM item-writer.
-   - **Review › Discuss** — needs the live LLM Skeptic.
    - **Upgrade › Checkout** — needs a real payment processor (Stripe); the plan-state transition itself is wired (demo, no charge).
    - **Community / Events** — R2/R3 data models not seeded.
    - **SSO / LTI / API / KMS / managed DB / email** — external vendor/infra.
@@ -130,4 +130,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after making the Lecture tab's disputed-claim callout genuinely data-driven (LEARN-12) — it previously fell back to a hardcoded "It works on any weighted graph." example even once `data` was loaded and the dispute had actually been resolved, so a resolved conflict kept showing a stale warning on reload; `LectureTab.tsx` now gates the callout on the real `data.disputedClaims` (`lib/services/workspace.ts`), with the illustrative fallback restricted to the true "no data loaded yet" case — verified live in a real browser (the callout is present, resolving the conflict via the real Conflicts tab, then a fresh reload shows it's genuinely gone) and by 6 new tests in a previously-nonexistent `workspace.test.ts`. Recent momentum: an explicit, auditable cross-origin merge policy for the Gap Map (GAP-07), a versioned entitlement catalog behind the Free-tier cap (ADMIN-07), a central append-only audit log across every admin action (ADMIN-20), and the claim-quarantine/ban-unban/certificate-revoke admin consoles (ADMIN-14/16/15/22) that preceded it. Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 164 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after making Review › Discuss a real, data-driven screen (REVIEW-08) — it used to show a hardcoded Dijkstra example with a static Skeptic reply and three dead-end action buttons; it now resolves the real card/claim the learner tapped "Discuss this answer" on, and "Raise a conflict"/"Track as a gap" call the exact same `raiseDisputeAction`/`gradeCardAction` the Conflicts tab and live review session use. **Along the way this surfaced and fixed a severe pre-existing production bug**: `app/review-actions.ts` re-exported three types via `export type { ... }` from a `"use server"` file — a pattern this Next.js version's production bundler cannot evaluate — which threw a `ReferenceError` that failed the entire server-action module and left the live `/review` page stuck on "Loading your review session…" forever in any real `next start` deployment, not just a REVIEW-08 edge case; fixed by importing those types directly from their real source modules instead, verified live (the review deck now genuinely loads cards). Recent momentum: a data-driven disputed-claim callout on the Lecture tab (LEARN-12), an explicit auditable cross-origin merge policy for the Gap Map (GAP-07), a versioned entitlement catalog behind the Free-tier cap (ADMIN-07), and a central append-only audit log across every admin action (ADMIN-20). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 165 Done; remainder is field-polish or deferred-with-justification._

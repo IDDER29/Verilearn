@@ -14,15 +14,14 @@ import {
   nextDrillAction,
   reviewAheadCardsAction,
   submitDrillAnswerAction,
-  type BlindSpotSummary,
   type CaughtUpInfo,
   type DrillAnswerActionResult,
-  type DrillPrompt,
-  type DueBreakdown,
   type SessionCard,
 } from "@/app/review-actions";
 import { dismissReviewPrimerAction, reviewPrimerSeenAction } from "@/app/prefs-actions";
 import type { Rating } from "@/lib/domain/fsrs";
+import type { DueBreakdown } from "@/lib/services/review";
+import type { BlindSpotSummary, DrillPrompt } from "@/lib/services/drills";
 
 const CONF = {
   confident: { label: "Confident", color: "#2e9c6a", border: "#cdeadd", bg: "#f0f9f4" },
@@ -570,7 +569,7 @@ export default function ReviewPage() {
                 </svg>
                 <span style={{ font: "800 13.5px var(--font-nunito)", color: "#c0392b" }}>I had the wrong idea</span>
               </button>
-              <Link href="/review/discuss" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#fff", border: "1.5px solid #ece8f4", borderRadius: 16, padding: 15, cursor: "pointer", textDecoration: "none", boxShadow: "0 10px 30px -22px rgba(80,60,140,.3)" }}>
+              <Link href={`/review/discuss?card=${c.id}`} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#fff", border: "1.5px solid #ece8f4", borderRadius: 16, padding: 15, cursor: "pointer", textDecoration: "none", boxShadow: "0 10px 30px -22px rgba(80,60,140,.3)" }}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8 10h8M8 14h5M21 12a8 8 0 01-11.5 7.2L4 20l.8-5.5A8 8 0 1121 12z" />
                 </svg>
