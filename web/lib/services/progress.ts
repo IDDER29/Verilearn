@@ -8,6 +8,7 @@ import { calibrationScore } from "@/lib/domain/calibration";
 import { computeSignals, type Signals } from "@/lib/domain/signals";
 import { eligibleClaims, predictReadiness } from "@/lib/domain/tests-engine";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
+import { listTopicSummaries } from "./topics";
 
 export interface ProgressView {
   signals: Signals;
@@ -87,6 +88,70 @@ export function readinessFor(userId: string, topicId: string, _now: number): Rea
     reviewed: reviewedClaims,
     covered: eligible.length,
   };
+}
+
+export interface TopicProgress {
+  topicId: string;
+  title: string;
+  /** Share of the topic's reviews recalled (0..1), or null with no reviews. */
+  retention: number | null;
+  /** Share of the topic's graded tasks passed (0..1), or null with none graded. */
+  transfer: number | null;
+  /** Calibration score on the topic's reviews (0..1), or null under MIN_RECORDS. */
+  calibration: number | null;
+  /** Ledger-computed percent verified. */
+  verifiedPercent: number;
+}
+
+/** Per-topic breakdown of the honest signals, for the Progress "By topic" table (ANALYTICS-06). */
+export function perTopicProgress(userId: string): TopicProgress[] {
+  const db = getDb();
+  return listTopicSummaries(userId).map((s) => {
+    const log = db.reviewLog.filter((r) => r.userId === userId && r.topicId === s.id);
+    const retention = log.length ? log.filter((r) => r.correct).length / log.length : null;
+    const cal = calibrationScore(log.map((r) => ({ confidence: r.confidence, correct: r.correct })));
+    const calibration = cal.status === "ok" ? cal.score : null;
+    const tasks = [...db.tasks.values()].filter((t) => t.userId === userId && t.topicId === s.id && t.passed !== undefined);
+    const transfer = tasks.length ? tasks.filter((t) => t.passed).length / tasks.length : null;
+    return { topicId: s.id, title: s.title, retention, transfer, calibration, verifiedPercent: s.verifiedPercent };
+  });
+}
+
+export interface FocusItem {
+  topicId: string;
+  title: string;
+  /** The weakest measured dimension driving the recommendation. */
+  reason: string;
+  tone: "red" | "amber" | "green";
+  /** Lowest measured signal 0..1 (1 when nothing measurable yet). */
+  weakest: number;
+}
+
+/**
+ * Rank topics by where the learner should focus (ANALYTICS "Where to focus").
+ * Each topic's weakest measured signal drives the tone/reason; topics with no
+ * data yet sort last and read "not enough data yet" rather than a fake verdict.
+ */
+export function focusAreas(userId: string): FocusItem[] {
+  const dims: { key: keyof TopicProgress; label: string }[] = [
+    { key: "calibration", label: "calibration" },
+    { key: "retention", label: "retention" },
+    { key: "transfer", label: "transfer" },
+  ];
+  return perTopicProgress(userId)
+    .map((t) => {
+      const measured = dims
+        .map((d) => ({ label: d.label, value: t[d.key] as number | null }))
+        .filter((m): m is { label: string; value: number } => m.value !== null);
+      if (measured.length === 0) {
+        return { topicId: t.topicId, title: t.title, reason: "not enough data yet", tone: "amber" as const, weakest: 1 };
+      }
+      const worst = measured.reduce((a, b) => (b.value < a.value ? b : a));
+      const tone: FocusItem["tone"] = worst.value < 0.5 ? "red" : worst.value < 0.7 ? "amber" : "green";
+      const verdict = tone === "red" ? "needs work" : tone === "amber" ? "watch" : "solid";
+      return { topicId: t.topicId, title: t.title, reason: `${worst.label} ${verdict} · ${Math.round(worst.value * 100)}%`, tone, weakest: worst.value };
+    })
+    .sort((a, b) => a.weakest - b.weakest);
 }
 
 /** Format a 0..1 signal value as a percent string, or the honest empty label. */

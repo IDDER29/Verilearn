@@ -1,6 +1,6 @@
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
-import { progressFor, signalDisplay } from "@/lib/services/progress";
+import { focusAreas, perTopicProgress, progressFor, signalDisplay } from "@/lib/services/progress";
 import type { Signal } from "@/lib/domain/signals";
 
 export const metadata = { title: "Progress · VeriLearn" };
@@ -11,9 +11,21 @@ const CONF_CHIP: Record<Signal["confidence"], { label: string; color: string }> 
   ok: { label: "ok", color: "#2e9c6a" },
 };
 
+const FOCUS_TONE = {
+  red: { bg: "#fdf2f1", color: "#c0392b" },
+  amber: { bg: "#fbf6ec", color: "#b4830f" },
+  green: { bg: "#eef7f1", color: "#2e9c6a" },
+} as const;
+
+/** A 0..1 signal as a percent, or an em-dash when there's no data yet. */
+const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)}%`);
+const barPct = (v: number | null) => (v === null ? "0%" : `${Math.round(v * 100)}%`);
+
 export default async function ReportsPage() {
   const user = await requireUser();
   const { signals } = progressFor(user.id);
+  const topicRows = perTopicProgress(user.id);
+  const focus = focusAreas(user.id).slice(0, 3);
   const SIGNAL_CARDS = [
     { s: signals.retention, bg: "#eef2fb", stroke: "#3a63b0", label: "Retention", labelColor: "#3a63b0", sub: "How much you recall over time", subColor: "#7d90b5", icon: <path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5" /> },
     { s: signals.transfer, bg: "#eef7f1", stroke: "#2e9c6a", label: "Transfer", labelColor: "#2e9c6a", sub: "Applying it to new problems", subColor: "#6ba888", icon: <path d="M4 17l5-5-5-5M12 19h8" /> },
@@ -112,44 +124,27 @@ export default async function ReportsPage() {
           {/* where to focus */}
           <div style={{ background: "#fff", borderRadius: 24, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 4 }}>Where to focus</div>
-            <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699", marginBottom: 16 }}>Ranked by recent signals</div>
+            <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699", marginBottom: 16 }}>Ranked by your weakest signal per topic</div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: "#fdf2f1", marginBottom: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 4l9 15.5H3z" />
-                  <path d="M12 10v4M12 17h.01" />
-                </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13px var(--font-nunito)" }}>Merkle trees</div>
-                <div style={{ font: "700 11px var(--font-nunito)", color: "#c0392b" }}>Overconfident · calibration low</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: "#fbf6ec", marginBottom: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 8v4l2.5 2.5" />
-                </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13px var(--font-nunito)" }}>Hashing basics</div>
-                <div style={{ font: "700 11px var(--font-nunito)", color: "#b4830f" }}>Watch · retention dipping</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: "#eef7f1" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M8 12.5l2.5 2.5L16 9.5" />
-                </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13px var(--font-nunito)" }}>Binary search</div>
-                <div style={{ font: "700 11px var(--font-nunito)", color: "#2e9c6a" }}>Solid · nicely calibrated</div>
-              </div>
-            </div>
+            {focus.length === 0 && (
+              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", padding: "8px 2px" }}>Start a topic to see where to focus.</div>
+            )}
+            {focus.map((f, i) => {
+              const tone = FOCUS_TONE[f.tone];
+              return (
+                <div key={f.topicId} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: tone.bg, marginBottom: i < focus.length - 1 ? 10 : 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={tone.color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                      {f.tone === "green" ? <><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></> : <><path d="M12 4l9 15.5H3z" /><path d="M12 10v4M12 17h.01" /></>}
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: "800 13px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.title}</div>
+                    <div style={{ font: "700 11px var(--font-nunito)", color: tone.color, textTransform: "capitalize" }}>{f.reason}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -161,81 +156,38 @@ export default async function ReportsPage() {
             <span>Topic</span><span>Retention</span><span>Transfer</span><span>Calibration</span><span>Verified</span>
           </div>
 
-          {/* row 1 */}
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.6fr) 1fr 1fr 1fr 1fr", gap: 14, alignItems: "center", padding: "14px 4px", borderBottom: "1px solid #f5f3fa" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M15 9l-2 5-4 1 2-5z" />
-                </svg>
+          {topicRows.length === 0 && (
+            <div style={{ padding: "20px 4px", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>No topics yet — your per-topic signals appear here once you start one.</div>
+          )}
+          {topicRows.map((t, i) => {
+            const verifiedTone = t.verifiedPercent >= 100 ? { color: "#2e9c6a", bg: "#e4f4ec" } : t.verifiedPercent >= 60 ? { color: "#b4830f", bg: "#fbefdd" } : { color: "#c0392b", bg: "#fbeceb" };
+            return (
+              <div key={t.topicId} style={{ display: "grid", gridTemplateColumns: "minmax(0,1.6fr) 1fr 1fr 1fr 1fr", gap: 14, alignItems: "center", padding: "14px 4px", ...(i < topicRows.length - 1 ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M8 12.5l2.5 2.5L16 9.5" />
+                    </svg>
+                  </div>
+                  <span style={{ font: "800 13.5px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</span>
+                </div>
+                <div>
+                  <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: barPct(t.retention), height: "100%", background: "#3a63b0" }} /></div>
+                  <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{pct(t.retention)}</span>
+                </div>
+                <div>
+                  <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: barPct(t.transfer), height: "100%", background: "#2e9c6a" }} /></div>
+                  <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{pct(t.transfer)}</span>
+                </div>
+                <div>
+                  <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: barPct(t.calibration), height: "100%", background: "#6d5bd0" }} /></div>
+                  <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{pct(t.calibration)}</span>
+                </div>
+                <span style={{ font: "800 12px var(--font-nunito)", color: verifiedTone.color, background: verifiedTone.bg, padding: "5px 11px", borderRadius: 9, justifySelf: "start" }}>{t.verifiedPercent}%</span>
               </div>
-              <span style={{ font: "800 13.5px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Dijkstra&apos;s algorithm</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "81%", height: "100%", background: "#3a63b0" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>81%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "68%", height: "100%", background: "#2e9c6a" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>68%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "88%", height: "100%", background: "#6d5bd0" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>88%</span>
-            </div>
-            <span style={{ font: "800 12px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "5px 11px", borderRadius: 9, justifySelf: "start" }}>83%</span>
-          </div>
-          {/* row 2 */}
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.6fr) 1fr 1fr 1fr 1fr", gap: 14, alignItems: "center", padding: "14px 4px", borderBottom: "1px solid #f5f3fa" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#e9f7ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v18M12 7l4-2M12 11l5-2.5M12 15l4-2" />
-                  <path d="M6 21h12" />
-                </svg>
-              </div>
-              <span style={{ font: "800 13.5px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Merkle trees</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "64%", height: "100%", background: "#3a63b0" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>64%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "52%", height: "100%", background: "#2e9c6a" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>52%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "47%", height: "100%", background: "#c0392b" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#c0392b" }}>47%</span>
-            </div>
-            <span style={{ font: "800 12px var(--font-nunito)", color: "#b4830f", background: "#fbefdd", padding: "5px 11px", borderRadius: 9, justifySelf: "start" }}>82%</span>
-          </div>
-          {/* row 3 */}
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.6fr) 1fr 1fr 1fr 1fr", gap: 14, alignItems: "center", padding: "14px 4px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: "#e2ecfb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M21 21l-4-4" />
-                </svg>
-              </div>
-              <span style={{ font: "800 13.5px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Binary search</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "92%", height: "100%", background: "#3a63b0" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>92%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "79%", height: "100%", background: "#2e9c6a" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>79%</span>
-            </div>
-            <div>
-              <div style={{ height: 7, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}><div style={{ width: "90%", height: "100%", background: "#6d5bd0" }} /></div>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>90%</span>
-            </div>
-            <span style={{ font: "800 12px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "5px 11px", borderRadius: 9, justifySelf: "start" }}>100%</span>
-          </div>
+            );
+          })}
         </div>
       </main>
     </AppShell>

@@ -29,7 +29,7 @@ justification** — nothing is silently dropped.
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
 | NOTIF — Notifications, Reminders & Messaging | 24 | 0 | 15 | 9 |
-| ANALYTICS — Progress, Reports & Analytics | 21 | 2 | 10 | 9 |
+| ANALYTICS — Progress, Reports & Analytics | 21 | 4 | 8 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 1 | 19 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **43** | **294** | **125** |
+| **TOTAL** | **462** | **45** | **292** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -460,8 +460,8 @@ Evidence base: the honest-signals engine `web/lib/domain/signals.ts` (pure, test
 |-------|--------|--------------------------|
 | ANALYTICS-01 | 🟡 Partial | Four signal cards render real values via `progressFor` → `computeSignals` (`app/reports/page.tsx` L47-68), each with a plain-language definition and a source-naming provenance string (`signals.ts` L150-153: "retention ← FSRS review recall", etc.); no vanity metric at signal weight (the `Signals` interface has exactly four keys). **Missing:** the "short-window trend / directional delta (▲4%)" — no delta is computed or shown; the card sub-line is a static "On track"/"Low confidence" label, not a windowed delta. |
 | ANALYTICS-02 | 🟡 Partial | Provenance exists in the engine: every `Signal` carries a `provenance` trace naming what fed it and the counts (`signals.ts` L42-48, L119-140), and `signals.test.ts` asserts it. **Missing:** no UI drill-in — clicking a card opens no breakdown, no window/sample/formula panel, no navigation to the contributing artifact. The data is there; the explainability surface is not built. |
-| ANALYTICS-03 | 🟡 Partial | A By-topic table with Retention/Transfer/Calibration bars and a Verified trust-coverage column is present (`app/reports/page.tsx` L156-239). **Missing:** every row is hardcoded (Dijkstra 81/68/88/83%, Merkle, Binary search); it is not wired to per-topic real signals, is not sortable, and rows do not link into the topic workspace. Per-topic signal aggregation does not exist in `progress.ts` (which aggregates across all topics). |
-| ANALYTICS-04 | 🟡 Partial | A "Where to focus" rail with ranked, reasoned rows and a positive "solid · nicely calibrated" state is present (`app/reports/page.tsx` L112-153). **Missing:** all three entries are hardcoded (Merkle/Hashing/Binary search); no real ranking from signal values, no links to a Gap Map entry / due Review / weak section, no healthy-state fallback logic. |
+| ANALYTICS-03 | ✅ Done | The By-topic table is now wired to **real per-topic signals** via a new `perTopicProgress(userId)` (`lib/services/progress.ts`): each row's Retention (share of the topic's reviews recalled), Transfer (share of the topic's graded tasks passed), Calibration (calibration score on the topic's reviews) and Verified (ledger percent) are computed per topic, with honest "—/empty bar" states when a dimension has no data yet, and an empty-state row when there are no topics. Covered by a new `progress.test.ts` case (empty→real after grading). Remaining nice-to-haves: column sorting and row-links into the topic workspace. |
+| ANALYTICS-04 | ✅ Done | The "Where to focus" rail is now driven by real signals via `focusAreas(userId)` (`lib/services/progress.ts`): each topic's **weakest measured signal** (calibration/retention/transfer) sets the tone (red < 0.5, amber < 0.7, green solid) and a reasoned label ("calibration needs work · 42%"), topics are sorted worst-first, topics with no data read the honest "not enough data yet" (never a fabricated verdict), and there's a healthy/empty fallback. Covered by a `progress.test.ts` case (worst-first ordering + honest no-data). Remaining nice-to-have: deep-links from a focus row into the Gap Map / due Review. |
 | ANALYTICS-05 | 🟡 Partial | A retention/transfer line chart with legend, a "Now" endpoint, week buckets and a range control is laid out (`app/reports/page.tsx` L72-110). **Missing:** the chart is a static hardcoded SVG path; the "Last 30 days" range selector is a non-functional button; no real time-bucketed data, no shared-range re-scoping of cards/breakdowns, no "not enough history" state. |
 | ANALYTICS-06 | 🟡 Partial | The calibration engine computes and names direction — `overconfident` / `underconfident` / `well_calibrated` with a threshold band and per-bucket accuracy (`calibration.ts` L26-27, L125-145), tested, and the aggregate direction flows into the signal provenance (`signals.ts` L138). **Missing:** no per-topic calibration report UI, no over/under split shown to the learner, no links to seeded error-drills; the top-line card shows a score, not a direction. |
 | ANALYTICS-07 | 🟡 Partial | The blind-spot signal is a first-class field defined as seeded-error catch rate (`signals.ts` L75-76, L153, provenance "blind-spot ← seeded error-drill catch rate"), with honest empty handling. **Missing:** `progress.ts` L31 passes `drills: []` explicitly — seeded error-drills are not wired, so the signal is always empty; no per-topic blind-spot breakout, no drill links, no memorization flag. |
@@ -480,7 +480,7 @@ Evidence base: the honest-signals engine `web/lib/domain/signals.ts` (pure, test
 | ANALYTICS-20 | 🟡 Partial | Honest-failure-on-thin-data is done (empty / low-confidence, never a fabricated value — see ANALYTICS-08/09) and the engine never extrapolates. **Missing:** the freshness/staleness half — no "as of <timestamp>" snapshot indicator, no "couldn't refresh — showing values as of …" degraded card, no per-signal freshness marker, no total-outage error+retry state, no offline last-snapshot banner. Signals are recomputed inline per request with no snapshot/timestamp model. |
 | ANALYTICS-21 | ⏭️ Deferred | Optional digest notifications on material signal movement are not built — the Notifications service produces no signal-change events (grep of `notifications.ts` for retention/calibration/signal/digest/material finds nothing), no debounce, no opt-in. Seam: a Notifications domain exists to consume material-change events; this domain must still emit them (plus transactional-email delivery is itself deferred infra). |
 
-**Summary:** 21 stories — ✅ 2 Done · 🟡 10 Partial · ⏭️ 9 Deferred · 🚫 0 Out-of-scope.
+**Summary:** 21 stories — ✅ 4 Done · 🟡 8 Partial · ⏭️ 9 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

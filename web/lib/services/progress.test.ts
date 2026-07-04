@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { gradeCard } from "./review";
-import { progressFor, readinessFor, signalDisplay } from "./progress";
+import { focusAreas, perTopicProgress, progressFor, readinessFor, signalDisplay } from "./progress";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -67,6 +67,29 @@ describe("progress signals", () => {
     gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW);
     gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "good", SEED_NOW);
     expect(readinessFor(USER, "topic_merkle", SEED_NOW).reviewed).toBe(0);
+  });
+
+  it("per-topic progress is honest-empty before reviews and real after", () => {
+    const before = perTopicProgress(USER).find((t) => t.topicId === "topic_dijkstra")!;
+    expect(before.retention).toBeNull();
+    expect(before.verifiedPercent).toBeGreaterThan(0); // ledger-computed regardless
+
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", SEED_NOW);
+    const after = perTopicProgress(USER).find((t) => t.topicId === "topic_dijkstra")!;
+    expect(after.retention).toBeCloseTo(0.5, 5); // 1 of 2 recalled
+  });
+
+  it("focus areas rank the weakest measured signal and sort worst-first", () => {
+    // Make Dijkstra weak (all lapses) so it should rank ahead of no-data topics.
+    gradeCard(USER, "rc_topic_dijkstra_c1", "guessing", "again", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", SEED_NOW);
+    const focus = focusAreas(USER);
+    expect(focus[0].topicId).toBe("topic_dijkstra");
+    expect(focus[0].tone).toBe("red");
+    // topics with no data read honestly, never a fabricated verdict
+    const merkle = focus.find((f) => f.topicId === "topic_merkle")!;
+    expect(merkle.reason).toBe("not enough data yet");
   });
 
   it("signalDisplay renders empty and populated states honestly", () => {
