@@ -4,13 +4,12 @@ import { useState } from "react";
 import { BackButton } from "@/components/ui";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
-
-type Trust = "verified" | "sourced" | "disputed";
+import { TRUST_LABEL, type TrustState } from "@/lib/domain/types";
 
 type Claim = {
   id: string;
   claim: string;
-  trust: Trust;
+  trust: TrustState;
   underline: string;
   source?: { icon: string; title: string; desc: string };
   confidence: string;
@@ -21,7 +20,7 @@ const CLAIMS: Record<string, Claim> = {
   smallest: {
     id: "smallest",
     claim: '"Always pick the unvisited node with the smallest tentative distance."',
-    trust: "verified",
+    trust: "verified_execution",
     underline: "#0e8c6b",
     source: { icon: "🔬", title: "Execution sandbox", desc: "Ran on 12 sample graphs — the greedy pick held every time." },
     confidence: "High · 0.98",
@@ -30,7 +29,7 @@ const CLAIMS: Record<string, Claim> = {
   correct: {
     id: "correct",
     claim: '"The greedy choice is guaranteed to be correct."',
-    trust: "sourced",
+    trust: "verified_source",
     underline: "#2d6cdf",
     source: { icon: "📘", title: "CLRS · §24.3", desc: "Proof of correctness via the cut property — page 661." },
     confidence: "High · 0.94",
@@ -39,7 +38,7 @@ const CLAIMS: Record<string, Claim> = {
   pq: {
     id: "pq",
     claim: '"The classic implementation uses a priority queue keyed by tentative distance."',
-    trust: "sourced",
+    trust: "verified_source",
     underline: "#2d6cdf",
     source: { icon: "📘", title: "CLRS · §24.3", desc: "Priority-queue implementation, O((V+E) log V) — page 662." },
     confidence: "High · 0.91",
@@ -55,20 +54,26 @@ const CLAIMS: Record<string, Claim> = {
   },
 };
 
-const TRUST_BADGE: Record<Trust, { label: string; color: string; bg: string }> = {
-  verified: { label: "✓ Verified by execution", color: "#0e8c6b", bg: "#e4f4ec" },
-  sourced: { label: "◉ Backed by a source", color: "#2d6cdf", bg: "#e4ecfb" },
-  disputed: { label: "⚠️ Disputed claim", color: "#c0392b", bg: "#fbeceb" },
+// Per-state colour, keyed by the canonical six-state TrustState. Label + glyph
+// come from the single canonical TRUST_LABEL contract (A11Y-01) — no separate
+// 3-state vocabulary — so unsupported/interpretive read distinctly, never
+// collapsed into "disputed".
+const TRUST_COLOR: Record<TrustState, { color: string; bg: string }> = {
+  verified_execution: { color: "#0e8c6b", bg: "#e4f4ec" },
+  verified_source: { color: "#2d6cdf", bg: "#e4ecfb" },
+  sourced: { color: "#3a8de0", bg: "#e7f0fb" },
+  interpretive: { color: "#6d5bd0", bg: "#efe9ff" },
+  disputed: { color: "#c0392b", bg: "#fbeceb" },
+  unsupported: { color: "#b4460f", bg: "#fbe9e2" },
 };
 
-const KIND_ICON: Record<string, string> = { execution: "🔬", sandbox: "🔬", textbook: "📘", book: "📘", paper: "📄", web: "🌐", docs: "📄" };
-
-/** Map a real six-state trust value to the reader's 3-colour vocabulary. */
-function trustView(state: string): { trust: Trust; underline: string } {
-  if (state === "verified_execution") return { trust: "verified", underline: "#0e8c6b" };
-  if (state === "verified_source" || state === "sourced") return { trust: "sourced", underline: "#2d6cdf" };
-  return { trust: "disputed", underline: "#c0392b" };
+/** Canonical badge for a trust state: glyph + label from TRUST_LABEL, plus colour. */
+function badgeFor(state: TrustState): { label: string; color: string; bg: string } {
+  const c = TRUST_COLOR[state];
+  return { label: `${TRUST_LABEL[state].glyph} ${TRUST_LABEL[state].label}`, color: c.color, bg: c.bg };
 }
+
+const KIND_ICON: Record<string, string> = { execution: "🔬", sandbox: "🔬", textbook: "📘", book: "📘", paper: "📄", web: "🌐", docs: "📄" };
 
 /** Human confidence label + colour from the real verifier confidence (0..1). */
 function confLabel(state: string, conf: number): { text: string; color: string } {
@@ -94,13 +99,12 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
     if (!data) return fb;
     const real = key === "anygraph" ? data.claims.find((c) => c.state === "disputed") ?? null : data.claims[SPAN_TO_INDEX[key]] ?? null;
     if (!real) return fb;
-    const tv = trustView(real.state);
     const cl = confLabel(real.state, real.confidence);
     return {
       id: key,
       claim: `"${real.text}"`,
-      trust: tv.trust,
-      underline: tv.underline,
+      trust: real.state,
+      underline: TRUST_COLOR[real.state].color,
       source: real.source ? { icon: KIND_ICON[real.source.kind] ?? "📄", title: real.source.title, desc: real.source.detail } : undefined,
       confidence: cl.text,
       confidenceColor: cl.color,
@@ -108,7 +112,7 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
   };
 
   const claim = resolveClaim(selected);
-  const badge = TRUST_BADGE[claim.trust];
+  const badge = badgeFor(claim.trust);
 
   // Ledger-computed aggregates (fall back to the illustrative Dijkstra numbers).
   const bd = data?.breakdown;

@@ -34,10 +34,10 @@ justification** — nothing is silently dropped.
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
-| A11Y — Accessibility, Mobile & Offline | 24 | 2 | 18 | 4 |
+| A11Y — Accessibility, Mobile & Offline | 24 | 3 | 17 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **111** | **226** | **125** |
+| **TOTAL** | **462** | **112** | **225** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -628,7 +628,7 @@ Honest engineering disposition of the A11Y domain against the current codebase. 
 
 | Story | Status | Evidence / Justification |
 |-------|--------|--------------------------|
-| A11Y-01 | 🟡 Partial | Canonical non-color contract exists: `lib/domain/types.ts:106` `TRUST_LABEL` maps all six states to `{ label, glyph }` (`✓⚙`, `✓`, `◉`, `⚠`, `∅`, `⇄`), consumed in `app/page.tsx`, `app/review/page.tsx`, `app/reports/page.tsx`, `app/community/page.tsx`, `components/workspace/*`. Missing: it is not the single canonical component everywhere — `components/workspace/LectureTab.tsx:58` defines a *separate* `TRUST_BADGE` covering only 3 states with its own colors; no grayscale / deuteranopia-protanopia test; no "unclassified"/"re-verifying" fallback cue for unmapped states. Glyph+label present, but the universal-contract invariant is not enforced or tested. |
+| A11Y-01 | ✅ Done | The canonical non-colour contract (`TRUST_LABEL` → `{ label, glyph }` for all six states, `lib/domain/types.ts`) is now the **single vocabulary everywhere**: `LectureTab.tsx`'s separate 3-state `TRUST_BADGE` is gone — it derives each badge from `TRUST_LABEL` via `badgeFor(state)` keyed by the full `TrustState`, so `unsupported`/`interpretive` render distinctly instead of collapsing into "disputed", and the `Record<TrustState, …>` colour map makes an unmapped state a **compile error** (no silent fallback needed). The universal-contract invariant is now **enforced + tested** (`lib/domain/types.test.ts`: all six states present, distinct non-empty glyph+label, correct test-eligibility split). Remaining nuance: an automated grayscale / deuteranopia-protanopia visual-diff test is a rendering-pipeline concern beyond unit scope. |
 | A11Y-02 | 🟡 Partial | Ledger content is real (same ledger object the visual UI reads; evidence/source/confidence rendered in `LectureTab.tsx`). Missing all AT operability: no `dialog`/`region` role, no focus move-into / focus-restore-on-close, no "Trust details for: '…'" relationship announcement, no "couldn't load evidence — retry" region. Rail is a visual-only overlay. |
 | A11Y-03 | 🟡 Partial | Confidence gate (Sure/Unsure/Guessing) and FSRS rating row (Again/Hard/Good/Easy) are real `<button>`s so are inherently keyboard-reachable, and "reveal" is `disabled={!confidence}` until commit (`app/review/page.tsx:233`). Missing: no `aria-disabled` + programmatic "what unlocks it" explanation, no live-region unlock announcement, no labeled cloze inputs with field-tied validation errors, no deterministic focus reset after a gate. Operability is incidental, not engineered. |
 | A11Y-04 | 🟡 Partial | Active-listening / review gates use no hard countdown, so they are not "defeated purely by a clock." But there is no extended-time accommodation at all: `grep` finds no `accommodation`/`timeMultiplier`/`1.5×` model in `lib/services`, `lib/domain`, or `lib/store`; the timed MCQ Test Runner is itself static/Deferred, so accommodated auto-submit, "more-generous-value-wins" reconciliation, and next-attempt-only application are unimplemented. |
