@@ -4,8 +4,8 @@ import { loadWorkspaceData } from "@/lib/services/workspace";
 
 export const metadata = { title: "Conflicts · VeriLearn" };
 
-export default async function ConflictsPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
+export default async function ConflictsPage({ searchParams }: { searchParams: Promise<{ topic?: string; claim?: string }> }) {
   const user = await requireUser();
-  const { topic } = await searchParams;
-  return <WorkspaceShell initial="conflicts" data={loadWorkspaceData(user.id, topic)} />;
+  const { topic, claim } = await searchParams;
+  return <WorkspaceShell initial="conflicts" data={loadWorkspaceData(user.id, topic)} focusClaimId={claim} />;
 }

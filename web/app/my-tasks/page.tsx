@@ -90,7 +90,7 @@ export default async function MyTasksPage() {
                 </div>
               )}
               {conflictCount > 0 && (
-                <Link href="/topics/conflicts" style={{ display: "flex", alignItems: "center", gap: 13, background: "#fff", borderRadius: 16, padding: "15px 17px", textDecoration: "none", color: "inherit", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
+                <Link href="/conflicts" style={{ display: "flex", alignItems: "center", gap: 13, background: "#fff", borderRadius: 16, padding: "15px 17px", textDecoration: "none", color: "inherit", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
                   <div style={{ width: 44, height: 44, borderRadius: 13, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>⚖️</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ font: "800 14px var(--font-nunito)" }}>Resolve {conflictCount} conflict{conflictCount === 1 ? "" : "s"}</div>

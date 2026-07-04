@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, ledgerFor, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { listConflicts, listResolvedConflicts, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
+import { listConflicts, listRankedConflicts, listResolvedConflicts, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
 import { isTestEligible } from "@/lib/domain/types";
 
 declare global {
@@ -42,6 +42,17 @@ describe("conflicts service", () => {
     expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "" }).ok).toBe(false);
     expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c1", { constraint: "x" }).ok).toBe(false); // not disputed
     expect(resolveConflict("intruder", "topic_dijkstra", "topic_dijkstra_c6", { constraint: "x" }).ok).toBe(false);
+  });
+
+  it("ranks conflicts across topics by importance — most-broken topic first (TRUST-06)", () => {
+    const ranked = listRankedConflicts(USER);
+    expect(ranked.length).toBe(listConflicts(USER).length); // same set, enriched + ordered
+    expect(ranked.every((c) => c.state === "disputed")).toBe(true);
+    // every item carries its topic's verified% and the list is sorted non-decreasing by it
+    for (let i = 1; i < ranked.length; i++) {
+      expect(ranked[i].topicVerifiedPercent).toBeGreaterThanOrEqual(ranked[i - 1].topicVerifiedPercent);
+    }
+    expect(listRankedConflicts("intruder")).toHaveLength(0);
   });
 
   it("lists a claim as resolved only after a disputed→resolved transition (TRUST-13)", () => {

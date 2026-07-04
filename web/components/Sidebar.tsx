@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 export type NavKey =
   | "dashboard"
   | "topics"
+  | "conflicts"
   | "tasks"
   | "tests"
   | "gaps"
@@ -49,6 +50,16 @@ const NAV: NavItem[] = [
     icon: (
       <svg width="19" height="19" viewBox="0 0 24 24" {...stroke}>
         <path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z" />
+      </svg>
+    ),
+  },
+  {
+    key: "conflicts",
+    label: "Conflicts",
+    href: "/conflicts",
+    icon: (
+      <svg width="19" height="19" viewBox="0 0 24 24" {...stroke}>
+        <path d="M12 3v18M5 7l7-4 7 4M5 7v2l-3 5a3 3 0 006 0l-3-5M19 7v2l-3 5a3 3 0 006 0l-3-5" />
       </svg>
     ),
   },

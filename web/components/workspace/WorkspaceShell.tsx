@@ -15,13 +15,13 @@ import type { TabKey, WorkspaceData } from "./types";
  * tab so deep links still land on the right tab. `data` carries the real topic's
  * ledger-computed aggregates.
  */
-export default function WorkspaceShell({ initial = "lecture", data = null }: { initial?: TabKey; data?: WorkspaceData | null }) {
+export default function WorkspaceShell({ initial = "lecture", data = null, focusClaimId }: { initial?: TabKey; data?: WorkspaceData | null; focusClaimId?: string }) {
   const [tab, setTab] = useState<TabKey>(initial);
   return (
     <AppShell active="topics">
       {tab === "lecture" && <LectureTab onTab={setTab} data={data} />}
       {tab === "tasks" && <TasksTab onTab={setTab} data={data} />}
-      {tab === "conflicts" && <ConflictsTab onTab={setTab} data={data} />}
+      {tab === "conflicts" && <ConflictsTab onTab={setTab} data={data} focusClaimId={focusClaimId} />}
       {tab === "sources" && <SourcesTab onTab={setTab} data={data} />}
     </AppShell>
   );

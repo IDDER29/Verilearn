@@ -6,10 +6,11 @@ import { reopenConflictAction, resolveConflictAction, resolveInterpretiveAction 
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 
-export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
+export default function ConflictsTab({ onTab, data = null, focusClaimId }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null; focusClaimId?: string }) {
   const router = useRouter();
   const disputes = data?.disputedClaims ?? [];
-  const [selIdx, setSelIdx] = useState(0);
+  const focusIdx = focusClaimId ? disputes.findIndex((d) => d.claimId === focusClaimId) : -1;
+  const [selIdx, setSelIdx] = useState(focusIdx >= 0 ? focusIdx : 0);
   const disputed = disputes[selIdx] ?? disputes[0];
   const disputedText = disputed?.text ?? "";
   const [constraint, setConstraint] = useState("");

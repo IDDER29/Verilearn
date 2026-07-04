@@ -34,6 +34,32 @@ export function listConflicts(userId: string): ConflictItem[] {
   return out;
 }
 
+/** A conflict enriched with its topic's verified% — for importance-ranked triage (TRUST-06). */
+export interface RankedConflictItem extends ConflictItem {
+  topicVerifiedPercent: number;
+}
+
+/**
+ * Every open conflict across the learner's topics, ranked by importance for the
+ * global inbox (TRUST-06): the most-broken topics first (lowest verified%), then
+ * by topic, then claim text — so the learner triages what's hurting most.
+ */
+export function listRankedConflicts(userId: string): RankedConflictItem[] {
+  const byTopic = new Map<string, number>();
+  for (const topic of topicsOf(getDb(), userId)) {
+    const ledger = ledgerFor(topic);
+    byTopic.set(topic.id, verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id))));
+  }
+  return listConflicts(userId)
+    .map((c) => ({ ...c, topicVerifiedPercent: byTopic.get(c.topicId) ?? 0 }))
+    .sort(
+      (a, b) =>
+        a.topicVerifiedPercent - b.topicVerifiedPercent ||
+        a.topicTitle.localeCompare(b.topicTitle) ||
+        a.claimText.localeCompare(b.claimText),
+    );
+}
+
 export interface ResolveResult {
   ok: boolean;
   error?: string;
