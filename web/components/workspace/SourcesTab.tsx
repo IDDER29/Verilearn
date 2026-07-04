@@ -7,20 +7,31 @@ import type { TabKey, WorkspaceData } from "./types";
 import type { TrustState } from "@/lib/domain/types";
 import { addSourceAction, removeSourceAction, setPreferredSourceAction } from "@/app/source-actions";
 
-/** One matrix cell coloured by how (if at all) a source backs the claim. */
+/**
+ * One matrix cell coloured by how (if at all) a source backs the claim.
+ * Decorative only — `aria-hidden`; the meaning is carried by the sibling
+ * screen-reader text in the cell (TRUST-16), so trust is never colour-only.
+ */
 function Cell({ filled, state, rowUnsupported }: { filled: boolean; state: TrustState | null; rowUnsupported: boolean }) {
   if (filled) {
     const bg = state === "verified_execution" ? "#0e8c6b" : "#2d6cdf";
     return (
-      <span style={{ height: 36, borderRadius: 11, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span aria-hidden style={{ display: "flex", height: 36, borderRadius: 11, background: bg, alignItems: "center", justifyContent: "center" }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 6L9 17l-5-5" />
         </svg>
       </span>
     );
   }
-  if (rowUnsupported) return <span style={{ height: 36, borderRadius: 11, background: "#fff", border: "1.5px dashed #e3b4af" }} />;
-  return <span style={{ height: 36, borderRadius: 11, background: "#f1eff5" }} />;
+  if (rowUnsupported) return <span aria-hidden style={{ display: "block", height: 36, borderRadius: 11, background: "#fff", border: "1.5px dashed #e3b4af" }} />;
+  return <span aria-hidden style={{ display: "block", height: 36, borderRadius: 11, background: "#f1eff5" }} />;
+}
+
+/** Plain-language description of one cell — the accessible text a screen reader announces. */
+function cellLabel(claimText: string, sourceTitle: string, filled: boolean, state: TrustState | null): string {
+  if (filled && state === "verified_execution") return `verified by execution against ${sourceTitle}`;
+  if (filled) return `backed by ${sourceTitle}`;
+  return `not backed by ${sourceTitle}`;
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -76,7 +87,6 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
   const unsupportedRow = cov?.rows.find((r) => isUnsupportedRow(r.state));
   const unsupportedText = unsupportedRow?.claimText ?? data?.disputedClaims[0]?.text ?? "";
   const sources = cov?.sources ?? [];
-  const gridCols = `minmax(0,1fr) ${sources.map(() => "64px").join(" ")}`;
 
   async function attach() {
     if (!data || !unsupportedRow || title.trim().length === 0) return;
@@ -181,40 +191,67 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
           </div>
         </div>
 
-        {/* column headers — real sources */}
-        <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 10, alignItems: "end", marginBottom: 8 }}>
-          <span style={{ font: "800 10.5px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#a7a1b8" }}>Claim</span>
-          {sources.map((s) => (
-            <div key={s.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }} title={s.title}>
-              <SourceIcon kind={s.kind} />
-              <span style={{ font: "800 10px var(--font-nunito)", color: "#6c6780", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* rows — real coverage */}
-        {(cov?.rows ?? []).map((r) => {
-          const unsup = isUnsupportedRow(r.state);
-          return (
-            <div
-              key={r.claimId}
-              style={{ display: "grid", gridTemplateColumns: gridCols, gap: 10, alignItems: "center", padding: "11px 12px", borderRadius: 14, marginBottom: 8, ...(unsup ? { background: "#fdf2f1", border: "1.5px solid #f3d9d6" } : { background: "#faf9fc" }) }}
-            >
-              <span style={{ font: unsup ? "800 13.5px var(--font-nunito)" : "700 13.5px var(--font-nunito)", color: unsup ? "#c0392b" : "#221f2e", display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
-                {unsup && (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <path d="M12 4l9 15.5H3z" />
-                    <path d="M12 10v4M12 17h.01" />
-                  </svg>
-                )}
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.claimText}</span>
-              </span>
-              {r.cells.map((c) => (
-                <Cell key={c.sourceId} filled={c.filled} state={c.state} rowUnsupported={unsup} />
+        {/* Semantic coverage table — programmatic row/column headers + per-cell text (TRUST-16) */}
+        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, tableLayout: "fixed" }}>
+          <caption className="vl-sr-only">
+            Coverage map: which source backs each claim. {backed} of {total} claims are backed by at least one source; {unsupported} unsupported.
+          </caption>
+          <colgroup>
+            <col />
+            {sources.map((s) => <col key={s.id} style={{ width: 74 }} />)}
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" style={{ textAlign: "left", padding: "0 12px 10px", font: "800 10.5px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#a7a1b8" }}>Claim</th>
+              {sources.map((s) => (
+                <th key={s.id} scope="col" style={{ verticalAlign: "bottom", padding: "0 4px 10px" }}>
+                  <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <span aria-hidden><SourceIcon kind={s.kind} /></span>
+                    <span style={{ font: "800 10px var(--font-nunito)", color: "#6c6780", maxWidth: 66, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
+                  </span>
+                </th>
               ))}
-            </div>
-          );
-        })}
+            </tr>
+          </thead>
+          <tbody>
+            {(cov?.rows ?? []).map((r) => {
+              const unsup = isUnsupportedRow(r.state);
+              const rowBg = unsup ? "#fdf2f1" : "#faf9fc";
+              return (
+                <tr key={r.claimId}>
+                  <th
+                    scope="row"
+                    style={{ textAlign: "left", padding: "11px 12px", background: rowBg, borderRadius: "14px 0 0 14px", ...(unsup ? { borderLeft: "1.5px solid #f3d9d6", borderTop: "1.5px solid #f3d9d6", borderBottom: "1.5px solid #f3d9d6" } : {}) }}
+                  >
+                    <span style={{ font: unsup ? "800 13.5px var(--font-nunito)" : "700 13.5px var(--font-nunito)", color: unsup ? "#c0392b" : "#221f2e", display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+                      {unsup && (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden>
+                          <path d="M12 4l9 15.5H3z" />
+                          <path d="M12 10v4M12 17h.01" />
+                        </svg>
+                      )}
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.claimText}</span>
+                      {unsup && <span className="vl-sr-only"> (unsupported)</span>}
+                    </span>
+                  </th>
+                  {r.cells.map((c, i) => {
+                    const sTitle = sources.find((s) => s.id === c.sourceId)?.title ?? "this source";
+                    const isLast = i === r.cells.length - 1;
+                    return (
+                      <td
+                        key={c.sourceId}
+                        style={{ padding: "11px 4px", background: rowBg, ...(isLast ? { borderRadius: "0 14px 14px 0" } : {}), ...(unsup ? { borderTop: "1.5px solid #f3d9d6", borderBottom: "1.5px solid #f3d9d6", ...(isLast ? { borderRight: "1.5px solid #f3d9d6" } : {}) } : {}) }}
+                      >
+                        <Cell filled={c.filled} state={c.state} rowUnsupported={unsup} />
+                        <span className="vl-sr-only">{cellLabel(r.claimText, sTitle, c.filled, c.state)}</span>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
 
         {/* legend */}
         <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 18, paddingTop: 16, borderTop: "1px solid #f0edf6", font: "700 12px var(--font-nunito)", color: "#6c6780" }}>
