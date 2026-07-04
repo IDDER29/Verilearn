@@ -6,10 +6,11 @@
 import { assertRubricGradeable, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
 import type { TrustState } from "@/lib/domain/types";
 import { getDb, ledgerFor } from "@/lib/store/db";
-import type { TaskRecord } from "@/lib/store/entities";
+import type { TaskRecord, TaskType } from "@/lib/store/entities";
 
 export interface TaskView {
   id: string;
+  type: TaskType;
   prompt: string;
   criteria: { id: string; text: string; sourceId: string }[];
   submittedAnswer?: string;
@@ -23,6 +24,7 @@ function toView(task: TaskRecord): TaskView {
   const hits = task.submissionHits ?? {};
   return {
     id: task.id,
+    type: task.type,
     prompt: task.prompt,
     criteria: task.rubric.criteria.map((c) => ({ id: c.id, text: c.text, sourceId: c.sourceId })),
     submittedAnswer: task.submittedAnswer,

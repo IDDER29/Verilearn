@@ -94,10 +94,15 @@ export interface GapRecord {
   gap: Gap;
 }
 
+/** The cognitive demand a task makes (TASK-01) — shown as a label on each task. */
+export type TaskType = "explain" | "reason" | "apply";
+
 export interface TaskRecord {
   id: string;
   userId: string;
   topicId: string;
+  /** What the task asks of the learner (Explain / Reason / Apply). */
+  type: TaskType;
   prompt: string;
   rubric: Rubric;
   /** criterionId -> hit, once submitted */

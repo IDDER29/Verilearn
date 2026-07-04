@@ -185,6 +185,7 @@ export function seedDb(db: Db, now: number): void {
     id: "task_dijkstra_1",
     userId,
     topicId: dijkstra.id,
+    type: "reason",
     prompt: "Explain why Dijkstra's algorithm can fail on a graph with negative edge weights, and what to use instead.",
     rubric: {
       id: "rubric_dijkstra_1",

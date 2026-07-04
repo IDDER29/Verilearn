@@ -136,7 +136,9 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
             <div style={{ font: "700 14px var(--font-nunito)", color: "#8b8699" }}>No tasks yet for this topic — they appear once the topic is built.</div>
           ) : (
             <>
-              <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#6d5bd0", marginBottom: 8 }}>Task · Produce</div>
+              <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#6d5bd0", marginBottom: 8 }}>
+                Task · {task.type === "explain" ? "Explain" : task.type === "apply" ? "Apply" : "Reason"}
+              </div>
               <h2 style={{ font: "900 20px/1.35 var(--font-nunito)", letterSpacing: "-.01em", margin: "0 0 18px" }}>{task.prompt}</h2>
 
               {/* write-in answer */}

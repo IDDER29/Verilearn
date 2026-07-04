@@ -29,7 +29,7 @@ function TaskRow({ t, title, done }: { t: TaskRecord; title: string; done?: bool
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ font: "800 14px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", ...(done ? { textDecoration: "line-through", color: "#8b8699" } : {}) }}>{t.prompt}</div>
-        <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>{title}</div>
+        <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>{t.type === "explain" ? "Explain" : t.type === "apply" ? "Apply" : "Reason"} · {title}</div>
       </div>
       <span style={{ font: "800 11px var(--font-nunito)", color: st.color, background: st.bg, padding: "6px 12px", borderRadius: 10, whiteSpace: "nowrap" }}>{st.label}</span>
     </Link>

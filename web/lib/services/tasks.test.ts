@@ -20,6 +20,7 @@ describe("tasks service (produce step)", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0].criteria).toHaveLength(3);
     expect(tasks[0].criteria.every((c) => c.sourceId)).toBe(true); // each criterion source-traced
+    expect(tasks[0].type).toBe("reason"); // TASK-01: task carries a cognitive-demand type
   });
 
   it("grades a full answer as a pass and a thin answer as a fail (revise-to-pass)", () => {
