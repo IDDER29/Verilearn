@@ -24,7 +24,7 @@ justification** — nothing is silently dropped.
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 8 | 15 | 1 |
-| GAP — Gap Map & Misconception Tracking | 23 | 9 | 12 | 2 |
+| GAP — Gap Map & Misconception Tracking | 23 | 10 | 11 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **77** | **260** | **125** |
+| **TOTAL** | **462** | **78** | **259** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -296,7 +296,7 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-09 | 🟡 Partial | Engine has provisional close (`closeGap`, recorded via history `detail`). No `＋ Add a drill` handoff to Retain and no manual `✓ Mark closed` UI; no blocking of drill-seed on orphaned gaps. |
 | GAP-10 | ⏭️ Deferred | The core value — the Skeptic joining the gap thread — depends on the real LLM verifier, which is Deferred (the `DeterministicVerifier` adapter produces no conversational output). No discussion-thread data model exists yet either. Seam: `origin`/history model + the Verifier-port pipeline. |
 | GAP-11 | 🟡 Partial | Severity bands (`low/med/high`) and reopen-driven escalation exist. Missing: a heat scoring function over recent lapses/drill-misses/calibration error, a severity-sortable triage board, per-topic scoping, and the per-topic open-gap signal feeding the Tests readiness computation. |
-| GAP-12 | 🟡 Partial | Gaps are per-user records queryable across topics via `gapsOf`. No global cross-topic board, no normalized cross-topic heat, no bulk triage filters (`Open + high`, `Reopened`). |
+| GAP-12 | ✅ Done | The Gap Map board (`/gap-map`) is inherently **cross-topic** — `gapBoard` spans every topic's gaps, severity-sorted (high→low) then recency — and the `GapBoard` client now provides **bulk triage filters**: All / High severity / Reopened chips filter the columns in place, with a "No gaps match this filter" state when a filter empties the board. Each card names its source topic, so cross-topic triage is direct. Remaining nice-to-have: a normalized numeric heat score (severity band is the current heat proxy — see GAP-11). |
 | GAP-13 | ✅ Done | Progress's "Where to focus" panel is now driven by real signals (`focusAreas`, ANALYTICS-04) **and each row is a clickable `Link` into the Gap Map** (`/gap-map`, `app/reports/page.tsx`), so a learner can jump from a weak-signal topic straight to its tracked misconceptions. Remaining nice-to-have: an inline "create a gap" affordance (gaps are auto-created from real lapses/misses rather than hand-authored, by design). |
 | GAP-14 | 🟡 Partial | RBAC 12-role matrix exists (`web/lib/rbac.ts`) and enforces no human `trust:write`. No cohort misconception aggregate view, no progress-visibility policy, no minimum-cohort-size floor, and no multi-learner cohort data are built. |
 | GAP-15 | 🟡 Partial | `GapRecord` is per-`userId` and the store enforces OWNER/TENANT scoping; gaps reference claims read-only (engine never touches trust state). The shared-library/team-seat flow (inherited read-only trust, personal-gap coexistence) is not seeded or exercised. |
@@ -309,7 +309,7 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-22 | 🟡 Partial | Notifications are derived from real state and `gradeCard` already surfaces `gapReopened`. No gap-reopen / heat-spike event is emitted into the notifications feed, and no batching/throttling for gap events exists. |
 | GAP-23 | ⏭️ Deferred | PRD-scoped Future. Requires a real guardian↔dependent account relationship (Auth/Org) that does not exist; today's single-account model cannot provide a per-child gap view. Explicitly unsupported rather than approximated. |
 
-Counts: 23 total — ✅ 9 Done, 🟡 12 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
+Counts: 23 total — ✅ 10 Done, 🟡 11 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
