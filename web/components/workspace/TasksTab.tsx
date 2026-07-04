@@ -17,6 +17,10 @@ type Grade = { scorePct: number; passed: boolean; hitIds: string[]; missingIds: 
 
 const PASS_BAR = 75;
 
+// In-progress draft persistence (TASK-16) — nothing else backs the write-in
+// answer until it's submitted, so an accidental reload would otherwise lose it.
+const draftKey = (taskId: string) => `vl_task_draft_${taskId}`;
+
 export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
   const [tasks, setTasks] = useState<TaskView[] | null>(data?.topicId ? null : []);
   const [task, setTask] = useState<TaskView | null>(null);
@@ -25,6 +29,20 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  // Real browser online/offline state (TASK-16) — grading needs the server, so
+  // submit is disabled offline rather than failing silently.
+  const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
+
+  useEffect(() => {
+    const goOffline = () => setOffline(true);
+    const goOnline = () => setOffline(false);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
+    };
+  }, []);
 
   // On mount, load the topic's tasks and seed state from the first one.
   useEffect(() => {
@@ -35,13 +53,22 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
       const first = ts[0] ?? null;
       setTask(first);
       if (first) {
-        setAnswer(first.submittedAnswer ?? "");
+        const draft = typeof window !== "undefined" ? window.localStorage.getItem(draftKey(first.id)) : null;
+        // A locally-saved draft only applies if it postdates the last graded submission.
+        setAnswer(first.submittedAnswer ?? draft ?? "");
         if (first.scorePct !== undefined && first.passed !== undefined) {
           setGrade({ scorePct: first.scorePct, passed: first.passed, hitIds: first.hit, missingIds: first.missing, modelAnswer: first.modelAnswer });
         }
       }
     });
   }, [data?.topicId]);
+
+  // Persist every keystroke as a local draft so a reload never loses unsent work.
+  useEffect(() => {
+    if (!task || typeof window === "undefined") return;
+    if (answer.trim()) window.localStorage.setItem(draftKey(task.id), answer);
+    else window.localStorage.removeItem(draftKey(task.id));
+  }, [task, answer]);
 
   async function submit() {
     if (!task || !answer.trim() || grading) return;
@@ -53,6 +80,7 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
       setError(r.error ?? "Could not grade your answer.");
       return;
     }
+    if (typeof window !== "undefined") window.localStorage.removeItem(draftKey(task.id));
     const hitIds = r.hitIds ?? [];
     const missingIds = r.missingIds ?? [];
     setGrade({ scorePct: r.scorePct ?? 0, passed: r.passed ?? false, hitIds, missingIds, modelAnswer: r.modelAnswer });
@@ -234,7 +262,9 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
 
               {/* actions */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 18, borderTop: "1px solid #f0edf6" }}>
-                <span style={{ font: "700 13px var(--font-nunito)", color: "#9a95a8" }}>Model answer unlocks at a pass (≥ {PASS_BAR}%)</span>
+                <span style={{ font: "700 13px var(--font-nunito)", color: offline ? "#c0392b" : "#9a95a8" }}>
+                  {offline ? "You're offline — your answer is saved locally and grading will resume when you're back online." : `Model answer unlocks at a pass (≥ ${PASS_BAR}%)`}
+                </span>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button
                     type="button"
@@ -247,10 +277,10 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
                   <button
                     type="button"
                     onClick={submit}
-                    disabled={grading || !answer.trim()}
-                    style={{ border: "none", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "11px 22px", borderRadius: 13, cursor: grading || !answer.trim() ? "not-allowed" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", opacity: grading || !answer.trim() ? 0.7 : 1 }}
+                    disabled={grading || !answer.trim() || offline}
+                    style={{ border: "none", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "11px 22px", borderRadius: 13, cursor: grading || !answer.trim() || offline ? "not-allowed" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", opacity: grading || !answer.trim() || offline ? 0.7 : 1 }}
                   >
-                    {grading ? "Grading…" : grade ? "Revise & resubmit" : "Submit answer"}
+                    {offline ? "Offline" : grading ? "Grading…" : grade ? "Revise & resubmit" : "Submit answer"}
                   </button>
                 </div>
               </div>
