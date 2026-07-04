@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateDisplayNameAction } from "@/app/profile-actions";
+import { updateDisplayNameAction, updateEmailAction } from "@/app/profile-actions";
 
 const inputStyle = {
   width: "100%",
@@ -34,13 +34,20 @@ const chevron = (
   </svg>
 );
 
-/** Editable profile identity: display name persists; email is read-only (identity). */
-export default function ProfileForm({ initialName, email }: { initialName: string; email: string }) {
+/** Editable profile identity: display name persists; email changes with a current-password re-auth (SETTINGS-03). */
+export default function ProfileForm({ initialName, email: initialEmail }: { initialName: string; email: string }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [email, setEmail] = useState(initialEmail);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const dirty = name.trim() !== initialName && name.trim().length > 0;
 
@@ -55,6 +62,36 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
       router.refresh();
     } else {
       setError(r.error ?? "Couldn't save.");
+    }
+  }
+
+  function startEmailEdit() {
+    setEditingEmail(true);
+    setNewEmail(email);
+    setCurrentPassword("");
+    setEmailError(null);
+  }
+
+  function cancelEmailEdit() {
+    setEditingEmail(false);
+    setNewEmail("");
+    setCurrentPassword("");
+    setEmailError(null);
+  }
+
+  async function saveEmail() {
+    setEmailSaving(true);
+    setEmailError(null);
+    const r = await updateEmailAction(currentPassword, newEmail);
+    setEmailSaving(false);
+    if (r.ok && r.email) {
+      setEmail(r.email);
+      cancelEmailEdit();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1600);
+      router.refresh();
+    } else {
+      setEmailError(r.error ?? "Couldn't save.");
     }
   }
 
@@ -75,10 +112,56 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
         </div>
         <div style={{ marginBottom: 16 }}>
           <div style={labelStyle}>Email</div>
-          <div style={selectRow}>
-            {email}
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8" }}>identity · locked</span>
-          </div>
+          {editingEmail ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="New email"
+                aria-label="New email"
+                style={inputStyle}
+              />
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current password, to confirm"
+                aria-label="Current password"
+                style={inputStyle}
+              />
+              {emailError && <div style={{ font: "700 12px var(--font-nunito)", color: "#c0392b" }}>{emailError}</div>}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={saveEmail}
+                  disabled={emailSaving || !newEmail.trim() || !currentPassword}
+                  style={{ border: "none", background: emailSaving ? "#cdc6e8" : "#6d5bd0", color: "#fff", font: "800 12.5px var(--font-nunito)", padding: "9px 16px", borderRadius: 11, cursor: emailSaving ? "default" : "pointer" }}
+                >
+                  {emailSaving ? "Saving…" : "Save email"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEmailEdit}
+                  disabled={emailSaving}
+                  style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#6c6780", font: "800 12.5px var(--font-nunito)", padding: "9px 16px", borderRadius: 11, cursor: emailSaving ? "default" : "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={selectRow}>
+              {email}
+              <button
+                type="button"
+                onClick={startEmailEdit}
+                style={{ border: "none", background: "none", cursor: "pointer", font: "800 11px var(--font-nunito)", color: "#6d5bd0", padding: 0 }}
+              >
+                Change →
+              </button>
+            </div>
+          )}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div>

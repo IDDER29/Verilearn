@@ -77,7 +77,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code |
 | Notifications | derived from real state (verification/review/conflict/test/streak/gap) with persistent read-state + working Mark-all-read + working filter chips (NOTIF-07) + streak-at-risk nudge (NOTIF-05) + gap-opened/reopened nudge (NOTIF-23) |
 | Settings › Verification / Active-listening / Review / Privacy | real prefs, auto-save with a genuine success toast + real rollback-on-failure ("Couldn't save — reverted", SETTINGS-20); ledger provably untouched |
-| Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
+| Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap; real password-confirmed **change-email** action (SETTINGS-03) |
 | Settings › Sessions & devices | real live session list scoped to the caller (`db.sessions`), device parsed from the real User-Agent, sign-out-one / sign-out-others / sign-out-everywhere (AUTH-12) |
 | Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
 | Choose your topics (`/upgrade/choose-topics`) | real "keep exactly 3, archive the rest" downgrade flow (BILL-12) — content/ledger untouched, never deleted |
@@ -88,7 +88,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 388 passing across 28 files · build green.
+**Test count:** 394 passing across 28 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
@@ -126,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after feeding missed seeded error-drills into the Gap Map (GAP-07) alongside the blind-spot subsystem (ANALYTICS-07/REVIEW-06) and its Settings toggle (REVIEW-14) — 148 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after a real, password-confirmed change-email action (SETTINGS-03), on top of feeding missed seeded error-drills into the Gap Map (GAP-07) and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 148 Done; remainder is field-polish or deferred-with-justification._

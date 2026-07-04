@@ -123,6 +123,29 @@ export function signIn(
   return { user, token };
 }
 
+/**
+ * Change the signed-in user's email (SETTINGS-03). Requires the current
+ * password (the same re-auth bar as any identity-changing action), rejects an
+ * invalid format, and rejects an email already taken by a DIFFERENT account
+ * (a no-op re-submit of one's own current email is not an error). Sessions
+ * key off `userId`, never email, so this never invalidates the caller's own
+ * session. No verification email is sent — there is no email-sending
+ * infrastructure in this app (Deferred); the change is immediate and real.
+ */
+export function changeEmail(db: Db, userId: string, input: { currentPassword: string; newEmail: string }): { email: string } {
+  const user = db.users.get(userId);
+  if (!user) throw new AuthError("invalid_credentials", "Account not found.");
+  if (!verifyPassword(input.currentPassword, user.passwordHash)) {
+    throw new AuthError("invalid_credentials", "Current password is incorrect.");
+  }
+  const email = input.newEmail.trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) throw new AuthError("invalid_email", "Enter a valid email address.");
+  const existing = userByEmail(db, email);
+  if (existing && existing.id !== userId) throw new AuthError("email_taken", "An account with that email already exists.");
+  user.email = email;
+  return { email };
+}
+
 /** Resolve the current user from a session token (verifies signature, expiry, and existence). */
 export function authenticate(db: Db, token: string | undefined, secret: string, now: number): User | null {
   if (!token) return null;

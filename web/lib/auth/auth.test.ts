@@ -6,6 +6,7 @@ import { signToken, verifyToken } from "./session";
 import {
   AuthError,
   authenticate,
+  changeEmail,
   describeUserAgent,
   sessionsFor,
   signIn,
@@ -104,6 +105,52 @@ describe("sign-up / sign-in", () => {
     expect(longSession.expiresAt - NOW).toBeGreaterThan(shortSession.expiresAt - NOW);
     expect(shortSession.expiresAt - NOW).toBe(86_400_000); // 1 day
     expect(longSession.expiresAt - NOW).toBe(30 * 86_400_000); // 30 days
+  });
+});
+
+describe("change email (SETTINGS-03)", () => {
+  const base = { now: NOW, secret: SECRET, userId: "u_owner", tokenNonce: "n1" };
+
+  it("changes the email when the current password is correct and the new address is free", () => {
+    const db = createDb();
+    const { user } = signUp(db, { email: "old@in.com", password: "hunter2pass", displayName: "O", birthYear: 1990 }, base);
+    const { email } = changeEmail(db, user.id, { currentPassword: "hunter2pass", newEmail: "New@In.com " });
+    expect(email).toBe("new@in.com"); // normalized, same as sign-up
+    expect(db.users.get(user.id)!.email).toBe("new@in.com");
+  });
+
+  it("does not invalidate the caller's existing session (keyed by userId, not email)", () => {
+    const db = createDb();
+    const { user, token } = signUp(db, { email: "keep@in.com", password: "hunter2pass", displayName: "K", birthYear: 1990 }, base);
+    changeEmail(db, user.id, { currentPassword: "hunter2pass", newEmail: "moved@in.com" });
+    expect(authenticate(db, token, SECRET, NOW)?.id).toBe(user.id);
+  });
+
+  it("rejects the wrong current password", () => {
+    const db = createDb();
+    const { user } = signUp(db, { email: "a@in.com", password: "hunter2pass", displayName: "A", birthYear: 1990 }, base);
+    expect(() => changeEmail(db, user.id, { currentPassword: "wrong-pass", newEmail: "b@in.com" })).toThrow(/incorrect/i);
+    expect(db.users.get(user.id)!.email).toBe("a@in.com"); // unchanged
+  });
+
+  it("rejects an invalid email format", () => {
+    const db = createDb();
+    const { user } = signUp(db, { email: "a@in.com", password: "hunter2pass", displayName: "A", birthYear: 1990 }, base);
+    expect(() => changeEmail(db, user.id, { currentPassword: "hunter2pass", newEmail: "not-an-email" })).toThrow(/valid email/i);
+  });
+
+  it("rejects an email already taken by a different account", () => {
+    const db = createDb();
+    signUp(db, { email: "taken@in.com", password: "hunter2pass", displayName: "T", birthYear: 1990 }, { ...base, userId: "u_taken" });
+    const { user } = signUp(db, { email: "a@in.com", password: "hunter2pass", displayName: "A", birthYear: 1990 }, base);
+    expect(() => changeEmail(db, user.id, { currentPassword: "hunter2pass", newEmail: "taken@in.com" })).toThrow(/already exists/i);
+  });
+
+  it("allows re-submitting one's own current email as a no-op, not an error", () => {
+    const db = createDb();
+    const { user } = signUp(db, { email: "a@in.com", password: "hunter2pass", displayName: "A", birthYear: 1990 }, base);
+    const { email } = changeEmail(db, user.id, { currentPassword: "hunter2pass", newEmail: "A@In.com" });
+    expect(email).toBe("a@in.com");
   });
 });
 

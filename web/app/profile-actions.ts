@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/current";
+import { AuthError, changeEmail } from "@/lib/auth/service";
 import { getDb } from "@/lib/store/db";
 
 /** Persist the learner's display name (AUTH-09). Trimmed, 1–60 chars. */
@@ -17,4 +18,19 @@ export async function updateDisplayNameAction(name: string): Promise<{ ok: boole
   revalidatePath("/settings/profile");
   revalidatePath("/");
   return { ok: true, name: trimmed };
+}
+
+/** Change the learner's email, re-authenticated with their current password (SETTINGS-03). */
+export async function updateEmailAction(currentPassword: string, newEmail: string): Promise<{ ok: boolean; error?: string; email?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Not signed in." };
+  try {
+    const { email } = changeEmail(getDb(), user.id, { currentPassword, newEmail });
+    revalidatePath("/settings/profile");
+    revalidatePath("/");
+    return { ok: true, email };
+  } catch (e) {
+    if (e instanceof AuthError) return { ok: false, error: e.message };
+    throw e;
+  }
 }
