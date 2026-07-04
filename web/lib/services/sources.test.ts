@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { coverageMatrix } from "./sources";
+import { addSourceForClaim, coverageMatrix } from "./sources";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -37,5 +37,28 @@ describe("coverage matrix", () => {
 
   it("scopes to the owner", () => {
     expect(coverageMatrix("intruder", "topic_dijkstra")).toBeNull();
+  });
+
+  it("TRUST-09: attaching a source backs a disputed claim (firewall-safe)", () => {
+    const before = coverageMatrix(USER, "topic_dijkstra")!;
+    const disputed = before.rows.find((r) => r.state === "disputed")!;
+
+    const r = addSourceForClaim(USER, "topic_dijkstra", disputed.claimId, { title: "Bellman-Ford note", ref: "docs" });
+    expect(r.ok).toBe(true);
+    expect(r.newState).toBe("sourced");
+
+    const after = coverageMatrix(USER, "topic_dijkstra")!;
+    const row = after.rows.find((rr) => rr.claimId === disputed.claimId)!;
+    expect(row.state).toBe("sourced");
+    expect(row.cells.some((c) => c.state !== null)).toBe(true); // a cell is now filled
+    expect(after.backedCount).toBe(before.backedCount + 1);
+  });
+
+  it("refuses to re-source an already-backed claim and enforces a title", () => {
+    const cov = coverageMatrix(USER, "topic_dijkstra")!;
+    const backed = cov.rows.find((r) => r.state !== "disputed" && r.state !== "unsupported")!;
+    expect(addSourceForClaim(USER, "topic_dijkstra", backed.claimId, { title: "x" }).ok).toBe(false);
+    const disputed = cov.rows.find((r) => r.state === "disputed")!;
+    expect(addSourceForClaim(USER, "topic_dijkstra", disputed.claimId, { title: "   " }).ok).toBe(false);
   });
 });

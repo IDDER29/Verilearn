@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 import type { TrustState } from "@/lib/domain/types";
+import { addSourceAction } from "@/app/source-actions";
 
 /** One matrix cell coloured by how (if at all) a source backs the claim. */
 function Cell({ filled, state, rowUnsupported }: { filled: boolean; state: TrustState | null; rowUnsupported: boolean }) {
@@ -60,6 +63,11 @@ function isUnsupportedRow(state: TrustState): boolean {
 }
 
 export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
+  const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [ref, setRef] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const cov = data?.coverage ?? null;
   const coveragePct = cov?.coveragePercent ?? 0;
   const backed = cov?.backedCount ?? 0;
@@ -69,6 +77,21 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
   const unsupportedText = unsupportedRow?.claimText ?? data?.disputedClaims[0]?.text ?? "";
   const sources = cov?.sources ?? [];
   const gridCols = `minmax(0,1fr) ${sources.map(() => "64px").join(" ")}`;
+
+  async function attach() {
+    if (!data || !unsupportedRow || title.trim().length === 0) return;
+    setSaving(true);
+    setErr(null);
+    const r = await addSourceAction(data.topicId, unsupportedRow.claimId, title, ref);
+    setSaving(false);
+    if (r.ok) {
+      setTitle("");
+      setRef("");
+      router.refresh();
+    } else {
+      setErr(r.error ?? "Couldn't attach the source.");
+    }
+  }
 
   return (
     <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -247,6 +270,43 @@ export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) 
           </div>
         </div>
       </div>
+
+      {/* attach a source to the unsupported claim (TRUST-09) */}
+      {unsupported > 0 && unsupportedRow && (
+        <div style={{ background: "#fff", borderRadius: 24, padding: "24px 26px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+          <div style={{ font: "900 17px var(--font-nunito)", marginBottom: 4 }}>Attach a source</div>
+          <div style={{ font: "600 12.5px/1.5 var(--font-nunito)", color: "#8b8699", marginBottom: 16 }}>
+            Back &quot;{unsupportedRow.claimText}&quot; with a reference. It moves to <b>sourced</b> — the trust firewall means you provide the citation, the verifier records the state.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, alignItems: "start" }}>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Source title (e.g. CLRS §24.3)"
+              aria-label="Source title"
+              style={{ boxSizing: "border-box", width: "100%", border: "1.5px solid #ece8f4", borderRadius: 12, padding: "11px 13px", font: "600 14px var(--font-nunito)", background: "#fbfafd", outline: "none" }}
+            />
+            <input
+              type="text"
+              value={ref}
+              onChange={(e) => setRef(e.target.value)}
+              placeholder="Reference / URL (optional)"
+              aria-label="Source reference"
+              style={{ boxSizing: "border-box", width: "100%", border: "1.5px solid #ece8f4", borderRadius: 12, padding: "11px 13px", font: "600 14px var(--font-nunito)", background: "#fbfafd", outline: "none" }}
+            />
+            <button
+              type="button"
+              onClick={attach}
+              disabled={saving || title.trim().length === 0}
+              style={{ border: "none", background: title.trim().length === 0 ? "#cdc6e8" : "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "11px 22px", borderRadius: 12, cursor: saving || title.trim().length === 0 ? "default" : "pointer", whiteSpace: "nowrap" }}
+            >
+              {saving ? "Attaching…" : "Attach & back"}
+            </button>
+          </div>
+          {err && <div style={{ font: "700 12px var(--font-nunito)", color: "#c0392b", marginTop: 10 }}>{err}</div>}
+        </div>
+      )}
     </main>
   );
 }
