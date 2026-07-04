@@ -79,3 +79,56 @@ export function resolveConflict(userId: string, topicId: string, claimId: string
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
+
+/** A claim that was disputed and later resolved — a candidate for reopening (TRUST-13). */
+export interface ResolvedConflictItem {
+  topicId: string;
+  claimId: string;
+  claimText: string;
+}
+
+/** Claims whose ledger history shows a disputed→resolved transition, per topic. */
+export function listResolvedConflicts(userId: string, topicId: string): ResolvedConflictItem[] {
+  const topic = getDb().topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return [];
+  const out: ResolvedConflictItem[] = [];
+  for (const claim of topic.claims) {
+    const evs = topic.events.filter((e) => e.claimId === claim.id);
+    const everDisputed = evs.some((e) => e.state === "disputed");
+    const nowResolved = evs.length > 0 && evs[evs.length - 1].state !== "disputed";
+    if (everDisputed && nowResolved) out.push({ topicId, claimId: claim.id, claimText: claim.text });
+  }
+  return out;
+}
+
+/**
+ * Reopen a resolved conflict (TRUST-13): the learner supplies a required reason,
+ * and the SYSTEM verifier (never the learner) records a new `disputed` event that
+ * reverts the claim's trust state — re-excluding it from test pools. Append-only:
+ * the prior resolution is preserved in history.
+ */
+export function reopenConflict(userId: string, topicId: string, claimId: string, reason: string): ResolveResult {
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  const claim = topic.claims.find((c) => c.id === claimId);
+  if (!claim) return { ok: false, error: "Claim not found." };
+  if (!reason.trim()) return { ok: false, error: "Give a reason to reopen this conflict." };
+
+  const ledger = ledgerFor(topic);
+  if (ledger.stateOf(claimId) === "disputed") return { ok: false, error: "This conflict is already open." };
+
+  ledger.record(SYSTEM, {
+    id: newId("ve"),
+    claimId,
+    state: "disputed",
+    producedBy: SYSTEM.id,
+    producerVersion: "reopen-v1",
+    at: now(),
+    evidence: { method: "skeptic", detail: `Reopened by the learner: "${reason.trim()}"`, confidence: 0.4, resolved: false },
+  });
+
+  topic.events = ledger.allEvents();
+  topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  return { ok: true, newState: ledger.stateOf(claimId) };
+}

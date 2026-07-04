@@ -28,6 +28,8 @@ export interface WorkspaceData {
   /** Every claim with real ledger detail (state, source, confidence). */
   claims: LectureClaim[];
   disputedClaims: { claimId: string; text: string }[];
+  /** Claims that were disputed and later resolved — reopenable (TRUST-13). */
+  resolvedClaims: { claimId: string; text: string }[];
   coverage: {
     sources: { id: string; title: string; kind: string; preferred: boolean }[];
     rows: { claimId: string; claimText: string; state: TrustState; cells: { sourceId: string; filled: boolean; state: TrustState | null }[] }[];

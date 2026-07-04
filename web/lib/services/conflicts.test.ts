@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, ledgerFor, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { listConflicts, resolveConflict } from "./conflicts";
+import { listConflicts, listResolvedConflicts, reopenConflict, resolveConflict } from "./conflicts";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -41,5 +41,39 @@ describe("conflicts service", () => {
     expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "" }).ok).toBe(false);
     expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c1", { constraint: "x" }).ok).toBe(false); // not disputed
     expect(resolveConflict("intruder", "topic_dijkstra", "topic_dijkstra_c6", { constraint: "x" }).ok).toBe(false);
+  });
+
+  it("lists a claim as resolved only after a disputed→resolved transition (TRUST-13)", () => {
+    expect(listResolvedConflicts(USER, "topic_dijkstra")).toHaveLength(0);
+    resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "only non-negative edge weights" });
+    const resolved = listResolvedConflicts(USER, "topic_dijkstra");
+    expect(resolved.map((r) => r.claimId)).toContain("topic_dijkstra_c6");
+    expect(listResolvedConflicts("intruder", "topic_dijkstra")).toHaveLength(0);
+  });
+
+  it("reopening a resolved conflict reverts the claim to disputed via the system verifier (TRUST-13)", () => {
+    resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "only non-negative edge weights" });
+    const topic = globalThis.__verilearnDb!.topics.get("topic_dijkstra")!;
+    expect(ledgerFor(topic).stateOf("topic_dijkstra_c6")).toBe("verified_source");
+
+    const r = reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", "the source doesn't cover directed graphs");
+    expect(r.ok).toBe(true);
+    expect(r.newState).toBe("disputed");
+    // written by the system verifier — never the learner
+    const evs = topic.events.filter((e) => e.claimId === "topic_dijkstra_c6");
+    const last = evs[evs.length - 1];
+    expect(last.producedBy).toBe("system:verifier");
+    expect(last.state).toBe("disputed");
+    // back in the open-conflicts pool, out of the resolved list
+    expect(listConflicts(USER).some((c) => c.claimId === "topic_dijkstra_c6")).toBe(true);
+    expect(listResolvedConflicts(USER, "topic_dijkstra").map((c) => c.claimId)).not.toContain("topic_dijkstra_c6");
+  });
+
+  it("reopen requires a reason and rejects already-open / foreign claims (TRUST-13)", () => {
+    resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "only non-negative edge weights" });
+    expect(reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", "   ").ok).toBe(false); // no reason
+    expect(reopenConflict("intruder", "topic_dijkstra", "topic_dijkstra_c6", "x").ok).toBe(false); // foreign
+    // an already-disputed (never-resolved) claim cannot be reopened
+    expect(reopenConflict(USER, "topic_merkle", "topic_merkle_c4", "x").ok).toBe(false);
   });
 });

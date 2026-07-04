@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { resolveConflictAction } from "@/app/conflict-actions";
+import { reopenConflictAction, resolveConflictAction } from "@/app/conflict-actions";
 import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 
@@ -19,6 +19,16 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
   const claimCount = data?.claimCount ?? 0;
   const flagged = disputes.length;
   const held = Math.max(0, claimCount - flagged);
+
+  const resolvedList = data?.resolvedClaims ?? [];
+
+  async function reopen(claimId: string) {
+    if (!data) return;
+    const reason = window.prompt("Why are you reopening this conflict? (a reason is required)");
+    if (!reason || !reason.trim()) return;
+    const r = await reopenConflictAction(data.topicId, claimId, reason);
+    if (r.ok) router.refresh();
+  }
 
   async function recordResolution() {
     if (!data || !disputed || constraint.trim().length === 0) return;
@@ -166,6 +176,21 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
           </div>
         </div>
         </>
+        )}
+
+        {/* recently resolved — reopenable with a required reason (TRUST-13) */}
+        {resolvedList.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: 22, padding: "20px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+            <div style={{ font: "900 15px var(--font-nunito)", marginBottom: 4 }}>Recently resolved</div>
+            <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginBottom: 12 }}>Reopening reverts the claim to disputed and re-excludes it from tests — a reason is required.</div>
+            {resolvedList.map((c) => (
+              <div key={c.claimId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid #f5f3fa" }}>
+                <span style={{ font: "800 10px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>✓ Resolved</span>
+                <span style={{ flex: 1, minWidth: 0, font: "700 12.5px var(--font-nunito)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>&quot;{c.text}&quot;</span>
+                <button type="button" onClick={() => reopen(c.claimId)} style={{ border: "1.5px solid #ece8f4", background: "#fff", color: "#c0392b", font: "800 11px var(--font-nunito)", padding: "7px 13px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap" }}>Reopen</button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

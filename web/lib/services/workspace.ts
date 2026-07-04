@@ -5,6 +5,7 @@
  */
 import type { WorkspaceData } from "@/components/workspace/types";
 import { coverageMatrix } from "./sources";
+import { listResolvedConflicts } from "./conflicts";
 import { getTopicView, listTopicSummaries } from "./topics";
 
 export function loadWorkspaceData(userId: string, topicId?: string): WorkspaceData | null {
@@ -41,6 +42,7 @@ export function loadWorkspaceData(userId: string, topicId?: string): WorkspaceDa
     breakdown: view.breakdown,
     claims,
     disputedClaims: view.claimStates.filter((c) => c.state === "disputed").map((c) => ({ claimId: c.id, text: c.text })),
+    resolvedClaims: listResolvedConflicts(userId, view.topic.id).map((r) => ({ claimId: r.claimId, text: r.claimText })),
     coverage: cov
       ? {
           sources: cov.sources.map((s) => ({ id: s.id, title: s.title, kind: s.kind, preferred: !!s.preferred })),
