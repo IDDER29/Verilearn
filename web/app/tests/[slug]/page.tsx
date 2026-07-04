@@ -6,6 +6,7 @@ import { buildSession } from "@/lib/services/testsession";
 import { readinessFor } from "@/lib/services/progress";
 import { getTopicView } from "@/lib/services/topics";
 import { isTestEligible } from "@/lib/domain/types";
+import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 
 export const metadata = { title: "Test Detail · VeriLearn" };
@@ -54,6 +55,23 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
   const sections = [...sectionMap.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([id, c], i) => ({ id, label: `§${i + 1}`, ...c }));
+
+  // Real "Boost your odds" levers (TEST-09): the weakest section by real due
+  // flashcards, and the real disputed-claim count — never static copy, and
+  // each lever hides once its own blocker is cleared (no fabricated action).
+  const claimSection = new Map((view?.topic.claims ?? []).map((c) => [c.id, c.sectionId]));
+  const dueBySection = new Map<string, number>();
+  if (topicId) {
+    for (const card of reviewCardsOf(getDb(), user.id)) {
+      if (card.topicId !== topicId || card.fsrs.due > now()) continue;
+      const sec = claimSection.get(card.claimId);
+      if (!sec) continue;
+      dueBySection.set(sec, (dueBySection.get(sec) ?? 0) + 1);
+    }
+  }
+  const weakestSectionId = [...dueBySection.entries()].sort(([, a], [, b]) => b - a)[0]?.[0];
+  const weakestDueCount = weakestSectionId ? dueBySection.get(weakestSectionId)! : 0;
+  const weakestSectionLabel = weakestSectionId ? (sections.find((s) => s.id === weakestSectionId)?.label ?? weakestSectionId) : null;
 
   return (
     <AppShell active="tests">
@@ -263,29 +281,41 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
             </div>
           </div>
 
-          {/* readiness breakdown */}
+          {/* readiness breakdown — real levers (TEST-09): each hides once its own blocker clears */}
           <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ font: "900 15px var(--font-nunito)", marginBottom: 14 }}>Boost your odds</div>
-            <Link href="/review" style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fbeadf", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>📼</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 12.5px var(--font-nunito)" }}>Review §3 flashcards</div>
-                <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>4 cards · weakest section</div>
+            {weakestSectionLabel && (
+              <Link href="/review" style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", textDecoration: "none", color: "inherit" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fbeadf", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>📼</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "800 12.5px var(--font-nunito)" }}>Review {weakestSectionLabel} flashcards</div>
+                  <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>{weakestDueCount} card{weakestDueCount === 1 ? "" : "s"} due · weakest section</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </Link>
+            )}
+            {excluded > 0 && (
+              <Link
+                href={`/topics/conflicts?topic=${topicId}`}
+                style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", textDecoration: "none", color: "inherit", ...(weakestSectionLabel ? { borderTop: "1px solid #f5f3fa" } : {}) }}
+              >
+                <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>⚖️</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "800 12.5px var(--font-nunito)" }}>Resolve {excluded} conflict{excluded === 1 ? "" : "s"}</div>
+                  <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>Frees {excluded === 1 ? "a claim" : `${excluded} claims`} for the test</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </Link>
+            )}
+            {!weakestSectionLabel && excluded === 0 && (
+              <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", padding: "11px 0" }}>
+                Nothing to boost right now — no cards due and no disputed claims blocking this test.
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
-            <Link href="/topics/conflicts" style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", borderTop: "1px solid #f5f3fa", textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>⚖️</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 12.5px var(--font-nunito)" }}>Resolve 1 conflict</div>
-                <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>Frees a claim for the test</div>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
+            )}
           </div>
 
           {/* start CTA */}
