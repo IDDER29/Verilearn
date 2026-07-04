@@ -2,14 +2,11 @@ import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
+import { EXAMPLE_TOPICS } from "@/lib/content/exampleTopics";
 
 export const metadata = { title: "Welcome · VeriLearn" };
 
-const EXAMPLES = [
-  { emoji: "🧭", bg: "#efe9ff", title: "Dijkstra's algorithm", meta: "Algorithms · beginner", level: "New to graph algorithms; comfortable with basic data structures." },
-  { emoji: "🌳", bg: "#e9f7ef", title: "Merkle trees", meta: "Cryptography · intermediate", level: "Comfortable with hashing; new to tree structures and cryptographic proofs." },
-  { emoji: "🔍", bg: "#e2ecfb", title: "Binary search", meta: "Algorithms · beginner", level: "Know arrays and loops; new to divide-and-conquer thinking." },
-];
+const EXAMPLES = EXAMPLE_TOPICS.slice(0, 3);
 
 export default async function WelcomePage() {
   const user = await requireUser();

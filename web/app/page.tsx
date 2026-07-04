@@ -13,6 +13,7 @@ import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 import { formatInterval } from "@/lib/format";
+import { EXAMPLE_TOPICS } from "@/lib/content/exampleTopics";
 
 export const metadata = { title: "Dashboard · VeriLearn" };
 
@@ -64,6 +65,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   // Archived topics (BILL-12) don't count against the cap.
   const activeTopicCount = allTopics.filter((t) => !t.archived).length;
   const atCap = user.plan === "free" && activeTopicCount >= FREE_TOPIC_CAP;
+  // "Learn next" (HOME-21): a fixed, cheap, honestly non-personalized on-ramp —
+  // never a per-load model call — so the caught-up moment always has a genuine
+  // next action, not just "review ahead" with diminishing returns. Still shown
+  // at the Free-tier cap, same as the hero CTA: clicking through still hits the
+  // real, honest cap message rather than disappearing entirely.
+  const ownedTitles = new Set(allTopics.map((t) => t.title.toLowerCase()));
+  const learnNext = EXAMPLE_TOPICS.filter((e) => !ownedTitles.has(e.title.toLowerCase())).slice(0, 3);
 
   // Real headline stats.
   const claimsChecked = allTopics.reduce((n, t) => n + t.claimCount, 0);
@@ -238,6 +246,31 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               </span>
             </div>
           </div>
+
+          {/* learn next (HOME-21) — a genuine next action when there's nothing else to do */}
+          {learnNext.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 22, padding: "20px 22px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ font: "900 15px var(--font-nunito)" }}>Learn next</div>
+                <div style={{ font: "600 11px var(--font-nunito)", color: "#a7a1b8" }}>a few ideas, not personalized</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${learnNext.length}, 1fr)`, gap: 12 }}>
+                {learnNext.map((e) => (
+                  <Link
+                    key={e.title}
+                    href={`/new-topic?topic=${encodeURIComponent(e.title)}&level=${encodeURIComponent(e.level)}`}
+                    style={{ textDecoration: "none", color: "inherit", background: "#f7f5fb", borderRadius: 14, padding: 14 }}
+                  >
+                    <div style={{ width: 36, height: 36, borderRadius: 11, background: e.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, marginBottom: 10 }}>
+                      {e.emoji}
+                    </div>
+                    <div style={{ font: "800 12.5px var(--font-nunito)" }}>{e.title}</div>
+                    <div style={{ font: "600 10.5px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>{e.meta}</div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* stat cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>

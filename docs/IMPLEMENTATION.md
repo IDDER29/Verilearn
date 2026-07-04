@@ -62,7 +62,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 ### Screens wired to real data (P4)
 | Screen | Real data source |
 |---|---|
-| Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting; archived topics (BILL-12) show a real "📦 Archived" status and don't count toward the Free cap; search now returns real cross-topic claim results too, not just matching topics (HOME-07) |
+| Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting; archived topics (BILL-12) show a real "📦 Archived" status and don't count toward the Free cap; search now returns real cross-topic claim results too, not just matching topics (HOME-07); a "Learn next" row (HOME-21) offers a genuine next action from a fixed, honestly non-personalized curated list, excluding topics already owned, pre-filling New Topic via the same query-param convention as the Welcome screen's example row |
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
 | Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted; interactive "Blind-spot check" seeded error-drill widget with a genuine per-learner catch rate (ANALYTICS-07/REVIEW-06), respecting the Settings › Review drills toggle (REVIEW-14) |
@@ -100,8 +100,8 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 167 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 171 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 168 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 170 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -116,7 +116,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **171 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **170 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -131,4 +131,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after wiring real certificate-revocation propagation on a claim downgrade (TEST-13) — `raiseDispute` and `reopenConflict` (`lib/services/conflicts.ts`) now revoke every live certificate for the affected topic/learner through the same tested `revokeCertificate` primitive the admin console uses, attributed to the system verifier since it's an automatic ledger-truth consequence, not a human judgment call; the materiality check is honestly topic-scoped (certs record a `topicId`, not the specific claims their test covered) — visible immediately on the pre-existing `/verify/[code]` and `/admin/certificates` surfaces, no new UI needed. Recent momentum: a real ban-appeal flow (AUTH-18, closing a stale disposition row), a data-driven Review › Discuss screen (REVIEW-08, which also fixed a severe pre-existing production bug that left `/review` stuck loading forever), a data-driven disputed-claim callout on the Lecture tab (LEARN-12), and an explicit auditable cross-origin merge policy for the Gap Map (GAP-07). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 167 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after adding a real "Learn next" row to the Dashboard (HOME-21) — the PRD's own priority note requires it stay cheap/honest, never a per-load model call, so it reuses the same fixed, hand-curated example list as the Welcome screen's on-ramp (`lib/content/exampleTopics.ts`, now shared so both stay in sync), filtering out anything the learner already owns and honestly labeled "not personalized"; clicking through pre-fills New Topic via the same query-param convention HOME-02 already built. Verified live: Adeline, who owns 3 of the 6 curated topics, sees exactly the 3 she doesn't. Recent momentum: certificate-revocation propagation on a claim downgrade (TEST-13), a real ban-appeal flow (AUTH-18), a data-driven Review › Discuss screen (REVIEW-08, which also fixed a severe pre-existing production bug in `/review`), and a data-driven disputed-claim callout on the Lecture tab (LEARN-12). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 168 Done; remainder is field-polish or deferred-with-justification._
