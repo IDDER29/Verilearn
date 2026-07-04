@@ -23,6 +23,9 @@ export interface TopicSummary {
 
 const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSME: false };
 
+/** Free-plan topic cap (BILL / HOME-13). Pro is unlimited. */
+export const FREE_TOPIC_CAP = 3;
+
 function summarize(topic: TopicRecord): TopicSummary {
   const ledger = ledgerFor(topic);
   const states = topic.claims.map((c) => ledger.stateOf(c.id));
@@ -80,8 +83,8 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
   const user = db.users.get(userId);
   if (!user) return { ok: false, error: "Not authenticated." };
   const existing = topicsOf(db, userId);
-  if (user.plan === "free" && existing.length >= 3) {
-    return { ok: false, error: "Free plan is limited to 3 topics. Upgrade to Pro for unlimited topics." };
+  if (user.plan === "free" && existing.length >= FREE_TOPIC_CAP) {
+    return { ok: false, error: `Free plan is limited to ${FREE_TOPIC_CAP} topics. Upgrade to Pro for unlimited topics.` };
   }
   // Server-side gate mirrors the client (VERIFY-02): all three fields required,
   // not just the title — the client gate must not be the only guard.

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { StatCard, TrustBar } from "@/components/ui";
 import { requireUser } from "@/lib/auth/current";
-import { listTopicSummaries } from "@/lib/services/topics";
+import { listTopicSummaries, FREE_TOPIC_CAP } from "@/lib/services/topics";
 import { listTestableTopics } from "@/lib/services/tests";
 import { getDueCards } from "@/lib/services/review";
 import { unreadNotificationCount } from "@/lib/services/notifications";
@@ -32,6 +32,8 @@ export default async function DashboardPage() {
   const dueCount = getDueCards(user.id, at).length;
   const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
   const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
+  // Free plan at its topic cap → the hero CTA nudges to Upgrade instead of New Topic (HOME-13).
+  const atCap = user.plan === "free" && topics.length >= FREE_TOPIC_CAP;
 
   // Real headline stats.
   const claimsChecked = topics.reduce((n, t) => n + t.claimCount, 0);
@@ -170,22 +172,37 @@ export default async function DashboardPage() {
               <div style={{ font: "900 30px/1.15 var(--font-nunito)", letterSpacing: "-.02em", color: "#fff" }}>
                 Learn things you can<br />actually trust ✨
               </div>
-              <Link
-                href="/new-topic"
-                style={{
-                  display: "inline-block",
-                  textDecoration: "none",
-                  marginTop: 18,
-                  padding: "12px 26px",
-                  borderRadius: 14,
-                  background: "#fff",
-                  color: "#221f2e",
-                  font: "800 14px var(--font-nunito)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Start a topic
-              </Link>
+              {atCap ? (
+                /* Free plan at the topic cap (HOME-13): the CTA becomes an upgrade nudge. */
+                <>
+                  <div style={{ font: "700 12.5px var(--font-nunito)", color: "#e0b0aa", marginTop: 14 }}>
+                    You&apos;ve used all {FREE_TOPIC_CAP} free topics.
+                  </div>
+                  <Link
+                    href="/upgrade"
+                    style={{ display: "inline-block", textDecoration: "none", marginTop: 8, padding: "12px 26px", borderRadius: 14, background: "#8b78e8", color: "#fff", font: "800 14px var(--font-nunito)", whiteSpace: "nowrap" }}
+                  >
+                    Go Verified Pro for unlimited →
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  href="/new-topic"
+                  style={{
+                    display: "inline-block",
+                    textDecoration: "none",
+                    marginTop: 18,
+                    padding: "12px 26px",
+                    borderRadius: 14,
+                    background: "#fff",
+                    color: "#221f2e",
+                    font: "800 14px var(--font-nunito)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Start a topic
+                </Link>
+              )}
             </div>
             <div
               style={{

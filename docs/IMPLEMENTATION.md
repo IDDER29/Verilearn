@@ -90,8 +90,8 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 102 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 235 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 103 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 234 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -122,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the task-grading a11y pass (TASK-19) — 102 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the plan-aware Home CTA (HOME-13) — 103 Done; remainder is field-polish or deferred-with-justification._
