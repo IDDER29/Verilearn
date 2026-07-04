@@ -12,6 +12,8 @@ export interface TaskView {
   id: string;
   type: TaskType;
   prompt: string;
+  /** Reference answer — only sent to the client once the learner has passed (TASK-06). */
+  modelAnswer?: string;
   criteria: { id: string; text: string; sourceId: string }[];
   submittedAnswer?: string;
   scorePct?: number;
@@ -26,6 +28,8 @@ function toView(task: TaskRecord): TaskView {
     id: task.id,
     type: task.type,
     prompt: task.prompt,
+    // Gate the reference answer server-side: only reveal it once passed (TASK-06).
+    modelAnswer: task.passed ? task.modelAnswer : undefined,
     criteria: task.rubric.criteria.map((c) => ({ id: c.id, text: c.text, sourceId: c.sourceId })),
     submittedAnswer: task.submittedAnswer,
     scorePct: task.scorePct,
@@ -46,6 +50,8 @@ export interface GradeSubmissionResult {
   passed?: boolean;
   hitIds?: string[];
   missingIds?: string[];
+  /** Reference answer, returned only on a passing submission (TASK-06). */
+  modelAnswer?: string;
 }
 
 /** Grade a write-in answer against the task's source-anchored rubric (revise-to-pass). */
@@ -89,5 +95,6 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
     passed: result.passed,
     hitIds: result.hit.map((c: Criterion) => c.id),
     missingIds: result.missing.map((c: Criterion) => c.id),
+    modelAnswer: result.passed ? task.modelAnswer : undefined,
   };
 }

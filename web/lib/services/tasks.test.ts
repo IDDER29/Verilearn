@@ -38,6 +38,19 @@ describe("tasks service (produce step)", () => {
     expect(getTasks(USER, "topic_dijkstra")[0].passed).toBe(true);
   });
 
+  it("TASK-06: the model answer is gated behind a pass", () => {
+    // Before any pass, getTasks must not leak the model answer.
+    expect(getTasks(USER, "topic_dijkstra")[0].modelAnswer).toBeUndefined();
+    // A failing grade doesn't reveal it either.
+    const thin = gradeSubmission(USER, "task_dijkstra_1", "dunno");
+    expect(thin.modelAnswer).toBeUndefined();
+    // A pass returns it, and it's now exposed via getTasks.
+    const good = gradeSubmission(USER, "task_dijkstra_1", "The greedy finality fails when a negative edge lowers a finalised distance; use Bellman-Ford.");
+    expect(good.passed).toBe(true);
+    expect(good.modelAnswer && good.modelAnswer.length).toBeGreaterThan(0);
+    expect(getTasks(USER, "topic_dijkstra")[0].modelAnswer).toBeTruthy();
+  });
+
   it("rejects empty answers and foreign tasks", () => {
     expect(gradeSubmission(USER, "task_dijkstra_1", "  ").ok).toBe(false);
     expect(gradeSubmission("intruder", "task_dijkstra_1", "x").ok).toBe(false);

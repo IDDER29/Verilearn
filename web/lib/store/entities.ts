@@ -105,6 +105,8 @@ export interface TaskRecord {
   type: TaskType;
   prompt: string;
   rubric: Rubric;
+  /** Reference answer, revealed only after a pass (TASK-06). */
+  modelAnswer?: string;
   /** criterionId -> hit, once submitted */
   submissionHits?: Record<string, boolean>;
   submittedAnswer?: string;

@@ -196,5 +196,7 @@ export function seedDb(db: Db, now: number): void {
         { id: "c3", text: "Names Bellman-Ford as the correct alternative", weight: 1, sourceId: "src_skiena", claimId: "topic_dijkstra_c2", keywords: ["bellman"] },
       ],
     },
+    modelAnswer:
+      "Dijkstra finalises a node's distance the moment it's popped as the minimum, relying on the greedy/cut-property argument that no later path can improve it. A negative edge breaks that assumption: it can lower an already-finalised distance, so the greedy finality no longer holds and the result can be wrong. For graphs with negative edge weights, use Bellman-Ford, which relaxes all edges V−1 times and also detects negative cycles.",
   });
 }

@@ -13,7 +13,7 @@ import WorkspaceTabs from "./WorkspaceTabs";
 import type { TabKey, WorkspaceData } from "./types";
 
 type TaskView = Awaited<ReturnType<typeof getTasksAction>>[number];
-type Grade = { scorePct: number; passed: boolean; hitIds: string[]; missingIds: string[] };
+type Grade = { scorePct: number; passed: boolean; hitIds: string[]; missingIds: string[]; modelAnswer?: string };
 
 const PASS_BAR = 75;
 
@@ -24,6 +24,7 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
   const [grade, setGrade] = useState<Grade | null>(null);
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
   // On mount, load the topic's tasks and seed state from the first one.
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
       if (first) {
         setAnswer(first.submittedAnswer ?? "");
         if (first.scorePct !== undefined && first.passed !== undefined) {
-          setGrade({ scorePct: first.scorePct, passed: first.passed, hitIds: first.hit, missingIds: first.missing });
+          setGrade({ scorePct: first.scorePct, passed: first.passed, hitIds: first.hit, missingIds: first.missing, modelAnswer: first.modelAnswer });
         }
       }
     });
@@ -54,7 +55,7 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
     }
     const hitIds = r.hitIds ?? [];
     const missingIds = r.missingIds ?? [];
-    setGrade({ scorePct: r.scorePct ?? 0, passed: r.passed ?? false, hitIds, missingIds });
+    setGrade({ scorePct: r.scorePct ?? 0, passed: r.passed ?? false, hitIds, missingIds, modelAnswer: r.modelAnswer });
     setTasks((prev) =>
       prev
         ? prev.map((t) =>
@@ -211,16 +212,25 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
                 </div>
               )}
 
+              {/* model answer — revealed only after a pass (TASK-06) */}
+              {revealed && grade?.modelAnswer && (
+                <div style={{ background: "#eef7f1", border: "1.5px solid #cdeadd", borderRadius: 16, padding: "16px 18px", marginBottom: 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, font: "800 12px var(--font-nunito)", color: "#2e9c6a", marginBottom: 8 }}>✓ Model answer</div>
+                  <div style={{ font: "600 14px/1.7 var(--font-nunito)", color: "#221f2e" }}>{grade.modelAnswer}</div>
+                </div>
+              )}
+
               {/* actions */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 18, borderTop: "1px solid #f0edf6" }}>
                 <span style={{ font: "700 13px var(--font-nunito)", color: "#9a95a8" }}>Model answer unlocks at a pass (≥ {PASS_BAR}%)</span>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button
                     type="button"
-                    disabled={!grade?.passed}
+                    disabled={!grade?.passed || !grade?.modelAnswer}
+                    onClick={() => setRevealed((v) => !v)}
                     style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#6c6780", font: "800 13.5px var(--font-nunito)", padding: "11px 20px", borderRadius: 13, cursor: grade?.passed ? "pointer" : "not-allowed", opacity: grade?.passed ? 1 : 0.55 }}
                   >
-                    See model answer
+                    {revealed ? "Hide model answer" : "See model answer"}
                   </button>
                   <button
                     type="button"
