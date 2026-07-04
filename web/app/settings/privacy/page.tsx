@@ -1,9 +1,59 @@
+// SETTINGS/SEC — data-subject controls: analytics / community visibility / product
+// emails are the privacy prefs the learner governs here. Bound to real prefs via
+// getPrefsAction (load) + savePrivacyAction (per-toggle persist).
+"use client";
+
+import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
+import { getPrefsAction, savePrivacyAction } from "@/app/prefs-actions";
+import type { UserPrefs } from "@/lib/store/entities";
 
-export const metadata = { title: "Privacy · Settings · VeriLearn" };
+type Privacy = UserPrefs["privacy"];
+
+function Toggle({ on, disabled, onClick }: { on: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        width: 46,
+        height: 27,
+        borderRadius: 14,
+        background: on ? "#6d5bd0" : "#dcd7ea",
+        position: "relative",
+        flexShrink: 0,
+        border: "none",
+        padding: 0,
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        transition: "background .15s",
+      }}
+    >
+      <span style={{ position: "absolute", width: 21, height: 21, borderRadius: "50%", background: "#fff", top: 3, ...(on ? { right: 3 } : { left: 3 }) }} />
+    </button>
+  );
+}
 
 export default function SettingsPrivacyPage() {
+  const [privacy, setPrivacy] = useState<Privacy | null>(null);
+
+  useEffect(() => {
+    getPrefsAction().then((p) => setPrivacy(p?.privacy ?? null));
+  }, []);
+
+  const loaded = privacy !== null;
+
+  async function toggle(key: keyof Privacy) {
+    if (!privacy) return;
+    const next = { ...privacy, [key]: !privacy[key] };
+    setPrivacy(next);
+    await savePrivacyAction({ [key]: next[key] });
+  }
+
   return (
     <AppShell active="settings">
       <main
@@ -55,31 +105,25 @@ export default function SettingsPrivacyPage() {
                 <div style={{ font: "800 14px var(--font-nunito)" }}>Anonymous usage analytics</div>
                 <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Help improve VeriLearn with de-identified data</div>
               </div>
-              <div style={{ width: 46, height: 27, borderRadius: 14, background: "#6d5bd0", position: "relative", flexShrink: 0 }}>
-                <span style={{ position: "absolute", width: 21, height: 21, borderRadius: "50%", background: "#fff", top: 3, right: 3 }} />
-              </div>
+              <Toggle on={!!privacy?.analytics} disabled={!loaded} onClick={() => toggle("analytics")} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 0", borderBottom: "1px solid #f5f3fa" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: "800 14px var(--font-nunito)" }}>Show my profile in Community</div>
                 <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Others can see your name on threads</div>
               </div>
-              <div style={{ width: 46, height: 27, borderRadius: 14, background: "#6d5bd0", position: "relative", flexShrink: 0 }}>
-                <span style={{ position: "absolute", width: 21, height: 21, borderRadius: "50%", background: "#fff", top: 3, right: 3 }} />
-              </div>
+              <Toggle on={!!privacy?.communityVisible} disabled={!loaded} onClick={() => toggle("communityVisible")} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 0" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: "800 14px var(--font-nunito)" }}>Product emails</div>
                 <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Occasional tips &amp; feature news</div>
               </div>
-              <div style={{ width: 46, height: 27, borderRadius: 14, background: "#dcd7ea", position: "relative", flexShrink: 0 }}>
-                <span style={{ position: "absolute", width: 21, height: 21, borderRadius: "50%", background: "#fff", top: 3, left: 3 }} />
-              </div>
+              <Toggle on={!!privacy?.emailUpdates} disabled={!loaded} onClick={() => toggle("emailUpdates")} />
             </div>
           </div>
 
-          {/* export */}
+          {/* export — Deferred: there is no export service yet, so this stays a stub. */}
           <div style={{ background: "#fff", borderRadius: 20, padding: "20px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">

@@ -1,9 +1,55 @@
+"use client";
+
+import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
-
-export const metadata = { title: "Danger zone · Settings · VeriLearn" };
+import {
+  resetReviewHistoryAction,
+  resetGapMapAction,
+  deleteAllTopicsAction,
+  deleteAccountAction,
+} from "@/app/danger-actions";
 
 export default function SettingsDangerPage() {
+  // Per-reset transient status so we can show a brief "Done" affordance.
+  const [busy, setBusy] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+
+  async function run(key: string, action: () => Promise<{ ok: boolean }>) {
+    if (busy) return;
+    setBusy(key);
+    setDone(null);
+    await action();
+    setBusy(null);
+    setDone(key);
+    setTimeout(() => setDone((d) => (d === key ? null : d)), 2200);
+  }
+
+  function label(key: string, idle: string) {
+    if (busy === key) return "Working…";
+    if (done === key) return "Done ✓";
+    return idle;
+  }
+
+  // Account deletion flow — gated on typing DELETE.
+  const [confirm, setConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const canDelete = confirm.trim() === "DELETE";
+
+  async function deleteAccount() {
+    if (!canDelete || deleting) return;
+    setError(null);
+    setDeleting(true);
+    // On success this redirects internally (throws NEXT_REDIRECT); we only reach
+    // the lines below when it returns an error (e.g. confirm text mismatch).
+    const res = await deleteAccountAction(confirm);
+    if (res && !res.ok) {
+      setError(res.error ?? "Could not delete account.");
+      setDeleting(false);
+    }
+  }
+
   return (
     <AppShell active="settings">
       <main
@@ -37,7 +83,14 @@ export default function SettingsDangerPage() {
               <div style={{ font: "800 14.5px var(--font-nunito)" }}>Reset review history</div>
               <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699" }}>Clears your FSRS schedule &amp; ratings. Your topics &amp; lectures stay.</div>
             </div>
-            <button style={{ border: "1.5px solid #f0d5c9", background: "#fff", color: "#b4690e", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Reset history</button>
+            <button
+              type="button"
+              disabled={busy === "history"}
+              onClick={() => run("history", resetReviewHistoryAction)}
+              style={{ border: "1.5px solid #f0d5c9", background: "#fff", color: "#b4690e", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: busy === "history" ? "default" : "pointer", whiteSpace: "nowrap" }}
+            >
+              {label("history", "Reset history")}
+            </button>
           </div>
 
           {/* reset gap map */}
@@ -46,7 +99,14 @@ export default function SettingsDangerPage() {
               <div style={{ font: "800 14.5px var(--font-nunito)" }}>Reset gap map</div>
               <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699" }}>Deletes all tracked gaps &amp; their discussion threads.</div>
             </div>
-            <button style={{ border: "1.5px solid #f0d5c9", background: "#fff", color: "#b4690e", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Reset gaps</button>
+            <button
+              type="button"
+              disabled={busy === "gaps"}
+              onClick={() => run("gaps", resetGapMapAction)}
+              style={{ border: "1.5px solid #f0d5c9", background: "#fff", color: "#b4690e", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: busy === "gaps" ? "default" : "pointer", whiteSpace: "nowrap" }}
+            >
+              {label("gaps", "Reset gaps")}
+            </button>
           </div>
 
           {/* delete all topics */}
@@ -55,7 +115,14 @@ export default function SettingsDangerPage() {
               <div style={{ font: "800 14.5px var(--font-nunito)" }}>Delete all topics</div>
               <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699" }}>Permanently removes every topic, lecture &amp; claim ledger.</div>
             </div>
-            <button style={{ border: "1.5px solid #f3d9d6", background: "#fff", color: "#c0392b", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Delete topics</button>
+            <button
+              type="button"
+              disabled={busy === "topics"}
+              onClick={() => run("topics", deleteAllTopicsAction)}
+              style={{ border: "1.5px solid #f3d9d6", background: "#fff", color: "#c0392b", font: "800 12.5px var(--font-nunito)", padding: "11px 18px", borderRadius: 12, cursor: busy === "topics" ? "default" : "pointer", whiteSpace: "nowrap" }}
+            >
+              {label("topics", "Delete topics")}
+            </button>
           </div>
 
           {/* delete account */}
@@ -68,10 +135,28 @@ export default function SettingsDangerPage() {
               <input
                 type="text"
                 placeholder="Type DELETE"
+                value={confirm}
+                onChange={(e) => {
+                  setConfirm(e.target.value);
+                  if (error) setError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") deleteAccount();
+                }}
                 style={{ flex: 1, boxSizing: "border-box", font: "700 14px var(--font-nunito)", padding: "12px 14px", border: "1.5px solid #f0c8c2", borderRadius: 12, background: "#fff" }}
               />
-              <button style={{ border: "none", background: "#c0392b", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 22px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap", opacity: 0.55 }}>Delete my account</button>
+              <button
+                type="button"
+                disabled={!canDelete || deleting}
+                onClick={deleteAccount}
+                style={{ border: "none", background: "#c0392b", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 22px", borderRadius: 12, cursor: canDelete && !deleting ? "pointer" : "not-allowed", whiteSpace: "nowrap", opacity: canDelete && !deleting ? 1 : 0.55 }}
+              >
+                {deleting ? "Deleting…" : "Delete my account"}
+              </button>
             </div>
+            {error && (
+              <div style={{ font: "700 12px var(--font-nunito)", color: "#c0392b", marginTop: 10 }}>{error}</div>
+            )}
           </div>
         </div>
       </main>
