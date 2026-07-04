@@ -8,8 +8,13 @@ import { calibrationScore, type CalibrationDirection } from "@/lib/domain/calibr
 import { computeSignals, type Signals } from "@/lib/domain/signals";
 import { eligibleClaims, predictReadiness } from "@/lib/domain/tests-engine";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
+import type { ReviewLogEntry } from "@/lib/store/entities";
 import { listTopicSummaries } from "./topics";
 import { openGapCountForClaims } from "./gaps";
+import { now } from "@/lib/ids";
+
+/** Trend-delta comparison window for the four signals (ANALYTICS-01): "vs. 7 days ago". */
+const TREND_WINDOW_MS = 7 * 86_400_000;
 
 export interface RetentionPoint {
   /** Epoch ms at the start of the week bucket. */
@@ -61,22 +66,42 @@ export interface ProgressView {
   calibration: { score: number; direction: CalibrationDirection; count: number } | null;
 }
 
+/** Build a calibration summary (or null under MIN_RECORDS) from a slice of the review log. */
+function calibrationSummaryFor(log: readonly Pick<ReviewLogEntry, "confidence" | "correct">[]) {
+  const cal = calibrationScore(log.map((r) => ({ confidence: r.confidence, correct: r.correct })));
+  return cal.status === "ok" ? { score: cal.score, direction: cal.direction, count: cal.count } : null;
+}
+
 export function progressFor(userId: string): ProgressView {
   const db = getDb();
   const log = db.reviewLog.filter((r) => r.userId === userId);
-  const cal = calibrationScore(log.map((r) => ({ confidence: r.confidence, correct: r.correct })));
-  const calibration = cal.status === "ok" ? { score: cal.score, direction: cal.direction, count: cal.count } : null;
+  const calibration = calibrationSummaryFor(log);
 
-  const tasks = [...db.tasks.values()]
-    .filter((t) => t.userId === userId && t.passed !== undefined)
-    .map((t) => t.passed as boolean);
+  const allTasks = [...db.tasks.values()].filter((t) => t.userId === userId && t.passed !== undefined);
+  const tasks = allTasks.map((t) => t.passed as boolean);
 
-  const signals = computeSignals({
-    reviews: log.map((r) => r.correct),
-    tasks,
-    calibration,
-    drills: [], // seeded error-drills are not yet wired → honest empty blind-spot
-  });
+  // Prior-window comparison (ANALYTICS-01 trend delta): the same signals as of
+  // TREND_WINDOW_MS ago, from whatever review/task history existed by then.
+  // Tasks graded before `gradedAt` existed have no timestamp to compare against
+  // and are excluded from the prior window only (never fabricated as "already there").
+  const cutoff = now() - TREND_WINDOW_MS;
+  const priorLog = log.filter((r) => r.at <= cutoff);
+  const priorTasks = allTasks.filter((t) => t.gradedAt !== undefined && t.gradedAt <= cutoff).map((t) => t.passed as boolean);
+
+  const signals = computeSignals(
+    {
+      reviews: log.map((r) => r.correct),
+      tasks,
+      calibration,
+      drills: [], // seeded error-drills are not yet wired → honest empty blind-spot
+    },
+    {
+      reviews: priorLog.map((r) => r.correct),
+      tasks: priorTasks,
+      calibration: calibrationSummaryFor(priorLog),
+      drills: [],
+    },
+  );
 
   return { signals, reviewCount: log.length, topicCount: topicsOf(db, userId).length, calibration };
 }

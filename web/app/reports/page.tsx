@@ -23,6 +23,14 @@ const FOCUS_TONE = {
 const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)}%`);
 const barPct = (v: number | null) => (v === null ? "0%" : `${Math.round(v * 100)}%`);
 
+/** A signal's trend vs. 7 days ago (ANALYTICS-01) — null when there's no prior window to compare. */
+function deltaLabel(delta: number | null): { text: string; color: string } | null {
+  if (delta === null) return null;
+  const points = Math.round(delta * 100);
+  if (points === 0) return { text: "flat vs. last week", color: "#8b8699" };
+  return points > 0 ? { text: `▲${points}% vs. last week`, color: "#2e9c6a" } : { text: `▼${Math.abs(points)}% vs. last week`, color: "#c0392b" };
+}
+
 const CALIB_DIRECTION: Record<string, string> = {
   overconfident: "Overconfident — you rate yourself higher than you score. Slow down on “sure”.",
   underconfident: "Underconfident — you know more than you claim. Trust your “sure”.",
@@ -96,6 +104,7 @@ export default async function ReportsPage() {
           {SIGNAL_CARDS.map((card) => {
             const disp = signalDisplay(card.s.value, card.s.confidence);
             const chip = CONF_CHIP[card.s.confidence];
+            const delta = deltaLabel(card.s.delta);
             return (
               <div key={card.label} style={{ background: card.bg, borderRadius: 20, padding: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -108,9 +117,18 @@ export default async function ReportsPage() {
                     {chip.label}
                   </span>
                 </div>
-                <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>{disp.text}</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <div style={{ font: "900 30px var(--font-nunito)", lineHeight: 1 }}>{disp.text}</div>
+                  {/* Directional trend vs. 7 days ago (ANALYTICS-01) — never shown when there's no real comparison window. */}
+                  {delta && (
+                    <span style={{ font: "800 11px var(--font-nunito)", color: delta.color }}>{delta.text}</span>
+                  )}
+                </div>
                 <div style={{ font: "800 13px var(--font-nunito)", color: card.labelColor, marginTop: 4 }}>{card.label}</div>
                 <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: card.subColor, marginTop: 5 }}>{card.sub}</div>
+                {card.s.confidence !== "ok" && (
+                  <div style={{ font: "700 10.5px var(--font-nunito)", color: card.labelColor, marginTop: 2 }}>{disp.sub}</div>
+                )}
                 {/* Explainability drill-in (ANALYTICS-02): the engine's real provenance trace. */}
                 <details style={{ marginTop: 10 }}>
                   <summary style={{ cursor: "pointer", font: "800 10px var(--font-nunito)", letterSpacing: ".03em", textTransform: "uppercase", color: card.labelColor }}>

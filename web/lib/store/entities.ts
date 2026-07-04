@@ -119,6 +119,8 @@ export interface TaskRecord {
   submittedAnswer?: string;
   scorePct?: number;
   passed?: boolean;
+  /** epoch ms of the most recent grade, once submitted (ANALYTICS-01 trend windows). */
+  gradedAt?: number;
 }
 
 export interface TestRecord {

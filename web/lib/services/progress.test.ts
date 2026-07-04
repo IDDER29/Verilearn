@@ -141,6 +141,58 @@ describe("progress signals", () => {
     expect(retentionSeries("intruder", SEED_NOW, 6).hasEnough).toBe(false);
   });
 
+  it("ANALYTICS-01: retention carries a real trend delta vs. 7 days ago", () => {
+    const day = 86_400_000;
+    const realNow = Date.now();
+    // 8 days ago (outside the trend window... no, INSIDE the prior window: <= cutoff): a weak run.
+    gradeCard(USER, "rc_topic_dijkstra_c1", "guessing", "again", realNow - 8 * day);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "guessing", "again", realNow - 8 * day + 1);
+    // Recent (after the cutoff): a strong run.
+    gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "good", realNow);
+    gradeCard(USER, "rc_topic_dijkstra_c4", "sure", "good", realNow);
+
+    const { signals } = progressFor(USER);
+    // current = all 4 grades (2 correct of 4 = 0.5); prior = the 2 old grades (0 of 2 = 0).
+    expect(signals.retention.value).toBeCloseTo(0.5, 5);
+    expect(signals.retention.delta).toBeCloseTo(0.5, 5); // improved from 0 to 0.5
+  });
+
+  it("ANALYTICS-01: delta is null with no prior-window history to compare against", () => {
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", Date.now());
+    const { signals } = progressFor(USER);
+    expect(signals.retention.value).not.toBeNull();
+    expect(signals.retention.delta).toBeNull();
+  });
+
+  it("ANALYTICS-01: transfer's delta uses each task's real gradedAt, excluding un-timestamped legacy grades from the prior window only", () => {
+    const db = globalThis.__verilearnDb!;
+    const day = 86_400_000;
+    const realNow = Date.now();
+
+    // A synthetic already-graded PASS with NO gradedAt (pre-dates this feature) —
+    // counted in the current window, excluded from the prior window (honest, not fabricated).
+    db.tasks.set("task_legacy", {
+      id: "task_legacy",
+      userId: USER,
+      topicId: "topic_dijkstra",
+      type: "explain",
+      prompt: "legacy",
+      rubric: { id: "r_legacy", taskId: "task_legacy", criteria: [{ id: "c", text: "x", weight: 1, sourceId: "src_clrs" }] },
+      passed: true,
+    });
+
+    // A real, timestamped FAIL from 8 days ago (inside the prior window).
+    gradeSubmission(USER, "task_dijkstra_1", "I don't really know the reason for that.");
+    const oldTask = db.tasks.get("task_dijkstra_1")!;
+    oldTask.gradedAt = realNow - 8 * day;
+
+    const { signals } = progressFor(USER);
+    // current: 2 tasks (legacy pass + old fail) → 1/2 = 0.5
+    expect(signals.transfer.value).toBeCloseTo(0.5, 5);
+    // prior: only the timestamped one counts → 0/1 = 0 — the legacy pass never leaks in
+    expect(signals.transfer.delta).toBeCloseTo(0.5, 5);
+  });
+
   it("signalDisplay renders empty and populated states honestly", () => {
     expect(signalDisplay(null, "none")).toEqual({ text: "—", sub: "Not enough data yet" });
     expect(signalDisplay(0.83, "ok").text).toBe("83%");

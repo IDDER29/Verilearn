@@ -151,13 +151,15 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
   for (const c of task.rubric.criteria) hits[c.id] = keywordMatcher(c, submission);
   const result = grade(task.rubric, hits);
 
+  const at = now();
   task.submittedAnswer = answer;
   task.submissionHits = hits;
   task.scorePct = result.scorePct;
   task.passed = result.passed;
+  task.gradedAt = at;
 
   // Per-criterion outcomes feed the Gap Map (TASK-14).
-  const gapsOpened = applyTaskGapOutcomes(userId, task.topicId, task.rubric.criteria, hits, now());
+  const gapsOpened = applyTaskGapOutcomes(userId, task.topicId, task.rubric.criteria, hits, at);
 
   return {
     ok: true,

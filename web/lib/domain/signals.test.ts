@@ -38,10 +38,10 @@ describe("shape: exactly four honest signals, no vanity fields (ANALYTICS-01)", 
     }
   });
 
-  it("every signal has value / confidence / provenance and nothing else", () => {
+  it("every signal has value / confidence / provenance / delta and nothing else", () => {
     const s = computeSignals({ reviews: outcomes(6, 3) });
     for (const key of SIGNAL_KEYS) {
-      expect(Object.keys(s[key as keyof Signals]).sort()).toEqual(["confidence", "provenance", "value"]);
+      expect(Object.keys(s[key as keyof Signals]).sort()).toEqual(["confidence", "delta", "provenance", "value"]);
     }
   });
 });
@@ -140,6 +140,40 @@ describe("signals degrade independently", () => {
     expect(s.transfer.confidence).toBe("none");
     expect(s.calibration.confidence).toBe("none");
     expect(s.blindSpot.confidence).toBe("none");
+  });
+});
+
+describe("trend delta vs. a prior comparison window (ANALYTICS-01)", () => {
+  it("is null on every signal when no prior window is supplied", () => {
+    const s = computeSignals({ reviews: outcomes(10, 7), tasks: outcomes(8, 6), calibration: calib() });
+    for (const key of SIGNAL_KEYS) expect(s[key as keyof Signals].delta).toBeNull();
+  });
+
+  it("computes value - priorValue for a signal present in both windows", () => {
+    const s = computeSignals({ reviews: outcomes(10, 8) }, { reviews: outcomes(10, 5) });
+    expect(s.retention.value).toBeCloseTo(0.8, 10);
+    expect(s.retention.delta).toBeCloseTo(0.8 - 0.5, 10); // improved 30 points
+  });
+
+  it("reports a negative delta honestly when the signal got worse", () => {
+    const s = computeSignals({ reviews: outcomes(10, 3) }, { reviews: outcomes(10, 8) });
+    expect(s.retention.delta).toBeCloseTo(0.3 - 0.8, 10);
+  });
+
+  it("is null when the prior window itself has no data (nothing to compare against)", () => {
+    const s = computeSignals({ reviews: outcomes(10, 8) }, { reviews: [] });
+    expect(s.retention.delta).toBeNull();
+  });
+
+  it("is null when the CURRENT window has no data, even if the prior window did", () => {
+    const s = computeSignals({ reviews: [] }, { reviews: outcomes(10, 8) });
+    expect(s.retention.delta).toBeNull();
+  });
+
+  it("degrades independently per signal — one signal's delta doesn't affect another's", () => {
+    const s = computeSignals({ reviews: outcomes(10, 8), tasks: outcomes(8, 6) }, { reviews: outcomes(10, 5) });
+    expect(s.retention.delta).not.toBeNull();
+    expect(s.transfer.delta).toBeNull(); // no prior tasks data supplied
   });
 });
 

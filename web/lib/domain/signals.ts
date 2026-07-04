@@ -45,6 +45,12 @@ export interface Signal {
   confidence: SignalConfidence;
   /** Plain-language trace naming what fed the signal (ANALYTICS-01/02). */
   provenance: string;
+  /**
+   * Directional change vs. the prior comparison window (same 0..1 scale as
+   * `value`), or `null` when no comparison window was supplied, or either side
+   * has no value — a missing trend is never rendered as a fabricated 0 change.
+   */
+  delta: number | null;
 }
 
 /**
@@ -102,8 +108,11 @@ export const LOW_CONFIDENCE_SAMPLE = 5;
 // Core
 // ----------------------------------------------------------------------------
 
+/** A signal's value/confidence/provenance before a trend delta is attached. */
+type SignalCore = Omit<Signal, "delta">;
+
 /** The honest empty state: no data, so no value — never a fabricated 0%. */
-function empty(provenance: string): Signal {
+function empty(provenance: string): SignalCore {
   return { value: null, confidence: "none", provenance };
 }
 
@@ -116,7 +125,7 @@ function bandFor(n: number): Exclude<SignalConfidence, "none"> {
  * Build a success-rate signal (successes / total) from boolean outcomes.
  * Empty → null/none; sparse → low; otherwise ok. `label` names the source.
  */
-function rateSignal(outcomes: readonly boolean[] | undefined, label: string): Signal {
+function rateSignal(outcomes: readonly boolean[] | undefined, label: string): SignalCore {
   const total = outcomes?.length ?? 0;
   if (total === 0) return empty(`${label}: no data yet`);
   let hits = 0;
@@ -129,7 +138,7 @@ function rateSignal(outcomes: readonly boolean[] | undefined, label: string): Si
 }
 
 /** Build the calibration signal from the precomputed summary (score + direction). */
-function calibrationSignal(summary: CalibrationSummary | null | undefined): Signal {
+function calibrationSignal(summary: CalibrationSummary | null | undefined): SignalCore {
   const label = "calibration ← confidence gate";
   if (!summary || summary.count === 0) return empty(`${label}: no data yet`);
   return {
@@ -139,17 +148,39 @@ function calibrationSignal(summary: CalibrationSummary | null | undefined): Sign
   };
 }
 
-/**
- * Compute the four honest signals from raw inputs. Pure and deterministic:
- * identical inputs always yield an identical result. Each signal degrades to an
- * honest empty (`null`/`none`) or low-confidence state independently, so a
- * missing source never blanks or fabricates the others (ANALYTICS-01/08/09).
- */
-export function computeSignals(inputs: SignalsInput = {}): Signals {
+function coreSignals(inputs: SignalsInput): Record<keyof Signals, SignalCore> {
   return {
     retention: rateSignal(inputs.reviews, "retention ← FSRS review recall"),
     transfer: rateSignal(inputs.tasks, "transfer ← rubric-graded applied tasks"),
     calibration: calibrationSignal(inputs.calibration),
     blindSpot: rateSignal(inputs.drills, "blind-spot ← seeded error-drill catch rate"),
+  };
+}
+
+/**
+ * Compute the four honest signals from raw inputs. Pure and deterministic:
+ * identical inputs always yield an identical result. Each signal degrades to an
+ * honest empty (`null`/`none`) or low-confidence state independently, so a
+ * missing source never blanks or fabricates the others (ANALYTICS-01/08/09).
+ *
+ * `previous` is the same shape of inputs computed over an earlier comparison
+ * window (e.g. "as of 7 days ago"); when supplied, each signal's `delta` is
+ * `current.value - previous.value`, or `null` when either side has no value —
+ * a missing trend is never shown as a fabricated 0% change (ANALYTICS-01).
+ */
+export function computeSignals(inputs: SignalsInput = {}, previous?: SignalsInput): Signals {
+  const current = coreSignals(inputs);
+  const prior = previous ? coreSignals(previous) : null;
+  const attach = (key: keyof Signals): Signal => {
+    const c = current[key];
+    const p = prior?.[key];
+    const delta = c.value !== null && p?.value != null ? c.value - p.value : null;
+    return { ...c, delta };
+  };
+  return {
+    retention: attach("retention"),
+    transfer: attach("transfer"),
+    calibration: attach("calibration"),
+    blindSpot: attach("blindSpot"),
   };
 }
