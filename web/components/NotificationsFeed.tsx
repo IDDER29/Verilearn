@@ -25,6 +25,7 @@ const KIND: Record<NotificationKind, { bg: string; icon: ReactNode; label: strin
   review: { bg: "#fbeadf", label: "Review", icon: "📼" },
   conflict: { bg: "#f2effc", label: "Conflicts", icon: "🧐" },
   streak: { bg: "#fdf1de", label: "Streak", icon: "🔥" },
+  gap: { bg: "#fbeceb", label: "Gaps", icon: "🎯" },
   test: {
     bg: "#eef2fb",
     label: "Tests",
@@ -37,7 +38,7 @@ const KIND: Record<NotificationKind, { bg: string; icon: ReactNode; label: strin
   },
 };
 
-const KINDS: NotificationKind[] = ["test", "verification", "review", "conflict", "streak"];
+const KINDS: NotificationKind[] = ["test", "verification", "review", "conflict", "streak", "gap"];
 
 export default function NotificationsFeed({ items }: { items: NotificationItem[] }) {
   const [filter, setFilter] = useState<NotificationKind | "all">("all");

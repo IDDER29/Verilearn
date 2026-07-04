@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import GapCloseButton from "@/components/GapCloseButton";
 import type { GapBoard as GapBoardData, GapView } from "@/lib/services/gaps";
@@ -36,12 +36,26 @@ const CLAIM_TRUST: Record<string, { label: string; color: string }> = {
 
 type Filter = "all" | "high" | "reopened";
 
-function GapCard({ g }: { g: GapView }) {
+function GapCard({ g, highlighted }: { g: GapView; highlighted: boolean }) {
   const sev = SEVERITY[g.severity];
   const st = STATUS_BADGE[g.status];
   const actionable = g.status !== "closed";
+  // Jump-to / highlight target for the gap-opened/reopened notification (NOTIF-23).
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (highlighted) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlighted]);
   return (
-    <div role="listitem" style={{ background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
+    <div
+      ref={ref}
+      role="listitem"
+      style={{
+        background: "#fff",
+        borderRadius: 16,
+        padding: "15px 16px",
+        boxShadow: highlighted ? "0 0 0 3px #6d5bd0, 0 8px 22px -16px rgba(80,60,140,.3)" : "0 8px 22px -16px rgba(80,60,140,.3)",
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
         <span style={{ font: "800 10px var(--font-nunito)", color: st.color, background: st.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{st.label}</span>
         <span style={{ font: "800 10px var(--font-nunito)", color: sev.color, background: sev.bg, padding: "4px 9px", borderRadius: 8, whiteSpace: "nowrap" }}>{sev.label}</span>
@@ -78,7 +92,7 @@ function GapCard({ g }: { g: GapView }) {
   );
 }
 
-function Column({ title, tone, gaps, empty }: { title: string; tone: string; gaps: GapView[]; empty: string }) {
+function Column({ title, tone, gaps, empty, highlightId }: { title: string; tone: string; gaps: GapView[]; empty: string; highlightId?: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -90,7 +104,7 @@ function Column({ title, tone, gaps, empty }: { title: string; tone: string; gap
         <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#a7a1b8", background: "#faf9fc", borderRadius: 14, padding: "16px 14px" }}>{empty}</div>
       ) : (
         <div role="list" aria-label={`${title} gaps`} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {gaps.map((g) => <GapCard key={g.id} g={g} />)}
+          {gaps.map((g) => <GapCard key={g.id} g={g} highlighted={g.id === highlightId} />)}
         </div>
       )}
     </div>
@@ -103,7 +117,7 @@ const CHIPS: { key: Filter; label: string }[] = [
   { key: "reopened", label: "Reopened" },
 ];
 
-export default function GapBoard({ board }: { board: GapBoardData }) {
+export default function GapBoard({ board, highlightId }: { board: GapBoardData; highlightId?: string }) {
   const [filter, setFilter] = useState<Filter>("all");
   const apply = (gaps: GapView[]) =>
     filter === "high" ? gaps.filter((g) => g.severity === "high") : filter === "reopened" ? gaps.filter((g) => g.status === "reopened") : gaps;
@@ -143,9 +157,9 @@ export default function GapBoard({ board }: { board: GapBoardData }) {
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 18, alignItems: "start" }}>
-          <Column title="Open" tone="#c0392b" gaps={active} empty="Nothing here." />
-          <Column title="Watching" tone="#c99a2b" gaps={watching} empty="Nothing here." />
-          <Column title="Closed" tone="#2e9c6a" gaps={closed} empty="Nothing here." />
+          <Column title="Open" tone="#c0392b" gaps={active} empty="Nothing here." highlightId={highlightId} />
+          <Column title="Watching" tone="#c99a2b" gaps={watching} empty="Nothing here." highlightId={highlightId} />
+          <Column title="Closed" tone="#2e9c6a" gaps={closed} empty="Nothing here." highlightId={highlightId} />
         </div>
       )}
     </>

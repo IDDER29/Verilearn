@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { listNotifications, markAllNotificationsRead, unreadNotificationCount } from "./notifications";
@@ -97,6 +98,33 @@ describe("notifications service", () => {
     expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(true);
     db.users.get(USER)!.prefs.notifications.streak = false;
     expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(false);
+  });
+
+  it("NOTIF-23: emits a gap-opened notification (from the seeded open gap), deep-linking to it", () => {
+    const items = listNotifications(USER);
+    const gap = items.find((i) => i.kind === "gap");
+    expect(gap).toBeTruthy();
+    expect(gap!.href).toMatch(/\/gap-map\?gap=.+/);
+    expect(gap!.title).toMatch(/new gap/i);
+  });
+
+  it("NOTIF-23: names a reopened gap explicitly, distinct from a fresh open one", () => {
+    const db = globalThis.__verilearnDb!;
+    let g = openGap({ id: "gap_reopen_test", claimId: "topic_dijkstra_c5", topicId: "topic_dijkstra", origin: "review" }, SEED_NOW);
+    g = toWatching(g, SEED_NOW + 1);
+    g = onLapse(g, SEED_NOW + 2); // watching -> reopened (GAP-06 auto-reopen)
+    db.gaps.set(g.id, { userId: USER, gap: g });
+
+    const item = listNotifications(USER).find((i) => i.id.includes("gap_reopen_test"))!;
+    expect(item).toBeTruthy();
+    expect(item.title).toMatch(/reopened/i);
+  });
+
+  it("NOTIF-08: muting the gap category removes it from the feed", () => {
+    const db = globalThis.__verilearnDb!;
+    expect(listNotifications(USER).some((i) => i.kind === "gap")).toBe(true);
+    db.users.get(USER)!.prefs.notifications.gap = false;
+    expect(listNotifications(USER).some((i) => i.kind === "gap")).toBe(false);
   });
 
   it("read-state is per-user", () => {

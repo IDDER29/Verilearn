@@ -6,9 +6,10 @@ import { gapBoard } from "@/lib/services/gaps";
 
 export const metadata = { title: "Gap Map · VeriLearn" };
 
-export default async function GapMapPage() {
+export default async function GapMapPage({ searchParams }: { searchParams: Promise<{ gap?: string }> }) {
   const user = await requireUser();
   const board = gapBoard(user.id);
+  const { gap: highlightId } = await searchParams;
 
   return (
     <AppShell active="gaps">
@@ -32,7 +33,7 @@ export default async function GapMapPage() {
             </Link>
           </div>
         ) : (
-          <GapBoard board={board} />
+          <GapBoard board={board} highlightId={highlightId} />
         )}
       </main>
     </AppShell>

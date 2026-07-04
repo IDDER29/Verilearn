@@ -30,7 +30,7 @@ with justification** — nothing among them is silently dropped.
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
-| NOTIF — Notifications, Reminders & Messaging | 23 | 7 | 7 | 9 |
+| NOTIF — Notifications, Reminders & Messaging | 23 | 8 | 6 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 8 | 4 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 13 | 7 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 6 | 5 | 12 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **138** | **199** | **124** |
+| **TOTAL** | **461** | **139** | **198** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -447,10 +447,10 @@ The domain is implemented as a single read-only derived view (`web/lib/services/
 | NOTIF-20 | 🟡 Partial | No operational/system-health notifications or status banner; pipeline/sandbox/Skeptic degradation is not surfaced to users, and no "recovered" follow-up exists. The firewall rule (Platform/Support can't fabricate learning signals) is respected only vacuously since no such emit path exists. Unbuilt rather than externally blocked. |
 | NOTIF-21 | 🟡 Partial | Primitive batching is present — the review-due item aggregates the whole portfolio into one count (`notifications.ts:37-47`) rather than one-per-card. Missing: per-category/global frequency caps, quiet-hours holding queue with timezone/DST handling, same-actor collapse ("N new replies"), and anti-abuse flood throttling. |
 | NOTIF-22 | ⏭️ Deferred | Marked Future in the PRD. Today's shared-account model means the account holder sees whatever the learner sees, but billing/safety notifications don't yet exist to be shown, and there is no distinct guardian recipient or channel. A dedicated guardian channel is a documented gap, not shipped. |
-| NOTIF-23 | 🟡 Partial | The Gap Map engine is done and tested (Open→Watching→Closed→Reopened + auto-reopen, `web/lib/domain/gap.ts`), but **no gap-opened/reopened notification is emitted** — the service produces only verification/review/conflict kinds. Transition reporting is unwired; debounce and jump-to-section links absent. |
+| NOTIF-23 | ✅ Done | `listNotifications` (`lib/services/notifications.ts`) now emits a real `gap`-kind item for every currently active gap (`status === "open"` or `"reopened"`, read via the already-tested `listGaps`), naming a **reopened** gap explicitly rather than conveying the regression by color alone (matches GAP-16). Has its own opt-out toggle (`prefs.notifications.gap`) and **debounces per transition, not per gap**: the notification id includes the gap's current status, so a gap that goes open → (later) reopened re-emits as a fresh unread item instead of silently staying "read" from its first opening. **Jump-to-section is real**: the link (`/gap-map?gap=<id>`) is read by the Gap Map page and passed to `GapBoard`/`GapCard` (`components/GapBoard.tsx`), which scrolls the exact card into view and highlights it with a visible ring — not just a page-level link. Covered by 3 new tests in `notifications.test.ts` (emits from the seeded open gap, names a reopened one distinctly, opt-out). |
 | NOTIF-24 | 🟡 Partial | Notifications are computed per `userId` with no persistent store, so a guest session inherently persists no notification records or reminders (satisfies the "persist nothing" AC by construction). Missing: consented, marketing-classified email capture with working unsubscribe, and a clean-state guarantee on guest→account conversion — none of which are built (no email channel). |
 
-**Counts:** 23 enumerated of the PRD's 24 (NOTIF-12 has no row — a pre-existing numbering gap, not a dropped story) — ✅ 7 Done, 🟡 7 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
+**Counts:** 23 enumerated of the PRD's 24 (NOTIF-12 has no row — a pre-existing numbering gap, not a dropped story) — ✅ 8 Done, 🟡 6 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
