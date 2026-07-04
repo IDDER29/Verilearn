@@ -60,8 +60,8 @@ export default async function NotificationsPage() {
             </svg>
           </Link>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Notifications 🔔</div>
-            <div style={{ font: "600 13px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
+            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Notifications <span aria-hidden>🔔</span></div>
+            <div role="status" aria-live="polite" style={{ font: "600 13px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
               {unreadCount} unread · updates on your topics, tests &amp; the Skeptic
             </div>
           </div>
@@ -166,9 +166,13 @@ export default async function NotificationsPage() {
                   }}
                 >
                   {item.unread && (
-                    <span style={{ position: "absolute", left: -14, top: 22, width: 8, height: 8, borderRadius: "50%", background: "#6d5bd0" }} />
+                    <>
+                      <span aria-hidden style={{ position: "absolute", left: -14, top: 22, width: 8, height: 8, borderRadius: "50%", background: "#6d5bd0" }} />
+                      <span className="vl-sr-only">Unread. </span>
+                    </>
                   )}
                   <div
+                    aria-hidden
                     style={{
                       width: 44,
                       height: 44,
