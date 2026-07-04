@@ -16,11 +16,28 @@ const CONF = {
 type ConfKey = keyof typeof CONF;
 
 const RATINGS = [
-  { key: "again", label: "Again", sub: "< 1 min", color: "#c0392b", subColor: "#cc8888", border: "#f3d4cf", bg: "#fdf2f0" },
-  { key: "hard", label: "Hard", sub: "2 days", color: "#b4830f", subColor: "#c9a94e", border: "#f0e2c2", bg: "#fbf6ec" },
-  { key: "good", label: "Good", sub: "4 days", color: "#6d5bd0", subColor: "#9184c4", border: "#6d5bd0", bg: "#f2effc" },
-  { key: "easy", label: "Easy", sub: "9 days", color: "#2e9c6a", subColor: "#6ab48c", border: "#cdeadd", bg: "#f0f9f4" },
+  { key: "again", label: "Again", color: "#c0392b", subColor: "#cc8888", border: "#f3d4cf", bg: "#fdf2f0" },
+  { key: "hard", label: "Hard", color: "#b4830f", subColor: "#c9a94e", border: "#f0e2c2", bg: "#fbf6ec" },
+  { key: "good", label: "Good", color: "#6d5bd0", subColor: "#9184c4", border: "#6d5bd0", bg: "#f2effc" },
+  { key: "easy", label: "Easy", color: "#2e9c6a", subColor: "#6ab48c", border: "#cdeadd", bg: "#f0f9f4" },
 ] as const;
+
+/** Format a claim's lecture section id ("s1") for display ("§1"). */
+function sectionLabel(section: string): string {
+  const m = /^s(\d+)$/.exec(section);
+  return m ? `§${m[1]}` : section || "lecture";
+}
+
+/** Real per-card calibration verdict from the committed confidence vs. the recall outcome (REVIEW-05). */
+function calibrationVerdict(confidence: ConfKey, rating: Rating): { title: string; tone: string; bg: string; detail: string } {
+  const correct = rating !== "again";
+  const high = confidence === "confident";
+  const felt = CONF[confidence].label;
+  if (correct && high) return { title: "Well calibrated!", tone: "#2e9c6a", bg: "#eef7f1", detail: "You felt Confident and recalled it — confidence matched reality." };
+  if (correct && !high) return { title: "Under-confident", tone: "#b4830f", bg: "#fbf6ec", detail: `You recalled it despite feeling ${felt} — you knew more than you thought.` };
+  if (!correct && high) return { title: "Over-confident", tone: "#c0392b", bg: "#fdf2f0", detail: "You felt Confident but missed it — this becomes a tracked gap." };
+  return { title: "Well calibrated", tone: "#2e9c6a", bg: "#eef7f1", detail: `You flagged doubt (${felt}) and indeed missed it — honest signal.` };
+}
 
 function SessionRing({ reviewed, total }: { reviewed: number; total: number }) {
   return (
@@ -140,8 +157,8 @@ export default function ReviewPage() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ font: "800 13px var(--font-nunito)" }}>Dijkstra&apos;s algorithm</div>
-                  <div style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Flashcard · from §1</div>
+                  <div style={{ font: "800 13px var(--font-nunito)" }}>{c.topicTitle}</div>
+                  <div style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Flashcard · from {sectionLabel(c.section)}</div>
                 </div>
               </div>
               {phase === "front" ? (
@@ -305,7 +322,7 @@ export default function ReviewPage() {
                         }}
                       >
                         <span style={{ font: "800 14px var(--font-nunito)", color: r.color }}>{r.label}</span>
-                        <span style={{ font: "700 10.5px var(--font-nunito)", color: r.subColor }}>{r.sub}</span>
+                        <span style={{ font: "700 10.5px var(--font-nunito)", color: r.subColor }}>{c.intervals[r.key]}</span>
                       </button>
                     );
                   })}
@@ -350,22 +367,29 @@ export default function ReviewPage() {
           {phase === "back" && (
             <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
               <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Calibration check</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: confidence === "confident" ? "#eef7f1" : "#fbf6ec" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={confidence === "confident" ? "#2e9c6a" : "#c99a2b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M8 12.5l2.5 2.5L16 9.5" />
-                  </svg>
+              {confidence && rating ? (
+                (() => {
+                  const v = calibrationVerdict(confidence, rating as Rating);
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: v.bg }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={v.tone} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="M8 12.5l2.5 2.5L16 9.5" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ font: "800 13.5px var(--font-nunito)", color: v.tone }}>{v.title}</div>
+                        <div style={{ font: "600 11.5px/1.45 var(--font-nunito)", color: "#6c6780" }}>{v.detail}</div>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699", padding: "6px 2px" }}>
+                  Rate your recall below to see how your <b>{confidence ? CONF[confidence].label : "committed"}</b> confidence matched reality.
                 </div>
-                <div>
-                  <div style={{ font: "800 13.5px var(--font-nunito)", color: confidence === "confident" ? "#2e9c6a" : "#b4830f" }}>
-                    {confidence === "confident" ? "Well calibrated!" : "Under-confident"}
-                  </div>
-                  <div style={{ font: "600 11.5px/1.45 var(--font-nunito)", color: "#6c6780" }}>
-                    You felt {confidence ? CONF[confidence].label : "—"} and got it right.
-                  </div>
-                </div>
-              </div>
+              )}
               <div style={{ font: "600 11.5px/1.55 var(--font-nunito)", color: "#8b8699", marginTop: 12 }}>
                 Matching confidence to reality is what builds the calibration signal on your Progress page.
               </div>
@@ -376,31 +400,33 @@ export default function ReviewPage() {
           <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", textAlign: "center" }}>
             <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 16, textAlign: "left" }}>Today&apos;s session</div>
             <SessionRing reviewed={reviewed} total={TOTAL} />
-            <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>~2 min left · next batch in 2 days</div>
+            <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>
+              {TOTAL - reviewed > 0 ? `${TOTAL - reviewed} card${TOTAL - reviewed === 1 ? "" : "s"} left in this session` : "Last card — nice work!"}
+            </div>
           </div>
 
           {phase === "front" ? (
             <>
-              {/* up next */}
+              {/* up next — the real upcoming cards in this session */}
               <div style={{ background: "#fff", borderRadius: 22, padding: "20px 22px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
                 <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Up next</div>
-                {[
-                  { t: "Relaxation step", s: "Dijkstra · flashcard", bg: "#efe9ff", stroke: "#6d5bd0", icon: <path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z" />, border: false },
-                  { t: "Spot the error", s: "Seeded drill", bg: "#fbeceb", stroke: "#c0392b", icon: (<><path d="M12 4l9 15.5H3z" /><path d="M12 10v4M12 17h.01" /></>), border: true },
-                  { t: "Correctness proof", s: "Dijkstra · flashcard", bg: "#e9f7ef", stroke: "#2e9c6a", icon: (<><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></>), border: true },
-                ].map((it) => (
-                  <div key={it.t} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", ...(it.border ? { borderTop: "1px solid #f5f3fa" } : {}) }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 11, background: it.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={it.stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                        {it.icon}
-                      </svg>
+                {cards.slice(card + 1, card + 4).length === 0 ? (
+                  <div style={{ font: "600 12px var(--font-nunito)", color: "#9a95a8" }}>This is the last card in your session.</div>
+                ) : (
+                  cards.slice(card + 1, card + 4).map((it, idx) => (
+                    <div key={it.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", ...(idx > 0 ? { borderTop: "1px solid #f5f3fa" } : {}) }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 11, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 5a1 1 0 011-1h5a2 2 0 012 2 2 2 0 012-2h5a1 1 0 011 1v13a1 1 0 01-1 1h-6a1 1 0 00-1 1 1 1 0 00-1-1H5a1 1 0 01-1-1z" />
+                        </svg>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ font: "800 13px var(--font-nunito)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.q}</div>
+                        <div style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>{it.topicTitle} · {sectionLabel(it.section)}</div>
+                      </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ font: "800 13px var(--font-nunito)" }}>{it.t}</div>
-                      <div style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>{it.s}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* blind-spot */}
@@ -414,18 +440,15 @@ export default function ReviewPage() {
                   </div>
                   <div>
                     <div style={{ font: "900 15px var(--font-nunito)" }}>Blind-spot check</div>
-                    <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>Errors you caught</div>
+                    <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>Seeded error-drills</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
-                  <span style={{ font: "900 30px var(--font-nunito)" }}>6</span>
-                  <span style={{ font: "800 15px var(--font-nunito)", color: "#b3a7f0" }}>/ 9 caught</span>
-                </div>
-                <div style={{ height: 8, borderRadius: 5, background: "rgba(255,255,255,.15)", overflow: "hidden" }}>
-                  <div style={{ width: "67%", height: "100%", borderRadius: 5, background: "#8b78e8" }} />
+                  <span style={{ font: "900 30px var(--font-nunito)" }}>—</span>
+                  <span style={{ font: "800 15px var(--font-nunito)", color: "#b3a7f0" }}>none this session</span>
                 </div>
                 <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginTop: 10 }}>
-                  Drills salt false claims into your reviews — catching them sharpens judgment.
+                  Drills salt deliberately-false claims into your reviews so you can catch them — they turn on once the Skeptic is generating them.
                 </div>
               </SpotlightCard>
             </>

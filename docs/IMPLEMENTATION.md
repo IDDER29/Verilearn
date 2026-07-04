@@ -83,14 +83,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 246 passing across 18 files · build green.
+**Test count:** 250 passing across 19 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 33 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 304 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 36 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 301 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -121,4 +121,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the core-loop wiring pass — 33 Done, achievable scope complete; remainder deferred-with-justification._
+_Last updated: after the review-loop field-binding pass — 36 Done; remainder is field-polish or deferred-with-justification._
