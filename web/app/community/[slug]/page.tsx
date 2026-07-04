@@ -1,5 +1,7 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import ShareButton from "@/components/community/ShareButton";
+import ThreadVote from "@/components/community/ThreadVote";
 
 export const metadata = { title: "Thread · Community · VeriLearn" };
 
@@ -62,14 +64,14 @@ export default function CommunityThreadPage() {
             </Link>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Community · Dijkstra&apos;s algorithm</div>
-              <div style={{ font: "900 22px/1.2 var(--font-nunito)", letterSpacing: "-.02em" }}>
+              <h1 style={{ margin: 0, font: "900 22px/1.2 var(--font-nunito)", letterSpacing: "-.02em" }}>
                 Is the &quot;works on any graph&quot; claim actually wrong, or just imprecise?
-              </div>
+              </h1>
             </div>
           </div>
 
           {/* OP */}
-          <div style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+          <article aria-label="Original post" style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 14 }}>
               <div style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg,#cfe4ff,#e4ecff)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
                 🧑‍💻
@@ -92,26 +94,17 @@ export default function CommunityThreadPage() {
               just missing the &quot;non-negative&quot; qualifier? I keep seeing both framings and want to get it right before my checkpoint.
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, paddingTop: 14, borderTop: "1px solid #f0edf6", font: "800 12px var(--font-nunito)", color: "#8b8699" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#6d5bd0" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 10l4-7a2 2 0 013 2l-1 5h5a2 2 0 012 2.3l-1.3 6A2 2 0 0118.7 21H7" />
-                  <path d="M7 10v11H4a1 1 0 01-1-1v-9a1 1 0 011-1z" />
-                </svg>
-                128
-              </span>
+              <ThreadVote initialCount={128} label="Upvote this question" />
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>💬 34 replies</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" />
-                </svg>
-                Share
-              </span>
+              <div style={{ marginLeft: "auto" }}>
+                <ShareButton />
+              </div>
             </div>
-          </div>
+          </article>
 
           {/* best answer */}
-          <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#2e9c6a" }}>✓ Verified answer</div>
-          <div style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", border: "1.5px solid #cdeadd" }}>
+          <h2 style={{ margin: 0, font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#2e9c6a" }}>✓ Verified answer</h2>
+          <article aria-label="Verified answer from the Skeptic" style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", border: "1.5px solid #cdeadd" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: "#221d2e", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, flexShrink: 0 }}>
                 🧐
@@ -136,14 +129,14 @@ export default function CommunityThreadPage() {
               </svg>
               Sourced from CLRS §24.3 · Lemma 24.15
             </div>
-          </div>
+          </article>
 
           {/* replies */}
-          <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#a7a1b8" }}>34 replies</div>
-          <div style={{ background: "#fff", borderRadius: 22, padding: "8px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+          <h2 style={{ margin: 0, font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#a7a1b8" }}>34 replies</h2>
+          <ul style={{ listStyle: "none", margin: 0, background: "#fff", borderRadius: 22, padding: "8px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             {REPLIES.map((r, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, padding: "16px 0", ...(r.border ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
-                <div style={{ width: 38, height: 38, borderRadius: "50%", background: r.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>
+              <li key={i} style={{ display: "flex", gap: 12, padding: "16px 0", ...(r.border ? { borderBottom: "1px solid #f5f3fa" } : {}) }}>
+                <div style={{ width: 38, height: 38, borderRadius: "50%", background: r.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }} aria-hidden>
                   {r.emoji}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -152,21 +145,26 @@ export default function CommunityThreadPage() {
                     <span style={{ font: "700 10.5px var(--font-nunito)", color: "#a7a1b8" }}>{r.when}</span>
                   </div>
                   <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#3a3550" }}>{r.body}</div>
-                  <div style={{ display: "flex", gap: 14, marginTop: 8, font: "800 11px var(--font-nunito)", color: "#8b8699" }}>
-                    <span style={{ color: "#6d5bd0" }}>👍 {r.likes}</span>
-                    <span>Reply</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 8, font: "800 11px var(--font-nunito)", color: "#8b8699" }}>
+                    <ThreadVote initialCount={r.likes} label={`Upvote ${r.name}'s reply`} />
+                    <a href="#reply-box" style={{ color: "inherit", textDecoration: "none", font: "800 11px var(--font-nunito)" }}>
+                      Reply
+                    </a>
                   </div>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
 
         {/* right rail */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ background: "#fff", borderRadius: 22, padding: 20, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-            <div style={{ font: "900 15px var(--font-nunito)", marginBottom: 12 }}>Add your reply</div>
+            <label htmlFor="reply-box" style={{ display: "block", font: "900 15px var(--font-nunito)", marginBottom: 12 }}>
+              Add your reply
+            </label>
             <textarea
+              id="reply-box"
               rows={4}
               placeholder="Share your take…"
               style={{
@@ -181,6 +179,7 @@ export default function CommunityThreadPage() {
               }}
             />
             <button
+              type="button"
               style={{
                 width: "100%",
                 border: "none",
