@@ -29,6 +29,19 @@ describe("createTopic — server-side gate (VERIFY-02)", () => {
     expect(listTopicSummaries(USER).length).toBe(before + 1);
   });
 
+  it("VERIFY-04: persists the real per-stage pipeline detail on the topic", () => {
+    globalThis.__verilearnDb!.users.get(USER)!.plan = "pro";
+    const r = createTopic(USER, { title: "AVL trees", level: "know BSTs well", goal: "understand balancing" });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      const topic = globalThis.__verilearnDb!.topics.get(r.topicId)!;
+      expect(topic.pipelineStages && topic.pipelineStages.length).toBeGreaterThan(0);
+      // every stage carries a non-empty real detail string
+      expect(topic.pipelineStages!.every((s) => typeof s.detail === "string" && s.detail.length > 0)).toBe(true);
+      expect(topic.pipelineStages!.some((s) => s.stage === "triage")).toBe(true);
+    }
+  });
+
   it("enforces the Free 3-topic cap server-side", () => {
     // Seed user is Free with 3 topics already.
     const r = createTopic(USER, { title: "A fourth topic", level: "some background", goal: "learn it" });

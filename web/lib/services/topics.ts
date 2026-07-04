@@ -120,6 +120,7 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
     events: ledger.allEvents(),
     status: run.ok ? "ready" : "verifying",
     verifiedPercent: verifiedPercent(states),
+    pipelineStages: run.stages.map((s) => ({ stage: s.stage, detail: s.detail })),
   };
   db.topics.set(topicId, record);
   return { ok: true, topicId };

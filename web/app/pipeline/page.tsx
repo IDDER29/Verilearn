@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing } from "@/components/ui";
+import { pipelineInfoAction } from "@/app/topic-actions";
 
 type Stage = {
   title: string;
@@ -69,13 +70,30 @@ const STAGES: Stage[] = [
 
 const STEP_MS = 1400;
 
+// Page stages → real pipeline stage keys (decompose runs but isn't shown as its own row).
+const STAGE_KEYS = ["triage", "retrieve", "teach", "verify", "skeptic"] as const;
+
 function PipelineInner() {
   const params = useSearchParams();
-  const topic = params.get("topic") || "Merkle trees";
+  const id = params.get("id") || "";
+  const [title, setTitle] = useState(params.get("topic") || "Merkle trees");
+  const [realDetail, setRealDetail] = useState<Record<string, string>>({});
 
   const [stage, setStage] = useState(0); // index of the running stage; === STAGES.length when done
   const [seconds, setSeconds] = useState(0);
   const done = stage >= STAGES.length;
+  const topic = title;
+
+  useEffect(() => {
+    if (!id) return;
+    pipelineInfoAction(id).then((info) => {
+      if (!info.ok) return;
+      if (info.title) setTitle(info.title);
+      const map: Record<string, string> = {};
+      for (const s of info.stages ?? []) map[s.stage] = s.detail;
+      setRealDetail(map);
+    });
+  }, [id]);
 
   useEffect(() => {
     if (done) return;
@@ -151,6 +169,8 @@ function PipelineInner() {
           {STAGES.map((s, i) => {
             const isDone = i < stage;
             const isActive = i === stage && !done;
+            // Prefer the real pipeline detail for this stage when available (VERIFY-04).
+            const doneSub = realDetail[STAGE_KEYS[i]] ?? s.doneSub;
             return (
               <div key={s.title}>
                 {i > 0 && <div style={{ height: 1, background: "#f5f3fa" }} />}
@@ -192,7 +212,7 @@ function PipelineInner() {
                     <div style={{ font: "800 14.5px var(--font-nunito)", ...(isActive ? { color: "#6d5bd0" } : {}) }}>
                       {isActive ? s.activeTitle : s.title}
                     </div>
-                    <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>{isDone ? s.doneSub : isActive ? s.activeSub : s.activeSub}</div>
+                    <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>{isDone ? doneSub : isActive ? s.activeSub : s.activeSub}</div>
                   </div>
                   {isDone ? (
                     <span style={{ font: "800 11.5px var(--font-nunito)", color: "#2e9c6a", background: "#e7f4ee", padding: "6px 12px", borderRadius: 10 }}>Done</span>

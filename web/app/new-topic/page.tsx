@@ -105,7 +105,7 @@ export default function NewTopicPage() {
       setServerError(res.error ?? "Something went wrong.");
       return;
     }
-    router.push(`/pipeline?topic=${encodeURIComponent(topic.trim())}`);
+    router.push(`/pipeline?id=${encodeURIComponent(res.topicId ?? "")}&topic=${encodeURIComponent(topic.trim())}`);
   }
 
   return (

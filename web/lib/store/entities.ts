@@ -74,6 +74,8 @@ export interface TopicRecord extends Topic {
   events: VerificationEvent[];
   status: "verifying" | "ready";
   verifiedPercent: number;
+  /** Real per-stage pipeline output (VERIFY-04), captured at creation. */
+  pipelineStages?: { stage: string; detail: string }[];
 }
 
 export interface ReviewCardRecord {
