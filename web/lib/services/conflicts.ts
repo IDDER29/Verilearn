@@ -5,7 +5,7 @@
  * triggers RE-VERIFICATION, and the system verifier emits the new verification
  * event. Traces to TRUST (conflicts), VERIFY-13, and the firewall invariant.
  */
-import { TrustLedger, verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
+import { verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { TrustState } from "@/lib/domain/types";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
 import { newId, now } from "@/lib/ids";

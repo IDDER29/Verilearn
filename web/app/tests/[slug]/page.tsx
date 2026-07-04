@@ -1,9 +1,28 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
+import { buildSession } from "@/lib/services/testsession";
 
 export const metadata = { title: "Test Detail · VeriLearn" };
 
-export default function TestDetailPage() {
+// TEST-02: a test is formatted from verified/sourced-eligible claims only —
+// disputed claims are excluded until resolved. Real format strip comes from buildSession.
+export default async function TestDetailPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
+  const user = await requireUser();
+  const { topic } = await searchParams;
+  const summaries = listTopicSummaries(user.id);
+  const topicId = topic ?? summaries[0]?.id;
+  const summary = summaries.find((s) => s.id === topicId);
+  const session = topicId ? buildSession(user.id, topicId) : null;
+
+  // Graceful fallback when the user has no topics / no eligible claims (buildSession → null).
+  const title = session?.title ?? "Your first test";
+  const questionCount = session?.questionCount ?? 0;
+  const durationMin = Math.round((session?.durationMs ?? 1_200_000) / 60_000);
+  const passBar = session?.passBar ?? 75;
+  const excluded = summary?.disputes ?? 0;
+
   return (
     <AppShell active="tests">
       <main
@@ -38,7 +57,7 @@ export default function TestDetailPage() {
             </Link>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Tests / Checkpoint</div>
-              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Dijkstra&apos;s algorithm</div>
+              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{title}</div>
             </div>
             <div
               style={{
@@ -60,24 +79,24 @@ export default function TestDetailPage() {
           {/* format strip */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
             <div style={{ background: "#fff", borderRadius: 18, padding: "16px 18px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
-              <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>12</div>
+              <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>{questionCount}</div>
               <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginTop: 5 }}>Questions</div>
             </div>
             <div style={{ background: "#fff", borderRadius: 18, padding: "16px 18px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
               <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>
-                20<span style={{ fontSize: 13, color: "#8b8699" }}> min</span>
+                {durationMin}<span style={{ fontSize: 13, color: "#8b8699" }}> min</span>
               </div>
               <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginTop: 5 }}>Time limit</div>
             </div>
             <div style={{ background: "#fff", borderRadius: 18, padding: "16px 18px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
               <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>
-                75<span style={{ fontSize: 13, color: "#8b8699" }}>%</span>
+                {passBar}<span style={{ fontSize: 13, color: "#8b8699" }}>%</span>
               </div>
               <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginTop: 5 }}>To pass</div>
             </div>
             <div style={{ background: "#fff", borderRadius: 18, padding: "16px 18px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
-              <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>2</div>
-              <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginTop: 5 }}>Attempts left</div>
+              <div style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>{excluded}</div>
+              <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginTop: 5 }}>Disputed · excluded</div>
             </div>
           </div>
 
@@ -85,7 +104,10 @@ export default function TestDetailPage() {
           <div style={{ background: "#fff", borderRadius: 22, padding: "24px 26px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ font: "900 17px var(--font-nunito)", marginBottom: 6 }}>What this test covers</div>
             <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 16 }}>
-              Questions are drawn only from <b>verified &amp; sourced</b> claims — disputed ones are excluded until resolved.
+              All {questionCount} questions are drawn only from <b>verified &amp; sourced</b> claims —{" "}
+              {excluded > 0
+                ? <>{excluded} disputed {excluded === 1 ? "claim is" : "claims are"} excluded until resolved.</>
+                : <>disputed claims are excluded until resolved.</>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 13, background: "#faf9fc" }}>

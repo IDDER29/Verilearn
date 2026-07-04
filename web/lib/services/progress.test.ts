@@ -5,7 +5,6 @@ import { gradeCard } from "./review";
 import { progressFor, signalDisplay } from "./progress";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __verilearnDb: Db | undefined;
 }
 

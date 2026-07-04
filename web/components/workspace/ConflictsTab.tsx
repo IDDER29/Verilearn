@@ -1,9 +1,30 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { resolveConflictAction } from "@/app/conflict-actions";
 import WorkspaceTabs from "./WorkspaceTabs";
-import type { TabKey } from "./types";
+import type { TabKey, WorkspaceData } from "./types";
 
-export default function ConflictsTab({ onTab }: { onTab: (t: TabKey) => void }) {
+export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
+  const router = useRouter();
+  const disputed = data?.disputedClaims[0];
+  const disputedText = disputed?.text ?? "Dijkstra's algorithm works on any weighted graph.";
+  const [constraint, setConstraint] = useState("Only holds for graphs with non-negative edge weights; use Bellman-Ford otherwise.");
+  const [saving, setSaving] = useState(false);
+  const [resolved, setResolved] = useState(false);
+
+  async function recordResolution() {
+    if (!data || !disputed) return;
+    setSaving(true);
+    const r = await resolveConflictAction(data.topicId, disputed.claimId, constraint);
+    setSaving(false);
+    if (r.ok) {
+      setResolved(true);
+      router.refresh();
+    }
+  }
+
   return (
     <main
       style={{
@@ -60,7 +81,7 @@ export default function ConflictsTab({ onTab }: { onTab: (t: TabKey) => void }) 
               <span style={{ font: "800 11px var(--font-nunito)", color: "#c0392b" }}>● OPEN</span>
               <span style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Raised by the Skeptic</span>
             </div>
-            <div style={{ font: "800 13.5px/1.4 var(--font-nunito)" }}>&quot;Works on any weighted graph&quot;</div>
+            <div style={{ font: "800 13.5px/1.4 var(--font-nunito)" }}>&quot;{disputedText}&quot;</div>
           </div>
           <div style={{ flex: 1, background: "#fbfafd", borderRadius: 16, padding: "14px 16px", border: "1.5px solid #ece8f4", opacity: 0.7 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
@@ -82,7 +103,7 @@ export default function ConflictsTab({ onTab }: { onTab: (t: TabKey) => void }) 
             </div>
           </div>
           <div style={{ background: "#fbeceb", borderLeft: "4px solid #c0392b", borderRadius: "0 14px 14px 0", padding: "15px 18px", marginBottom: 22 }}>
-            <div style={{ font: "800 15px/1.5 var(--font-nunito)", color: "#221f2e" }}>&quot;Dijkstra&apos;s algorithm works on <u>any</u> weighted graph.&quot;</div>
+            <div style={{ font: "800 15px/1.5 var(--font-nunito)", color: "#221f2e" }}>&quot;{disputedText}&quot;</div>
             <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8a5a56", marginTop: 6 }}>Flagged because the lecture didn&apos;t qualify &quot;weighted&quot; — with negative weights the correctness proof fails.</div>
           </div>
 
@@ -106,13 +127,21 @@ export default function ConflictsTab({ onTab }: { onTab: (t: TabKey) => void }) 
           <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#9a95a8", marginBottom: 10 }}>Your resolution</div>
           <textarea
             rows={3}
-            defaultValue="Constrain the claim to non-negative weights and cite CLRS §24.3. For negative edges, the lecture should point to Bellman-Ford."
+            value={constraint}
+            onChange={(e) => setConstraint(e.target.value)}
             style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #ece8f4", borderRadius: 14, padding: "13px 15px", font: "600 14px/1.6 var(--font-nunito)", background: "#fbfafd", outline: "none", resize: "none", marginBottom: 18 }}
           />
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 18, borderTop: "1px solid #f0edf6" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, font: "700 13px var(--font-nunito)", color: "#9a95a8" }}>🔄 Resolving updates the trust badges everywhere</div>
-            <button style={{ border: "none", background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", whiteSpace: "nowrap" }}>Record resolution</button>
+            <button
+              type="button"
+              onClick={recordResolution}
+              disabled={saving || resolved || !data}
+              style={{ border: "none", background: resolved ? "#0e8c6b" : "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: saving || resolved ? "default" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", whiteSpace: "nowrap" }}
+            >
+              {resolved ? "Resolved ✓" : saving ? "Re-verifying…" : "Record resolution"}
+            </button>
           </div>
         </div>
       </div>

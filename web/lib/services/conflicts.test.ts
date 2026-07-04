@@ -4,7 +4,6 @@ import { seedDb } from "@/lib/store/seed";
 import { listConflicts, resolveConflict } from "./conflicts";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __verilearnDb: Db | undefined;
 }
 

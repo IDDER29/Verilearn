@@ -1,9 +1,43 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
+import { buildSession, submitTest } from "@/lib/services/testsession";
 
 export const metadata = { title: "Test Results · VeriLearn" };
 
-export default function TestResultsPage() {
+// TEST: scoring the "prove" loop. A pass mints a real certificate with a verify code;
+// a fail never does. With no live runner wired, we submit a full-marks pass for the demo
+// (or honor a ?correct=<n> override) against the real buildSession question count (TEST-02).
+export default async function TestResultsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ topic?: string; correct?: string }>;
+}) {
+  const user = await requireUser();
+  const { topic, correct } = await searchParams;
+  const summaries = listTopicSummaries(user.id);
+  const topicId = topic ?? summaries[0]?.id;
+  const session = topicId ? buildSession(user.id, topicId) : null;
+
+  const questionCount = session?.questionCount ?? 0;
+  const parsedCorrect = correct !== undefined ? Number.parseInt(correct, 10) : questionCount;
+  const correctCount = Math.max(0, Math.min(questionCount, Number.isFinite(parsedCorrect) ? parsedCorrect : questionCount));
+
+  const result =
+    session && topicId && questionCount > 0
+      ? submitTest(user.id, topicId, correctCount, questionCount)
+      : null;
+
+  // Graceful fallback if the user has no eligible topic/claims to score.
+  const title = session?.title ?? "Your test";
+  const passBar = session?.passBar ?? 75;
+  const scorePct = result?.scorePct ?? 0;
+  const passed = result?.passed ?? false;
+  const verifyCode = result?.verifyCode;
+  const ringColor = passed ? "#2e9c6a" : "#c99a2b";
+  const ringDeg = Math.round((scorePct / 100) * 360);
+
   return (
     <AppShell active="tests">
       <style>{"@keyframes vlpop{0%{opacity:0;transform:scale(.5)}70%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}"}</style>
@@ -21,7 +55,7 @@ export default function TestResultsPage() {
           <div
             style={{
               position: "relative",
-              background: "linear-gradient(150deg,#2e9c6a,#3fb37e)",
+              background: passed ? "linear-gradient(150deg,#2e9c6a,#3fb37e)" : "linear-gradient(150deg,#c99a2b,#d9b357)",
               borderRadius: 24,
               padding: "30px 34px",
               overflow: "hidden",
@@ -66,11 +100,13 @@ export default function TestResultsPage() {
                   marginBottom: 6,
                 }}
               >
-                Checkpoint · Dijkstra&apos;s algorithm
+                Checkpoint · {title}
               </div>
-              <div style={{ font: "900 27px/1.15 var(--font-nunito)" }}>Passed! You scored 83% 🎉</div>
+              <div style={{ font: "900 27px/1.15 var(--font-nunito)" }}>
+                {passed ? `Passed! You scored ${scorePct}% 🎉` : `Not yet — you scored ${scorePct}%`}
+              </div>
               <div style={{ font: "600 13px var(--font-nunito)", color: "#e4f7ee", marginTop: 6 }}>
-                10 of 12 correct · finished in 14m 12s · beat the 75% bar
+                {correctCount} of {questionCount} correct · {passed ? `beat the ${passBar}% bar` : `below the ${passBar}% bar`}
               </div>
             </div>
           </div>
@@ -160,7 +196,7 @@ export default function TestResultsPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ background: "#fff", borderRadius: 22, padding: 22, textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ position: "relative", width: 140, height: 140, margin: "0 auto 6px" }}>
-              <div style={{ width: 140, height: 140, borderRadius: "50%", background: "conic-gradient(#2e9c6a 299deg,#eee9f7 0)" }} />
+              <div style={{ width: 140, height: 140, borderRadius: "50%", background: `conic-gradient(${ringColor} ${ringDeg}deg,#eee9f7 0)` }} />
               <div
                 style={{
                   position: "absolute",
@@ -173,8 +209,8 @@ export default function TestResultsPage() {
                   justifyContent: "center",
                 }}
               >
-                <div style={{ font: "900 32px var(--font-nunito)", color: "#2e9c6a" }}>83%</div>
-                <div style={{ font: "700 10px var(--font-nunito)", color: "#8b8699" }}>10 / 12</div>
+                <div style={{ font: "900 32px var(--font-nunito)", color: ringColor }}>{scorePct}%</div>
+                <div style={{ font: "700 10px var(--font-nunito)", color: "#8b8699" }}>{correctCount} / {questionCount}</div>
               </div>
             </div>
             <div
@@ -183,14 +219,14 @@ export default function TestResultsPage() {
                 alignItems: "center",
                 gap: 6,
                 font: "800 12px var(--font-nunito)",
-                color: "#2e9c6a",
-                background: "#e4f4ec",
+                color: passed ? "#2e9c6a" : "#b4830f",
+                background: passed ? "#e4f4ec" : "#fbefdd",
                 padding: "6px 14px",
                 borderRadius: 10,
                 marginTop: 8,
               }}
             >
-              ✓ Passed · bar 75%
+              {passed ? `✓ Passed · bar ${passBar}%` : `✗ Not passed · bar ${passBar}%`}
             </div>
           </div>
 
@@ -241,12 +277,37 @@ export default function TestResultsPage() {
             </Link>
           </div>
 
-          <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 20, color: "#fff" }}>
-            <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>📈 Signals updated</div>
-            <div style={{ font: "600 12px/1.6 var(--font-nunito)", color: "#c9c3d8" }}>
-              This result nudged your <b style={{ color: "#fff" }}>retention</b> +3% and <b style={{ color: "#fff" }}>transfer</b> +5% on Progress.
+          {passed && verifyCode ? (
+            <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 20, color: "#fff" }}>
+              <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>🎓 Certificate minted</div>
+              <div style={{ font: "600 12px/1.6 var(--font-nunito)", color: "#c9c3d8", marginBottom: 12 }}>
+                Verified by score against sourced claims — anyone can confirm it with this code.
+              </div>
+              <div
+                style={{
+                  font: "800 14px var(--font-nunito)",
+                  letterSpacing: ".06em",
+                  color: "#fff",
+                  background: "rgba(255,255,255,.1)",
+                  border: "1px solid rgba(255,255,255,.18)",
+                  borderRadius: 12,
+                  padding: "11px 14px",
+                  textAlign: "center",
+                }}
+              >
+                {verifyCode}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div style={{ background: "linear-gradient(160deg,#221d2e,#3a3550)", borderRadius: 22, padding: 20, color: "#fff" }}>
+              <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>📈 Signals updated</div>
+              <div style={{ font: "600 12px/1.6 var(--font-nunito)", color: "#c9c3d8" }}>
+                {passed
+                  ? <>This result nudged your <b style={{ color: "#fff" }}>retention</b> and <b style={{ color: "#fff" }}>transfer</b> on Progress.</>
+                  : <>No certificate this time — a pass ≥ {passBar}% mints one. Review your gaps and retake.</>}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </AppShell>

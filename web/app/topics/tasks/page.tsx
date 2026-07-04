@@ -1,7 +1,11 @@
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
+import { requireUser } from "@/lib/auth/current";
+import { loadWorkspaceData } from "@/lib/services/workspace";
 
 export const metadata = { title: "Tasks · VeriLearn" };
 
-export default function TasksPage() {
-  return <WorkspaceShell initial="tasks" />;
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
+  const user = await requireUser();
+  const { topic } = await searchParams;
+  return <WorkspaceShell initial="tasks" data={loadWorkspaceData(user.id, topic)} />;
 }

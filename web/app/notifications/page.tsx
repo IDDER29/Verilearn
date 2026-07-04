@@ -1,9 +1,31 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listNotifications, type NotificationKind } from "@/lib/services/notifications";
 
 export const metadata = { title: "Notifications · VeriLearn" };
 
-export default function NotificationsPage() {
+/** Visual treatment per notification kind, reusing the icons/colors already in the design. */
+const KIND: Record<NotificationKind, { bg: string; icon: ReactNode }> = {
+  verification: {
+    bg: "#e7f4ee",
+    icon: (
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3c4 2 6.5 2 8 1.5V12c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V4.5C5.5 5 8 5 12 3z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  review: { bg: "#fbeadf", icon: "📼" },
+  conflict: { bg: "#f2effc", icon: "🧐" },
+};
+
+export default async function NotificationsPage() {
+  const user = await requireUser();
+  const items = listNotifications(user.id);
+  const unreadCount = items.filter((n) => n.unread).length;
+
   return (
     <AppShell>
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 18, maxWidth: 760 }}>
@@ -30,7 +52,7 @@ export default function NotificationsPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Notifications 🔔</div>
             <div style={{ font: "600 13px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-              2 unread · updates on your topics, tests &amp; the Skeptic
+              {unreadCount} unread · updates on your topics, tests &amp; the Skeptic
             </div>
           </div>
           <button
@@ -91,7 +113,7 @@ export default function NotificationsPage() {
           </span>
         </div>
 
-        {/* today */}
+        {/* section label */}
         <div
           style={{
             font: "800 11px var(--font-nunito)",
@@ -100,222 +122,77 @@ export default function NotificationsPage() {
             color: "#a7a1b8",
           }}
         >
-          Today
-        </div>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 20,
-            padding: "6px 22px",
-            boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)",
-          }}
-        >
-          <Link
-            href="/tests/dijkstra-checkpoint"
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 14,
-              padding: "16px 0",
-              borderBottom: "1px solid #f5f3fa",
-              textDecoration: "none",
-              color: "inherit",
-              position: "relative",
-            }}
-          >
-            <span style={{ position: "absolute", left: -14, top: 22, width: 8, height: 8, borderRadius: "50%", background: "#6d5bd0" }} />
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                background: "#fbeceb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 3h6l1 3H8zM8 6h8l1 14a1 1 0 01-1 1H8a1 1 0 01-1-1z" />
-                <path d="M10 12h4" />
-              </svg>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>
-                Your <b>Dijkstra Checkpoint</b> is in 2 days
-              </div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                You&apos;re 85% ready — review §3 to lift your odds.
-              </div>
-            </div>
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", whiteSpace: "nowrap" }}>2h ago</span>
-          </Link>
-          <Link
-            href="/topics/conflicts"
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 14,
-              padding: "16px 0",
-              textDecoration: "none",
-              color: "inherit",
-              position: "relative",
-            }}
-          >
-            <span style={{ position: "absolute", left: -14, top: 22, width: 8, height: 8, borderRadius: "50%", background: "#6d5bd0" }} />
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                background: "#f2effc",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              🧐
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>
-                The Skeptic flagged a claim in <b>Merkle trees</b>
-              </div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                &quot;Works on any input size&quot; — needs your call.
-              </div>
-            </div>
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", whiteSpace: "nowrap" }}>5h ago</span>
-          </Link>
+          Recent
         </div>
 
-        {/* earlier */}
-        <div
-          style={{
-            font: "800 11px var(--font-nunito)",
-            letterSpacing: ".06em",
-            textTransform: "uppercase",
-            color: "#a7a1b8",
-          }}
-        >
-          Earlier
-        </div>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 20,
-            padding: "6px 22px",
-            boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)",
-          }}
-        >
-          <Link
-            href="/topics"
+        {items.length === 0 ? (
+          <div
             style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 14,
-              padding: "16px 0",
-              borderBottom: "1px solid #f5f3fa",
-              textDecoration: "none",
-              color: "inherit",
+              background: "#fff",
+              borderRadius: 20,
+              padding: "40px 22px",
+              textAlign: "center",
+              boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)",
             }}
           >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                background: "#e7f4ee",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3c4 2 6.5 2 8 1.5V12c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V4.5C5.5 5 8 5 12 3z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
+            <div style={{ fontSize: 40, lineHeight: 1 }}>🎉</div>
+            <div style={{ font: "800 16px var(--font-nunito)", marginTop: 12 }}>You&apos;re all caught up</div>
+            <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginTop: 4 }}>
+              No new updates on your topics, tests &amp; the Skeptic.
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>
-                <b>Binary search</b> finished verifying
-              </div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                100% verified · ready to read.
-              </div>
-            </div>
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", whiteSpace: "nowrap" }}>Yesterday</span>
-          </Link>
-          <Link
-            href="/review"
+          </div>
+        ) : (
+          <div
             style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 14,
-              padding: "16px 0",
-              borderBottom: "1px solid #f5f3fa",
-              textDecoration: "none",
-              color: "inherit",
+              background: "#fff",
+              borderRadius: 20,
+              padding: "6px 22px",
+              boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)",
             }}
           >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                background: "#fbeadf",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              📼
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>4 flashcards are due for review</div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                Keep your 6-day streak alive.
-              </div>
-            </div>
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", whiteSpace: "nowrap" }}>Yesterday</span>
-          </Link>
-          <Link
-            href="/community"
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 14,
-              padding: "16px 0",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                background: "#eef2fb",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              💬
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>Marcus replied to your thread</div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                &quot;Great point on the cut property…&quot;
-              </div>
-            </div>
-            <span style={{ font: "700 11px var(--font-nunito)", color: "#a7a1b8", whiteSpace: "nowrap" }}>2 days ago</span>
-          </Link>
-        </div>
+            {items.map((item, i) => {
+              const treatment = KIND[item.kind];
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 14,
+                    padding: "16px 0",
+                    borderBottom: i < items.length - 1 ? "1px solid #f5f3fa" : "none",
+                    textDecoration: "none",
+                    color: "inherit",
+                    position: "relative",
+                  }}
+                >
+                  {item.unread && (
+                    <span style={{ position: "absolute", left: -14, top: 22, width: 8, height: 8, borderRadius: "50%", background: "#6d5bd0" }} />
+                  )}
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 13,
+                      background: treatment.bg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {treatment.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: "800 14px/1.4 var(--font-nunito)" }}>{item.title}</div>
+                    <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>{item.detail}</div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
     </AppShell>
   );

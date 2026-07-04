@@ -11,6 +11,13 @@ export interface WorkspaceData {
   sourceCount: number;
   verifiedPercent: number;
   breakdown: Record<TrustState, number>;
+  disputedClaims: { claimId: string; text: string }[];
+  coverage: {
+    sources: { id: string; title: string; kind: string }[];
+    rows: { claimId: string; claimText: string; state: TrustState; cells: { sourceId: string; filled: boolean }[] }[];
+    coveragePercent: number;
+    backedCount: number;
+  } | null;
 }
 
 export const TAB_ROUTE: Record<TabKey, string> = {

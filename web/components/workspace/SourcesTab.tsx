@@ -1,7 +1,7 @@
 "use client";
 
 import WorkspaceTabs from "./WorkspaceTabs";
-import type { TabKey } from "./types";
+import type { TabKey, WorkspaceData } from "./types";
 
 function GreenCell() {
   return (
@@ -42,7 +42,12 @@ const rowStyle = {
   marginBottom: 8,
 };
 
-export default function SourcesTab({ onTab }: { onTab: (t: TabKey) => void }) {
+export default function SourcesTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
+  const coveragePct = data?.coverage?.coveragePercent ?? 83;
+  const backed = data?.coverage?.backedCount ?? 5;
+  const total = data?.claimCount ?? 6;
+  const unsupported = total - backed;
+  const unsupportedText = data?.disputedClaims[0]?.text ?? "Works on any weighted graph";
   return (
     <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
       {/* breadcrumb */}
@@ -170,7 +175,7 @@ export default function SourcesTab({ onTab }: { onTab: (t: TabKey) => void }) {
               <path d="M12 4l9 15.5H3z" />
               <path d="M12 10v4M12 17h.01" />
             </svg>
-            1 unsupported
+            {unsupported} unsupported
           </div>
         </div>
 
@@ -276,8 +281,8 @@ export default function SourcesTab({ onTab }: { onTab: (t: TabKey) => void }) {
             </svg>
           </div>
           <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
-            <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#f0a99f", marginBottom: 5 }}>1 unsupported claim</div>
-            <div style={{ font: "800 16px/1.4 var(--font-nunito)" }}>&quot;Works on any weighted graph&quot; isn&apos;t backed by any source.</div>
+            <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#f0a99f", marginBottom: 5 }}>{unsupported} unsupported claim{unsupported === 1 ? "" : "s"}</div>
+            <div style={{ font: "800 16px/1.4 var(--font-nunito)" }}>&quot;{unsupportedText}&quot; isn&apos;t backed by any source.</div>
             <div style={{ font: "600 12.5px/1.55 var(--font-nunito)", color: "#c9c3d8", marginTop: 5 }}>The Skeptic flagged it — resolve the dispute to correct or qualify the claim.</div>
           </div>
           <button
@@ -297,10 +302,10 @@ export default function SourcesTab({ onTab }: { onTab: (t: TabKey) => void }) {
           <div style={{ position: "relative", width: 88, height: 88, flexShrink: 0 }}>
             <svg width="88" height="88" viewBox="0 0 88 88" style={{ transform: "rotate(-90deg)" }}>
               <circle cx="44" cy="44" r="36" fill="none" stroke="#eee9f7" strokeWidth="11" />
-              <circle cx="44" cy="44" r="36" fill="none" stroke="#0e8c6b" strokeWidth="11" strokeLinecap="round" strokeDasharray="226" strokeDashoffset="38" />
+              <circle cx="44" cy="44" r="36" fill="none" stroke="#0e8c6b" strokeWidth="11" strokeLinecap="round" strokeDasharray="226" strokeDashoffset={Math.round(226 * (1 - coveragePct / 100))} />
             </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ font: "900 20px var(--font-nunito)" }}>83%</div>
+              <div style={{ font: "900 20px var(--font-nunito)" }}>{coveragePct}%</div>
               <div style={{ font: "700 9.5px var(--font-nunito)", color: "#8b8699" }}>coverage</div>
             </div>
           </div>

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
 
 export const metadata = { title: "Welcome · VeriLearn" };
 
@@ -9,7 +11,13 @@ const EXAMPLES = [
   { emoji: "🔍", bg: "#e2ecfb", title: "Binary search", meta: "Algorithms · beginner" },
 ];
 
-export default function WelcomePage() {
+export default async function WelcomePage() {
+  const user = await requireUser();
+  const topics = listTopicSummaries(user.id);
+  const topicCount = topics.length;
+  const claimsChecked = topics.reduce((sum, t) => sum + t.claimCount, 0);
+  const firstName = user.displayName.split(" ")[0];
+  const isNew = topicCount === 0;
   return (
     <AppShell active="dashboard">
       <main
@@ -24,9 +32,11 @@ export default function WelcomePage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Welcome to VeriLearn, Adeline 👋</div>
+              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Welcome to VeriLearn, {firstName} 👋</div>
               <div style={{ font: "600 13px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                Let&apos;s set up your first verified topic.
+                {isNew
+                  ? "Let's set up your first verified topic."
+                  : `You've got ${topicCount} verified ${topicCount === 1 ? "topic" : "topics"} going — start another anytime.`}
               </div>
             </div>
           </div>
@@ -151,7 +161,7 @@ export default function WelcomePage() {
             >
               🧑‍🎨
             </div>
-            <div style={{ font: "900 17px var(--font-nunito)" }}>Adeline Watson</div>
+            <div style={{ font: "900 17px var(--font-nunito)" }}>{user.displayName}</div>
             <div
               style={{
                 display: "inline-flex",
@@ -166,7 +176,7 @@ export default function WelcomePage() {
                 whiteSpace: "nowrap",
               }}
             >
-              New learner 🌱
+              {isNew ? "New learner 🌱" : `${topicCount} ${topicCount === 1 ? "topic" : "topics"} 📚`}
             </div>
           </div>
 
@@ -180,7 +190,7 @@ export default function WelcomePage() {
                 </svg>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "900 16px var(--font-nunito)", color: "#b6b1c4" }}>0</div>
+                <div style={{ font: "900 16px var(--font-nunito)", color: topicCount > 0 ? "#221f2e" : "#b6b1c4" }}>{topicCount}</div>
                 <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>Verified topics</div>
               </div>
             </div>
@@ -192,12 +202,12 @@ export default function WelcomePage() {
                 </svg>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "900 16px var(--font-nunito)", color: "#b6b1c4" }}>0</div>
+                <div style={{ font: "900 16px var(--font-nunito)", color: claimsChecked > 0 ? "#221f2e" : "#b6b1c4" }}>{claimsChecked}</div>
                 <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>Claims checked</div>
               </div>
             </div>
             <div style={{ font: "600 11px/1.5 var(--font-nunito)", color: "#a7a1b8", marginTop: 8, textAlign: "center" }}>
-              These fill in once you start your first topic.
+              {isNew ? "These fill in once you start your first topic." : "Updated from your verified topics."}
             </div>
           </div>
         </div>

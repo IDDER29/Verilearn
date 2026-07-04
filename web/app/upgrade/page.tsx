@@ -1,9 +1,12 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
 
 export const metadata = { title: "Upgrade · VeriLearn" };
 
-export default function UpgradePage() {
+export default async function UpgradePage() {
+  const user = await requireUser();
+  const plan = user.plan;
   return (
     <AppShell>
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 22 }}>
@@ -55,7 +58,7 @@ export default function UpgradePage() {
               <span style={{ font: "900 34px var(--font-nunito)" }}>$0</span>
               <span style={{ font: "700 13px var(--font-nunito)", color: "#8b8699" }}>/ mo</span>
             </div>
-            <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>Your current plan</div>
+            <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>{plan === "free" ? "Your current plan" : "Basics, free forever"}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               <div style={{ display: "flex", gap: 9, font: "700 13px/1.4 var(--font-nunito)" }}>
                 <span style={{ color: "#2e9c6a", flexShrink: 0 }}>✓</span>3 active topics
@@ -70,9 +73,15 @@ export default function UpgradePage() {
                 <span style={{ flexShrink: 0 }}>—</span>Skeptic hard mode
               </div>
             </div>
-            <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fbfafd", color: "#8b8699", font: "800 13.5px var(--font-nunito)", cursor: "default" }}>
-              Current plan
-            </button>
+            {plan === "free" ? (
+              <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fbfafd", color: "#8b8699", font: "800 13.5px var(--font-nunito)", cursor: "default" }}>
+                Current plan
+              </button>
+            ) : (
+              <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fff", color: "#8b8699", font: "800 13.5px var(--font-nunito)", cursor: "pointer" }}>
+                Downgrade to Free
+              </button>
+            )}
           </div>
 
           {/* pro (featured) */}
@@ -104,12 +113,18 @@ export default function UpgradePage() {
                 <span style={{ color: "#2e9c6a", flexShrink: 0 }}>✓</span>Priority support
               </div>
             </div>
-            <Link
-              href="/upgrade/checkout"
-              style={{ display: "block", textAlign: "center", width: "100%", boxSizing: "border-box", marginTop: 22, padding: 13, border: "none", borderRadius: 13, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", textDecoration: "none", boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}
-            >
-              Upgrade to Pro
-            </Link>
+            {plan === "pro" ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", boxSizing: "border-box", marginTop: 22, padding: 13, borderRadius: 13, background: "#f3eefc", color: "#6d5bd0", font: "800 14px var(--font-nunito)" }}>
+                <span style={{ flexShrink: 0 }}>✓</span>Current plan
+              </div>
+            ) : (
+              <Link
+                href="/upgrade/checkout"
+                style={{ display: "block", textAlign: "center", width: "100%", boxSizing: "border-box", marginTop: 22, padding: 13, border: "none", borderRadius: 13, background: "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", textDecoration: "none", boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}
+              >
+                Upgrade to Pro
+              </Link>
+            )}
           </div>
 
           {/* teams */}
@@ -134,9 +149,15 @@ export default function UpgradePage() {
                 <span style={{ color: "#2e9c6a", flexShrink: 0 }}>✓</span>SSO
               </div>
             </div>
-            <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #6d5bd0", borderRadius: 13, background: "#fff", color: "#6d5bd0", font: "800 13.5px var(--font-nunito)", cursor: "pointer" }}>
-              Contact sales
-            </button>
+            {plan === "team" ? (
+              <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #ece8f4", borderRadius: 13, background: "#fbfafd", color: "#8b8699", font: "800 13.5px var(--font-nunito)", cursor: "default" }}>
+                Current plan
+              </button>
+            ) : (
+              <button style={{ width: "100%", marginTop: 22, padding: 13, border: "1.5px solid #6d5bd0", borderRadius: 13, background: "#fff", color: "#6d5bd0", font: "800 13.5px var(--font-nunito)", cursor: "pointer" }}>
+                Contact sales
+              </button>
+            )}
           </div>
         </div>
 

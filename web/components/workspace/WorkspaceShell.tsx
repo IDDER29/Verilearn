@@ -21,8 +21,8 @@ export default function WorkspaceShell({ initial = "lecture", data = null }: { i
     <AppShell active="topics">
       {tab === "lecture" && <LectureTab onTab={setTab} data={data} />}
       {tab === "tasks" && <TasksTab onTab={setTab} />}
-      {tab === "conflicts" && <ConflictsTab onTab={setTab} />}
-      {tab === "sources" && <SourcesTab onTab={setTab} />}
+      {tab === "conflicts" && <ConflictsTab onTab={setTab} data={data} />}
+      {tab === "sources" && <SourcesTab onTab={setTab} data={data} />}
     </AppShell>
   );
 }

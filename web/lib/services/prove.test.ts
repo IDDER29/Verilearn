@@ -6,7 +6,6 @@ import { listNotifications } from "./notifications";
 import { buildSession, submitTest } from "./testsession";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __verilearnDb: Db | undefined;
 }
 const USER = "user_adeline";
