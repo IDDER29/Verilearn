@@ -80,7 +80,8 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
 | Settings › Sessions & devices | real live session list scoped to the caller (`db.sessions`), device parsed from the real User-Agent, sign-out-one / sign-out-others / sign-out-everywhere (AUTH-12) |
 | Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
-| Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred |
+| Checkout (`/upgrade/checkout`) | real billing-cycle toggle recomputes the order summary; "Pay" runs the same real (demo, no-charge) plan activation as elsewhere (BILL-04) |
+| Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred — now consistent with Checkout's real activation |
 | Login / Signup | real auth + COPPA age-gate; "Remember me" TTL + failed-sign-in lockout/backoff (AUTH-06/AUTH-23) |
 | Live demo (`/demo`) | public, no-account guest showcase; real `TrustLedger` engine over a fixed scenario, firewall-respecting resolve, nothing persisted (TRUST-22) |
 
@@ -92,8 +93,8 @@ Services: topics, review, progress, conflicts, sources, notifications, testsessi
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 144 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 193 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 145 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 192 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -124,4 +125,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after certificate reinstatement with a reviewer-other-than-actor gate (ADMIN-22) — 144 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after a real, recomputing checkout billing-cycle toggle + real demo-upgrade on Pay (BILL-04) — 145 Done; remainder is field-polish or deferred-with-justification._
