@@ -108,6 +108,36 @@ describe("sign-up / sign-in", () => {
   });
 });
 
+describe("ban enforcement (ADMIN-16)", () => {
+  const base = { now: NOW, secret: SECRET, userId: "u_bannable", tokenNonce: "n1" };
+
+  it("refuses sign-in for a banned account even with the correct password", () => {
+    const db = createDb();
+    signUp(db, { email: "banned@in.com", password: "hunter2pass", displayName: "B", birthYear: 1990 }, base);
+    const user = db.users.get(base.userId)!;
+    db.users.set(user.id, { ...user, banned: true, bannedReason: "fraud", bannedAt: NOW, bannedBy: "actor_1" });
+    expect(() => signIn(db, { email: "banned@in.com", password: "hunter2pass" }, { now: NOW, secret: SECRET, tokenNonce: "n2" })).toThrow(/suspended/i);
+  });
+
+  it("cuts off an already-signed-in session the moment the account is banned mid-session", () => {
+    const db = createDb();
+    const { token } = signUp(db, { email: "midban@in.com", password: "hunter2pass", displayName: "M", birthYear: 1990 }, base);
+    expect(authenticate(db, token, SECRET, NOW)?.id).toBe(base.userId); // authenticates fine before the ban
+    const user = db.users.get(base.userId)!;
+    db.users.set(user.id, { ...user, banned: true, bannedReason: "fraud", bannedAt: NOW, bannedBy: "actor_1" });
+    expect(authenticate(db, token, SECRET, NOW)).toBeNull(); // same token, now refused
+  });
+
+  it("a fresh sign-in attempt does not count as a failed-password attempt for a banned account", () => {
+    const db = createDb();
+    signUp(db, { email: "banned2@in.com", password: "hunter2pass", displayName: "B2", birthYear: 1990 }, { ...base, userId: "u_bannable2" });
+    const user = db.users.get("u_bannable2")!;
+    db.users.set(user.id, { ...user, banned: true, bannedReason: "fraud", bannedAt: NOW, bannedBy: "actor_1" });
+    expect(() => signIn(db, { email: "banned2@in.com", password: "hunter2pass" }, { now: NOW, secret: SECRET, tokenNonce: "n3" })).toThrow(/suspended/i);
+    expect(db.loginAttempts.get("banned2@in.com")).toBeUndefined();
+  });
+});
+
 describe("change email (SETTINGS-03)", () => {
   const base = { now: NOW, secret: SECRET, userId: "u_owner", tokenNonce: "n1" };
 

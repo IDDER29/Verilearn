@@ -16,7 +16,8 @@ export type AuthErrorCode =
   | "weak_password"
   | "invalid_credentials"
   | "age_gate_blocked"
-  | "locked_out";
+  | "locked_out"
+  | "account_banned";
 
 /** Failed-sign-in lockout/backoff thresholds (AUTH-06/AUTH-23). */
 const MAX_FAILED_ATTEMPTS = 5;
@@ -117,6 +118,13 @@ export function signIn(
     throw new AuthError("invalid_credentials", "Email or password is incorrect.");
   }
 
+  // Fail-closed ban enforcement (ADMIN-16): correct credentials, but a banned
+  // account never gets a session — checked after password verification, not
+  // instead of it, so a banned account's password still can't be probed.
+  if (user.banned) {
+    throw new AuthError("account_banned", "This account has been suspended.");
+  }
+
   db.loginAttempts.delete(email); // reset backoff on a successful sign-in
   const ttlMs = opts.rememberMe ? SESSION_TTL_MS : SHORT_SESSION_TTL_MS;
   const { token } = createSession(db, user.id, opts.secret, opts.now, opts.tokenNonce, opts.userAgent, ttlMs);
@@ -146,7 +154,12 @@ export function changeEmail(db: Db, userId: string, input: { currentPassword: st
   return { email };
 }
 
-/** Resolve the current user from a session token (verifies signature, expiry, and existence). */
+/**
+ * Resolve the current user from a session token (verifies signature, expiry,
+ * and existence). A ban (ADMIN-16) takes effect immediately, mid-session —
+ * an already-signed-in tab stops authenticating on its very next request,
+ * not just at the next fresh sign-in.
+ */
 export function authenticate(db: Db, token: string | undefined, secret: string, now: number): User | null {
   if (!token) return null;
   const body = token.split(".").slice(0, 2).join(".");
@@ -154,7 +167,9 @@ export function authenticate(db: Db, token: string | undefined, secret: string, 
   if (!payload) return null;
   const session = db.sessions.get(token);
   if (!session || session.expiresAt <= now) return null;
-  return db.users.get(payload.userId) ?? null;
+  const user = db.users.get(payload.userId);
+  if (!user || user.banned) return null;
+  return user;
 }
 
 export function signOut(db: Db, token: string): void {

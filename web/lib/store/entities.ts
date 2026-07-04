@@ -54,6 +54,15 @@ export interface User {
   plan: "free" | "pro" | "team";
   createdAt: number;
   prefs: UserPrefs;
+  /** T&S ban state (ADMIN-16). A banned account is fail-closed at both sign-in and session resolution. */
+  banned?: boolean;
+  bannedReason?: string;
+  bannedAt?: number;
+  bannedBy?: string;
+  /** Present once unbanned. Prior ban fields are kept as history, never erased (same append-only spirit as certificate revoke/reinstate). */
+  unbannedAt?: number;
+  unbannedBy?: string;
+  unbannedReason?: string;
 }
 
 export interface Session {
