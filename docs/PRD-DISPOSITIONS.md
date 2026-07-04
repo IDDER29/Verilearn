@@ -24,7 +24,7 @@ with justification** — nothing among them is silently dropped.
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 14 | 8 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 13 | 8 | 3 |
-| TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
+| TRUST — Conflicts, Trust Ledger & Sources | 22 | 12 | 6 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 14 | 9 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 14 | 7 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **141** | **196** | **124** |
+| **TOTAL** | **461** | **142** | **195** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -240,9 +240,9 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TRUST-19 | 🟡 Partial | Substantial engine coverage: the Skeptic is raise-only and can never write a `verified` state (firewall, `trust.ts`/`rbac.ts`); the pipeline has prompt-injection + hallucination guards (`pipeline.ts`, tested); RBAC gives `trust_safety_lead` `cert:revoke`/`integrity:quarantine`/`user:ban` but never `trust:write` (`rbac.ts:183`); break-glass is audited and records firewall permissions as `granted:false, forbidden:true` (`breakGlass`, `rbac.ts:317-341`). Separation of raise vs certify is enforced. Missing: runtime freeze/quarantine actions against a specific claim/source/cert that halt its use in tests/certs, and a T&S detection/console UI, are not wired. |
 | TRUST-20 | 🟡 Partial | A stale double-resolve is guarded: `resolveConflict` re-reads live ledger state and rejects if the claim is no longer `disputed` ("This claim is not disputed.", `conflicts.ts:56`), so a second writer cannot silently clobber the first, and badge counts are recomputed from the canonical ledger on each load (`page.tsx:21`). Missing: no explicit optimistic-concurrency version/etag on the write, no "this was just updated — review before overwriting" prompt, no distinct audit of both attempts, and no offline queue/re-validate — concurrency safety is incidental to the state check rather than an ETag contract. |
 | TRUST-21 | ⏭️ Deferred | The coverage-semantics invariant holds: a matrix cell is filled **iff** a claim's verification evidence resolves to that source (`sources.ts:37-40`) — raw popularity can never fill a cell — and promotion is SME-only in RBAC (`source:promote`). Missing: vote-ring/sockpuppet detection, discounting/freezing of coordinated endorsements, and revocable/audited contributor credit — all depend on the unbuilt Community model. Needs Community + an anti-abuse layer. |
-| TRUST-22 | 🟡 Partial | The `guest` role is read-limited in RBAC (`topic:read`/`claim:read` only, no `conflict:resolve_own`, `rbac.ts:114`), so a guest is structurally unable to mutate any state. Missing: no ephemeral demo experience — there is no guest-facing showcase route rendering a pre-verified topic's coverage matrix + an adjudicable-looking conflict with sign-up conversion gates and no persistence. Needs the demo UI built (no external infra required). |
+| TRUST-22 | ✅ Done | The `guest` role is read-limited in RBAC (`topic:read`/`claim:read` only, no `conflict:resolve_own`, `rbac.ts:114`), so a guest is structurally unable to mutate any real state. The ephemeral demo experience is now real: `/demo` (`app/demo/page.tsx`, public — no session cookie required, added to `proxy.ts`'s exempt set, live-verified via curl to return `200` unauthenticated) renders a coverage-style view (`components/DemoConflictPanel.tsx`) of a fixed scenario (`lib/demo/scenario.ts`) — a mix of Verified·execution/Verified·source/Sourced claims plus one genuinely **disputed** claim — computed by the **real** `TrustLedger`/`verifiedPercent` engine, not fabricated numbers. The "resolve this conflict" action (`app/demo-actions.ts`) re-verifies through the same firewall-respecting SYSTEM-verifier path as the real Conflicts flow (`resolveConflict`), just against a fresh, throwaway ledger instance created per call — **nothing persists**: a reload always restores the original disputed state, verified by construction (no `db` import anywhere in the demo module) and by a dedicated test (`scenario.test.ts`: repeated resolves never leak into a later `demoSnapshot()`). Converts to sign-up on resolution and is linked from the public `/pricing` hero. 3 new tests. |
 
-**Counts:** 22 total — ✅ 7 Done · 🟡 11 Partial · ⏭️ 4 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 22 total — ✅ 12 Done · 🟡 6 Partial · ⏭️ 4 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

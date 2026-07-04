@@ -60,6 +60,12 @@ export default async function PricingPage() {
               <div style={{ font: "900 27px/1.2 var(--font-nunito)", color: "#fff", maxWidth: 560, margin: "0 auto" }}>
                 Unlimited topics, the Skeptic on hard mode, and thorough verification on everything you learn.
               </div>
+              <Link
+                href="/demo"
+                style={{ display: "inline-block", marginTop: 16, textDecoration: "none", color: "#fff", font: "800 12.5px var(--font-nunito)", border: "1.5px solid rgba(255,255,255,.35)", padding: "10px 20px", borderRadius: 12 }}
+              >
+                See it in action — no account needed →
+              </Link>
             </div>
           </div>
 

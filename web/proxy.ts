@@ -7,7 +7,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * a cheap first gate (defense in depth), not the source of truth.
  */
 // /pricing is a public, unauthenticated pricing view (BILL-03).
-const PUBLIC = new Set(["/login", "/signup", "/pricing"]);
+// /demo is the public, no-account guest showcase (TRUST-22).
+const PUBLIC = new Set(["/login", "/signup", "/pricing", "/demo"]);
 // The public certificate-verify endpoint (API-03) — no session required, by design.
 const PUBLIC_PREFIXES = ["/api/verify/"];
 // JSON API routes that DO require auth, but should fail with a JSON 401 from the
