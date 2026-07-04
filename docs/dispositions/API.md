@@ -1,0 +1,30 @@
+### Integrations, API, Webhooks, SSO & LTI (API)
+
+This domain is the programmatic/federated boundary (public REST + GraphQL, API keys, OAuth, signed webhooks, SSO SAML/OIDC, SCIM, LTI 1.3, embeddable widgets, sandbox/versioning). The current build has **no external API surface**: no HTTP API layer, no webhook delivery, no SSO/SCIM/LTI, no developer console — all of it needs external infra (real DB, API gateway, OAuth server, SSO/SCIM/LTI vendors) that is Deferred. What *does* exist is the in-engine substance several of these stories must faithfully transport: the fail-closed certificate-verification logic, the five/six-state trust model + breakdown, and the ledger-immutability firewall. Those are cited where they back a story's core guard.
+
+| Story | Status | Evidence / Justification |
+|-------|--------|--------------------------|
+| API-01 | ⏭️ Deferred | Register app + scoped API credentials. No developer console, API-key store, or scope grant exists. Needs a real API server + DB; no adapter seam present. |
+| API-02 | ⏭️ Deferred | OAuth2 authz-code + client-credentials with consent scopes, introspection/revocation. No OAuth server. `lib/auth/session.ts` (HMAC signed tokens) is a loosely-related primitive, not OAuth. Needs OAuth/consent infra. |
+| API-03 | 🟡 Partial | Core fail-closed **verify logic** is implemented and tested: `verifyCertificate` in `lib/domain/certificates.ts` returns `unknown`/`revoked`/valid, never a default "valid" (`certificates.test.ts` → "verifyCertificate — fail-closed (TEST-11 / TEST-21)"); plus `revokeCertificate` / `shouldRevokeOnClaimDowngrade`. Missing: the actual `GET` REST endpoint, live cert-store resolution, signed response, five-state scope payload, and the `503 unverifiable_try_again` degraded state. |
+| API-04 | 🟡 Partial | The differentiated payload exists in-engine: five/six trust states + `isVerified`/`isTestEligible` in `lib/domain/types.ts`, and verified%/breakdown aggregates in `lib/domain/trust.ts` (read-only, no field collapses states to binary). Missing: the REST/GraphQL endpoint, `trust:read` scope, entitlement check, and `as_of` ledger-version pagination. |
+| API-05 | ⏭️ Deferred | Honest-signal reads under a live consent scope. `lib/domain/signals.ts` computes the four honest signals (no vanity score) as the would-be payload, but the story's core — OAuth `signals:read` consent gating, revocation, k-anonymity, audit-per-read — has no substrate. Needs OAuth+consent infra. |
+| API-06 | ⏭️ Deferred | Signed webhook subscriptions + event catalog. No webhook registration, delivery, or signing exists. Needs delivery infra + DB; no seam. |
+| API-07 | ⏭️ Deferred | Webhook retry/backoff/dead-letter/idempotency. Depends on API-06 which is absent. Needs a delivery pipeline + persistence. |
+| API-08 | ⏭️ Deferred | Per-tenant SSO (SAML/OIDC) config + role mapping. No SSO connection surface. SSO mechanics are Auth-owned and Deferred (needs IdP/SAML/OIDC vendor). |
+| API-09 | ⏭️ Deferred | SCIM 2.0 directory provisioning. No SCIM endpoint or token. Needs directory-sync infra; story is explicitly "Future". |
+| API-10 | ⏭️ Deferred | Clean deprovisioning that preserves earned certs. No SSO/SCIM/seat-teardown flow exists. The identity-vs-content firewall it depends on *is* structurally true in engine (`revokeCertificate` fires only on SME downgrade, not seat status — `lib/domain/certificates.ts`), but the deprovisioning action itself needs identity infra. |
+| API-11 | ⏭️ Deferred | LTI 1.3 launch + NRPS roster sync. No LTI tool registration, OIDC launch, or JWKS validation. Needs LTI 1.3 infra/LMS partner. |
+| API-12 | ⏭️ Deferred | LTI Deep Linking content picker. No LTI surface. Needs API-11 first; Deferred infra. |
+| API-13 | ⏭️ Deferred | LTI AGS grade passback. No AGS line-item posting. Needs LTI infra; the graded score source (Tests engine) exists but nothing transports it. |
+| API-14 | ⏭️ Deferred | Grade-passback retry/reconcile queue. Depends on API-13 which is absent. Needs LTI + reconciliation infra. |
+| API-15 | ⏭️ Deferred | Embeddable verify widget/badge. No hosted embed. Would be a thin client of API-03; `verifyCertificate` (`lib/domain/certificates.ts`) is the fail-closed backing it would wrap, but the widget + hosted endpoint need infra. |
+| API-16 | ⏭️ Deferred | Bulk export/import (async jobs, signed links, k-anonymity). No export/import pipeline. Needs async job infra + DB. |
+| API-17 | ⏭️ Deferred | No-code Zapier-style connector. No published API for it to sit on. Needs public API + partner platform. |
+| API-18 | ⏭️ Deferred | Sandbox/test mode with isolated dataset + test credentials. No API, hence no mode split. Needs the API layer + isolated sandbox store. |
+| API-19 | ⏭️ Deferred | API versioning + `Deprecation`/`Sunset` headers + changelog. No API to version. Needs the API layer. |
+| API-20 | ⏭️ Deferred | Leaked-credential immediate fail-closed revoke/rotate. No API credentials exist to revoke. Related security posture exists (`lib/domain/rbac.ts` least-privilege + audited break-glass; immediate `revokeCertificate`), but API-key/OAuth/SCIM/LTI credential lifecycle needs infra. |
+| API-21 | 🟡 Partial | The invariant (nothing external mutates the trust spine) is genuinely enforced in-engine: `trust:write` is a FIREWALL permission granted to NO role and un-bypassable even via break-glass (`can()` returns false, `assertNoEpistemicWriteGrants` in `lib/domain/rbac.ts`, tested in `rbac.test.ts`), plus the epistemic firewall in `lib/domain/trust.ts` (only a system verifier / SME dual-control records a state). Missing: there is no external API boundary yet to apply this to — the invariant is trivially satisfied because no write verb, scope, or endpoint exists; it must be re-asserted (`403 ledger_immutable`, policy-event logging) at the real API layer when built. |
+| API-22 | ⏭️ Deferred | Rate limits/quotas with `429`+`Retry-After`, per-tenant/credential, plan-tiered. No API gateway or entitlement wiring. Needs API infra + Billing entitlements. |
+
+**Counts:** 22 total — 0 Done, 3 Partial (API-03, API-04, API-21), 19 Deferred, 0 Out-of-scope.

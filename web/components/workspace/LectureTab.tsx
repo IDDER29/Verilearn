@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { BackButton } from "@/components/ui";
 import WorkspaceTabs from "./WorkspaceTabs";
@@ -67,7 +66,9 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
   const claim = CLAIMS[selected];
   const badge = TRUST_BADGE[claim.trust];
 
-  const ClaimSpan = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  // A render helper (not a nested component) so the same span can be reused inline
+  // without creating a new component type each render.
+  const claimSpan = (id: string, children: React.ReactNode) => {
     const c = CLAIMS[id];
     const isSel = selected === id;
     return (
@@ -145,8 +146,8 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
           <h2 style={{ font: "900 21px var(--font-nunito)", letterSpacing: "-.01em", margin: "0 0 14px" }}>The core idea: greedily grow the shortest-path tree</h2>
           <p style={{ font: "600 15px/1.85 var(--font-nunito)", color: "#3a3550", margin: "0 0 16px" }}>
             Dijkstra&apos;s algorithm finds the shortest path from a source node by repeatedly picking the{" "}
-            <ClaimSpan id="smallest">unvisited node with the smallest tentative distance</ClaimSpan>, then relaxing its neighbours. Each time a node is
-            finalised, its shortest distance is <ClaimSpan id="correct">guaranteed to be correct</ClaimSpan> — the greedy choice never has to be revised.
+            {claimSpan("smallest", "unvisited node with the smallest tentative distance")}, then relaxing its neighbours. Each time a node is
+            finalised, its shortest distance is {claimSpan("correct", "guaranteed to be correct")} — the greedy choice never has to be revised.
           </p>
 
           {/* highlighted disputed claim */}
@@ -176,7 +177,7 @@ export default function LectureTab({ onTab }: { onTab: (t: TabKey) => void }) {
           </div>
 
           <p style={{ font: "600 15px/1.85 var(--font-nunito)", color: "#3a3550", margin: "0 0 22px" }}>
-            The classic implementation uses a <ClaimSpan id="pq">priority queue keyed by tentative distance</ClaimSpan>, giving an overall running time of
+            The classic implementation uses a {claimSpan("pq", "priority queue keyed by tentative distance")}, giving an overall running time of
             O((V + E) log V).
           </p>
 

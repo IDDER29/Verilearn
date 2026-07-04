@@ -48,12 +48,29 @@ testable, and complete in intent while being honest about what runs locally.
 
 | Phase | Status | Notes |
 |---|---|---|
-| P0 Domain core & invariants | ⬜ In progress | starting: types + trust ledger + firewall |
-| P1 Identity & RBAC | ⬜ Planned | |
-| P2 Persistence | ⬜ Planned | |
-| P3 API layer | ⬜ Planned | |
-| P4 UI wiring | ⬜ Planned | core loop already interactive with mock data |
-| P5 Compliance & ops | ⬜ Planned | |
-| P6 Disposition sweep | ⬜ Planned | full 462-story table generated at the end |
+| P0 Domain core & invariants | ✅ Done | 10 modules, 196 tests: trust ledger+firewall, FSRS, calibration, rubric, gap auto-reopen, tests-engine, certificates, signals, RBAC, pipeline |
+| P1 Identity & RBAC | ✅ Done | scrypt auth, HMAC sessions, COPPA age-gate, proxy auth gate, logout; RBAC matrix (no human trust:write) |
+| P2 Persistence | ✅ Done | entity model, owner/tenant-scoped in-memory repo, deterministic seed, reviewLog |
+| P3 Services & API | ✅ Done (core loop) | topics + review services; server actions for create/grade; 🟡 remaining domains' services pending |
+| P4 UI wiring | 🟡 Core loop wired | Dashboard, New Topic (create+cap), Pipeline, Review (persist) on real data; ~30 screens still faithful-static |
+| P5 Compliance & ops | 🟡 Partial | age-gate + auth gate + tenant scoping + prompt-injection guard live; KMS/DSAR/audit-log/breach = ⏭️ infra |
+| P6 Disposition sweep | ✅ Done | all 462 stories classified — see `docs/PRD-DISPOSITIONS.md` |
 
-_Last updated: start of autonomous execution._
+**Test count:** 220 passing across 13 files · build green.
+
+## Roadmap accounting (462 stories — 100% accounted for)
+
+| Disposition | Count | Meaning |
+|---|--:|---|
+| ✅ Done | 25 | implemented + tested, or wired to real data |
+| 🟡 Partial | 285 | engine done / UI not wired, or faithful static screen without backend |
+| ⏭️ Deferred | 152 | needs external infra/vendor/business decision (behind a seam) |
+| 🚫 Out-of-scope | 0 | — |
+| **Total** | **462** | every story classified; nothing silently dropped |
+
+The **thesis-critical spine is Done and tested end-to-end**; **Partial** items are faithful screens
+awaiting the mechanical service-wiring pass proven on the core loop; **Deferred** items are exactly
+the external dependencies the PRD predicted (payments, SSO/LTI, real LLM/sandbox, KMS, email). Full
+per-story evidence in `docs/PRD-DISPOSITIONS.md`.
+
+_Last updated: after the P6 disposition sweep — roadmap 100% accounted for._

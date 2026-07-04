@@ -6,7 +6,6 @@ import { calibrationFor, gradeCard, getDueCards, retentionFor } from "./review";
 
 // The service reads the process singleton via getDb(); seed that singleton.
 declare global {
-  // eslint-disable-next-line no-var
   var __verilearnDb: Db | undefined;
 }
 

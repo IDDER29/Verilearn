@@ -75,7 +75,6 @@ export function userByEmail(db: Db, email: string): User | undefined {
 export const SEED_NOW = 1_782_432_000_000;
 
 declare global {
-  // eslint-disable-next-line no-var
   var __verilearnDb: Db | undefined;
 }
 

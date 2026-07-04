@@ -1,0 +1,33 @@
+### Events: Workshops, Groups & Challenges (EVENT)
+
+Disposition of the Events domain against the actual codebase. Ground truth: the Events domain has **no backend** — no event/registration/challenge/streak entity, service, or store row. Every `Event`/`event` symbol under `web/lib/` is `VerificationEvent` (the trust ledger), unrelated to this domain. What ships is three faithful static screens: `web/app/events/page.tsx` (hub), `web/app/events/[slug]/page.tsx` (detail), `web/app/events/registered/page.tsx` (confirmation), all with hardcoded data behind `AppShell`. Several engine seams that these stories would route into do exist (pipeline/DeterministicVerifier, trust firewall, gap lifecycle, FSRS, rbac roles), but none are wired to an event surface.
+
+| Story | Status | Evidence / Justification |
+|---|---|---|
+| EVENT-01 | 🟡 Partial | Static hub `web/app/events/page.tsx` renders a featured event + typed "Upcoming" list + right-rail ring/registered — but from hardcoded `UPCOMING` data. Missing: store wiring, soonest-first/live-pinned ordering, real going-counts, empty state. |
+| EVENT-02 | 🟡 Partial | Static detail `web/app/events/[slug]/page.tsx` has hero, About, "What you'll see," host card, who's-going, register card. Single hardcoded slug; no capacity/waitlist/registered/cancelled states, no real topic link. |
+| EVENT-03 | 🟡 Partial | Static confirmation `web/app/events/registered/page.tsx` ("You're registered!", ticket, status chips). No real registration: no join-link, no My-Tasks creation, no idempotency/dedupe, no hub right-rail update. |
+| EVENT-04 | 🟡 Partial | "Add to calendar" buttons present on the static detail/registered screens; no ICS generation, timezone offsets, per-learner join URL, or SEQUENCE-bump-on-reschedule implemented. |
+| EVENT-05 | ⏭️ Deferred | Pre-event/challenge reminders need a scheduler + notification delivery + transactional email (email is deferred; Notifications/quiet-hours screens are static). No reminder scheduling exists. |
+| EVENT-06 | ⏭️ Deferred | Live claim-check needs real-time streaming + a live LLM verifier. Seam exists (`lib/domain/pipeline.ts` 6-stage Verifier-port + DeterministicVerifier), but there is no live view and no real-time/LLM infra. |
+| EVENT-07 | ⏭️ Deferred | Live Conflict-raising needs a live event surface + Conflict object wiring. Seams: trust ledger Disputed state (`trust.ts`), gap engine — not wired to any event; cite-your-source guard not enforced on a live channel. |
+| EVENT-08 | ⏭️ Deferred | Host event creation: no authoring UI or event CRUD/scheduling. Seams exist (in-memory store, rbac `EVENT-HOST`/`INSTRUCTOR` roles in `rbac.ts`), but nothing builds/publishes/validates events. |
+| EVENT-09 | ⏭️ Deferred | Route-to-spine (Conflict / Gap origin=event / promotion request) needs a live host view. Seams: `gap.ts` Open→Watching→Closed→Reopened lifecycle, trust firewall blocking host certification — none wired to events. |
+| EVENT-10 | 🟡 Partial | Static streak ring shown on the hub; the honest signal engine exists (`fsrs.ts`, `services/review.ts` retention summaries). Missing: a challenge entity that joins, computes day-credit from real completed reviews, and drives the ring. |
+| EVENT-11 | ⏭️ Deferred | Study group is only a hardcoded row in the hub list. No topic-linking, no surfacing of a topic's Conflicts/Gap hotspots as anchors, no group backend. Needs the event substrate. |
+| EVENT-12 | ⏭️ Deferred | Instructor cohort events + four-signal read-out needs the Teams/tenant substrate (deferred: SSO/SCIM) and cohort aggregation. `signals.ts` engine exists as a seam; no cohort/event wiring. |
+| EVENT-13 | ⏭️ Deferred | SME adjudication of event-originated Conflicts/promotions needs an SME queue with event provenance. Seams: trust firewall SME dual-control (`trust.ts`), rbac SME role — no queue or UI. |
+| EVENT-14 | ⏭️ Deferred | Live chat / study-group thread / leaderboard moderation needs those live surfaces + tooling. rbac `COMMUNITY-MOD` role is a seam; cite-your-source enforcement, pin/hide, action logging not built. |
+| EVENT-15 | ⏭️ Deferred | Pro hard-mode-Skeptic gating disclosure on event detail. Plan-cap logic exists as a seam (`services/topics.ts` Free 3-topic cap) and Upgrade flow is static, but no event-level gating or hard-mode capability exists. |
+| EVENT-16 | ⏭️ Deferred | Tenant-private events + hosting/visibility policy needs the Org/Teams substrate. Store has OWNER/TENANT scoping as a seam (`store/db.ts`), but no event tenant scoping or private-discovery enforcement. |
+| EVENT-17 | ⏭️ Deferred | Cancel/reschedule with registrant notification + reminder recompute + calendar update needs an event backend and notification delivery — neither exists. |
+| EVENT-18 | ⏭️ Deferred | Recordings-with-live-ledger needs a recording capture/storage pipeline. Ledger "current state" is a seam (trust.ts renders live state), but no recording, summary, or "updated since recording" marker. |
+| EVENT-19 | ⏭️ Deferred | Fair streak-restore under Support needs a challenge backend + audited Support action + evidence trace. Seams: rbac `SUPPORT-AGENT` (no trust:write), `reviewLog`; no challenge/streak state to restore. |
+| EVENT-20 | ⏭️ Deferred | Anti-gaming / abuse detection + T&S levers (freeze/ban/revoke standing, Skeptic prompt-injection quarantine) not built. Seams: rbac `TRUST-SAFETY-LEAD` + audited break-glass, `pipeline.ts` `sanitizeTopicInput` injection guard. |
+| EVENT-21 | ⏭️ Deferred | Live captions/transcript + ARIA live-region trust-state announcements + challenge accommodations need the live event surface (nonexistent). No live captioning, non-visual claim-check path, or accommodation logic. |
+| EVENT-22 | 🟡 Partial | Static event detail content exists and an auth gate exists (`proxy.ts`). Missing: unauthenticated guest-preview access, "Sign up to register" swap, and post-auth return-to-registration; guests currently persist nothing only because nothing persists. |
+| EVENT-23 | ⏭️ Deferred | AMA "answers here are not certified" labelling + convert-to-promotion needs an AMA/live surface. The uncertified-until-SME principle is enforced in the engine (`trust.ts` firewall) but not on any event screen. |
+| EVENT-24 | ⏭️ Deferred | Recording consent/retention + DSAR export/deletion + minor gating needs a recording pipeline and real DB (both deferred). Seam: `auth/age.ts` COPPA age-gate; no recording/DSAR machinery. |
+| EVENT-25 | ⏭️ Deferred | Live sandbox proof (Verified·execution candidate) needs a real execution sandbox (deferred; DeterministicVerifier stands in) plus a live surface. Refuse-rather-than-fake principle lives in the pipeline seam, not a live run. |
+
+**Summary:** 25 stories — ✅ 0 Done · 🟡 6 Partial · ⏭️ 19 Deferred · 🚫 0 Out-of-scope.
