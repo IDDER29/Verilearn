@@ -21,7 +21,7 @@ justification** — nothing is silently dropped.
 | HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 11 | 11 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
-| TASK — Tasks & Rubric Assessment | 24 | 5 | 16 | 3 |
+| TASK — Tasks & Rubric Assessment | 24 | 6 | 15 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 8 | 15 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 11 | 10 | 2 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **83** | **254** | **125** |
+| **TOTAL** | **462** | **84** | **253** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -188,7 +188,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-02 | 🟡 Partial | Free-text `textarea` → `gradeTaskAction` → `gradeSubmission` grades and **preserves** the answer (`task.submittedAnswer`, re-shown on reload; tested in `tasks.test.ts`). But grading is literally `keywordMatcher` (case-insensitive substring match in `lib/domain/rubric.ts`) — the exact opposite of the AC's "semantic, explicitly not keyword match." The UI even claims "not a keyword match" while the implementation is keyword-based. Real semantic grading needs the LLM verifier (Deferred). Minimum-substance gate (TASK-22) not enforced. |
 | TASK-03 | ✅ Done | `grade()` in `lib/domain/rubric.ts` returns per-criterion hit/missing partitions (each retaining `sourceId`), a weighted `scorePct`, and `passed` at the inclusive **≥75%** bar (`PASS_THRESHOLD` with a 1e-9 epsilon so exactly-75% passes); unknown-criterion hits and empty/zero-weight rubrics are rejected as `MalformedRubricError`. Tested in `rubric.test.ts`. UI renders ✓/"Missing:" per criterion, the % and a pass vs. "Not yet a pass" state. |
 | TASK-04 | ✅ Done | Grading is now **trust-gated end-to-end**: `gradeSubmission` (`lib/services/tasks.ts`) builds the live `trustByClaimId` map from the topic's ledger and calls `assertRubricGradeable` before scoring, so a criterion anchored to a disputed/unsupported claim makes the task ungradeable with an honest "resolve that conflict first" error (never a silent pass). The malformed seed was also corrected — every criterion now anchors to a real **test-eligible** claim (`c2`→`topic_dijkstra_c5`, `c3` given `topic_dijkstra_c2`), so `assertRubricGradeable` passes on the seed. Covered by a new `tasks.test.ts` case (pointing a criterion at the disputed claim is refused). Remaining nice-to-have: suspend/recompute a graded task when a cited claim is later downgraded (TASK-21). |
-| TASK-05 | 🟡 Partial | Revise-to-pass fully works: re-grading the same rubric flips `passed` false→true and persists (tested in `tasks.test.ts`); UI shows a "Revise to pass" panel with the current score and a "Revise & resubmit" button; attempts are unlimited. Missing: the follow-up is generic ("fold the missing points in"), not a specific per-missing-criterion question; no "open a 2-min micro-chapter" remediation link; no "nothing changed" note on identical resubmission. |
+| TASK-05 | ✅ Done | Revise-to-pass works and persists (tested), attempts unlimited — and the follow-up is now **specific per missing criterion**: the "Revise to pass" panel lists exactly which rubric criteria the answer still doesn't cover (each criterion's text + its source), computed from the real `grade.missingIds`, instead of the generic "fold the missing points in". Remaining nice-to-haves: an "open a 2-min micro-chapter" remediation link (needs Deferred lecture generation) and a "nothing changed" note on an identical resubmission. |
 | TASK-06 | 🟡 Partial | "See model answer" is disabled until `grade.passed`, with the note "Model answer unlocks at a pass (≥75%)" (`TasksTab.tsx`). But no model-answer content is stored or revealed (the button is inert when enabled), there is no give-up/records-as-unpassed-revealed path, and no signal-suppression logic beyond the disabled control. |
 | TASK-07 | ✅ Done | Right-column progress ring (`TasksTab.tsx`) shows `passedCount/total` with a passed/revise/to-do breakdown, matches the header count, counts only genuine ≥75% passes, and updates immediately on grade via client state. Denominator/ring recompute from real task states. (Contribution of task completion to the Dashboard/Library completion state is not separately evidenced.) |
 | TASK-08 | ✅ Done | `/my-tasks` (`app/my-tasks/page.tsx`) now aggregates **real task state across all topics**: it reads every `TaskRecord` for the user from the store, groups them by real status (Needs-revision = `passed===false` with the real `scorePct`, To-do = ungraded, Completed = `passed===true`), and each row links to that task's grading view (`/topics/tasks?topic=<id>`). The All/To-do/Revise/Done filter chips show real counts, the progress ring is the real `done/total`, and the Due-today section carries the real flashcards-due and open-conflict rows (with an all-caught-up empty state). Remaining nice-to-have: clickable chip filtering and true time-bucketing (tasks carry no due date yet). |
@@ -209,7 +209,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-23 | 🟡 Partial | The store has OWNER/TENANT scoping (`lib/store`) and RBAC prevents learners from editing rubrics/trust states. But there is no shared team topic library, no shared-gap contribution from a team learner's misses, and Teams is not seeded (roadmap R2/R3). |
 | TASK-24 | ⏭️ Deferred | No answer-level DSAR export, deletion, retention windows, or anonymize-not-delete for audit-critical pass records. Needs compliance tooling and a retention policy model (owned by the Compliance domain); learner answers are stored but not governed as exportable/deletable personal data yet. |
 
-**Counts:** 24 total — ✅ 5 Done (TASK-01, TASK-03, TASK-04, TASK-07, TASK-08) · 🟡 16 Partial · ⏭️ 3 Deferred (TASK-10, TASK-17, TASK-24) · 🚫 0 Out-of-scope.
+**Counts:** 24 total — ✅ 6 Done (TASK-01, TASK-03, TASK-04, TASK-05, TASK-07, TASK-08) · 🟡 15 Partial · ⏭️ 3 Deferred (TASK-10, TASK-17, TASK-24) · 🚫 0 Out-of-scope.
 
 ---
 

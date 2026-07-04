@@ -194,13 +194,20 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
                 </div>
               )}
 
-              {/* revise-to-pass */}
+              {/* revise-to-pass — names exactly which criteria are still missing (TASK-05) */}
               {grade && !grade.passed && (
                 <div style={{ background: "#f2effc", border: "1.5px solid #e3ddf6", borderRadius: 16, padding: "16px 18px", marginBottom: 22 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, font: "800 12px var(--font-nunito)", color: "#6d5bd0", marginBottom: 8 }}>💡 Revise to pass</div>
-                  <div style={{ font: "700 14.5px var(--font-nunito)" }}>
-                    You&apos;re at {grade.scorePct}% — you need ≥ {PASS_BAR}%. Fold the missing points into your answer above and resubmit.
+                  <div style={{ font: "700 14px var(--font-nunito)", marginBottom: 10 }}>
+                    You&apos;re at {grade.scorePct}% — you need ≥ {PASS_BAR}%. Your answer still doesn&apos;t cover:
                   </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+                    {criteria.filter((c) => grade.missingIds.includes(c.id)).map((c) => (
+                      <li key={c.id} style={{ font: "600 13px/1.5 var(--font-nunito)", color: "#4a4560" }}>
+                        {c.text} <span style={{ color: "#8b8699", fontWeight: 700 }}>· {c.sourceId}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
