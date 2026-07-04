@@ -4,6 +4,8 @@ import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
 import { buildSession } from "@/lib/services/testsession";
 import { readinessFor } from "@/lib/services/progress";
+import { getTopicView } from "@/lib/services/topics";
+import { isTestEligible } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
 
 export const metadata = { title: "Test Detail · VeriLearn" };
@@ -38,6 +40,20 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
       : rPct! >= passBar
         ? "likely to pass"
         : "below the bar";
+
+  // Real per-section coverage: group the topic's claims by section and count
+  // test-eligible vs. excluded (disputed/unsupported) claims per section.
+  const view = topicId ? getTopicView(user.id, topicId) : null;
+  const sectionMap = new Map<string, { eligible: number; excluded: number }>();
+  for (const cs of view?.claimStates ?? []) {
+    const s = sectionMap.get(cs.sectionId) ?? { eligible: 0, excluded: 0 };
+    if (isTestEligible(cs.state)) s.eligible += 1;
+    else s.excluded += 1;
+    sectionMap.set(cs.sectionId, s);
+  }
+  const sections = [...sectionMap.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([id, c], i) => ({ id, label: `§${i + 1}`, ...c }));
 
   return (
     <AppShell active="tests">
@@ -126,34 +142,32 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
                 : <>disputed claims are excluded until resolved.</>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 13, background: "#faf9fc" }}>
-                <span style={{ width: 26, height: 26, borderRadius: 8, background: "#e7f4ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                </span>
-                <span style={{ flex: 1, minWidth: 0, font: "700 13px var(--font-nunito)" }}>§1 · Core idea — greedy shortest-path tree</span>
-                <span style={{ font: "700 11px var(--font-nunito)", color: "#2e9c6a" }}>3 Q</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 13, background: "#faf9fc" }}>
-                <span style={{ width: 26, height: 26, borderRadius: 8, background: "#e7f4ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                </span>
-                <span style={{ flex: 1, minWidth: 0, font: "700 13px var(--font-nunito)" }}>§2 · Implementation — priority queue &amp; relaxation</span>
-                <span style={{ font: "700 11px var(--font-nunito)", color: "#2e9c6a" }}>5 Q</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 13, background: "#fbf6ec" }}>
-                <span style={{ width: 26, height: 26, borderRadius: 8, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 8v4M12 16h.01" />
-                    <circle cx="12" cy="12" r="9" />
-                  </svg>
-                </span>
-                <span style={{ flex: 1, minWidth: 0, font: "700 13px var(--font-nunito)" }}>§3 · Limits — complexity &amp; when it fails</span>
-                <span style={{ font: "700 11px var(--font-nunito)", color: "#b4830f" }}>4 Q · needs review</span>
-              </div>
+              {sections.length === 0 && (
+                <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", padding: "6px 2px" }}>No claims to cover yet.</div>
+              )}
+              {sections.map((s) => {
+                const needsReview = s.excluded > 0;
+                return (
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 13, background: needsReview ? "#fbf6ec" : "#faf9fc" }}>
+                    <span style={{ width: 26, height: 26, borderRadius: 8, background: needsReview ? "#fbefdd" : "#e7f4ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {needsReview ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c99a2b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 8v4M12 16h.01" />
+                          <circle cx="12" cy="12" r="9" />
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      )}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, font: "700 13px var(--font-nunito)" }}>{s.label} · {s.eligible} eligible claim{s.eligible === 1 ? "" : "s"}</span>
+                    <span style={{ font: "700 11px var(--font-nunito)", color: needsReview ? "#b4830f" : "#2e9c6a" }}>
+                      {s.eligible} Q{needsReview ? ` · ${s.excluded} excluded` : ""}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

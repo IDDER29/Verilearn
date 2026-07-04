@@ -25,7 +25,7 @@ justification** — nothing is silently dropped.
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 3 | 15 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 6 | 17 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 1 | 20 | 2 |
-| TEST — Tests, Certificates & Verification | 23 | 1 | 19 | 3 |
+| TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
 | NOTIF — Notifications, Reminders & Messaging | 24 | 0 | 15 | 9 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **46** | **291** | **125** |
+| **TOTAL** | **462** | **47** | **290** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -321,7 +321,7 @@ Honest, evidence-based disposition of the TEST domain (`docs/prd/28-tests-certs.
 |---|---|---|
 | TEST-01 | ✅ Done | The tested `predictReadiness` engine (`tests-engine.ts:206`) is now **wired to real data** through a new service wrapper `readinessFor(userId, topicId, now)` (`web/lib/services/progress.ts`): it assembles the learner's real signals for the topic — retention (share of the topic's eligible-claim reviews recalled), calibration score, covered eligible claims off the ledger, how many have review history, and disputed-in-scope — and delegates the forecast to the pure engine. Test Detail (`app/tests/[slug]/page.tsx`) and the hub hero (`app/tests/page.tsx`) both render the real forecast: a dynamic readiness ring (degrees + threshold colour vs. the pass bar), an honest "—/no prediction yet" state when unreviewed, an explicit "low confidence" state under `MIN_READINESS_RECORDS`, and a basis line ("N of M covered claims reviewed"). Four new `progress.test.ts` cases cover the no-history, predicted, and topic-scoping paths. Remaining nice-to-have: a live recompute badge after acting on a lever (the value already recomputes on each server render). |
 | TEST-02 | 🟡 Partial | The spine rule is real and tested: `eligibleClaims`/`buildTest` (`tests-engine.ts:43,96`) draw ONLY from Verified·execution/Verified·source/Sourced via `isTestEligible`; `buildSession` (`testsession.ts:24`) builds from a topic's eligible claims and Test Detail shows the real question count and "drawn only from verified & sourced claims" copy. Missing: the runner (`app/tests/runner/page.tsx`) is fully static (no live countdown, MCQ options hard-coded), and per-question claim+source reveal after finishing is static (`results/page.tsx` misses are hard-coded). |
-| TEST-03 | 🟡 Partial | Real excluded/disputed count flows to Test Detail (`[slug]/page.tsx:24` from `summary.disputes`) with "excluded until resolved" copy, and "Boost your odds → Resolve 1 conflict" deep-links to `/topics/conflicts` where `resolveConflict` genuinely re-verifies via the system verifier (raising eligibility). Missing: the "What this test covers" blocked-section list (`§3 · needs review`) is static, and there's no live re-enable/readiness update on resolution or the downgrade-decreases case. |
+| TEST-03 | ✅ Done | Real excluded/disputed count flows to Test Detail with "excluded until resolved" copy, and the **"What this test covers" section list is now real**: `[slug]/page.tsx` reads `getTopicView(user.id, topicId).claimStates`, groups them by `sectionId`, and renders one row per real section with its test-eligible claim count (`isTestEligible`) and a "needs review · N excluded" flag when a section holds disputed/unsupported claims. Because it recomputes from the ledger on each render, resolving a conflict (via `/topics/conflicts` → `resolveConflict`, the deep-linked "Boost your odds" lever) genuinely raises a section's eligible count and lowers its excluded count on the next load. Remaining nice-to-have: human-readable section titles (only `sectionId` order is known without lecture generation). |
 | TEST-04 | 🟡 Partial | The runner screen (`app/tests/runner/page.tsx`) shows the intended shape — "Question 4 of 12", segmented bar, Flag/Previous/Next, "navigation is paused so the timer stays honest", "sources & explanations appear after you finish" — but it is **entirely static markup**: Next is a `<Link>` to results, Flag/Prev are inert buttons, the timer reads a fixed "12:47", and the global nav is not actually disabled. No confidence gate (correctly absent). |
 | TEST-05 | 🟡 Partial | Results (`app/tests/results/page.tsx`) shows a **real** overall score + pass/fail against the bar via `submitTest` → `scoreTest` (`testsession.ts:51`), and `scoreTest` distinguishes skipped from wrong (`tests-engine.ts:126`). But the per-section breakdown, the two "missed" questions with claim + "Verified · CLRS §24.3" citations, and "nudged retention/transfer" are all hard-coded static content, not per-answer data. |
 | TEST-06 | 🟡 Partial | The Gap engine (`domain/gap.ts`, Open→Watching→Closed→Reopened + auto-reopen) exists and is wired to Review, but **`submitTest` does not write any gaps** (`testsession.ts:51-70` only scores and issues a cert). The "Added to gap map" badge and "Review your 2 gaps" link on Results are static. No create/reopen-on-miss, no origin=test tagging, no retry-on-failure behavior. |
@@ -343,7 +343,7 @@ Honest, evidence-based disposition of the TEST domain (`docs/prd/28-tests-certs.
 | TEST-22 | 🟡 Partial | Scoring primitives for expiry are done+tested: `scoreTest` treats unanswered as incorrect, distinguishes skips, and a tie at the bar passes (`tests-engine.ts:148-162`); `isExpired` gives the server boundary. But the runner has no live timer, no input-lock-and-auto-submit at 0:00, no "time's up — submitted" state, and no attempt-consumed flow — the end-state is a manual `<Link>` to Results. |
 | TEST-23 | 🟡 Partial | The absolute firewall is enforced+tested — Support (like all human roles) has no `trust:write` in RBAC, and a certificate can only arise from a passing `scoreTest` (`issueCertificate` throws otherwise), so Support cannot fabricate a score/pass/cert. But there is no attempt/session model to reinstate or unstick, no consent-scoped support action, and no audit log — the reinstate/clear-frozen recovery flows are unbuilt. |
 
-**Counts:** total 23 — ✅ Done 1 · 🟡 Partial 19 · ⏭️ Deferred 3 · 🚫 Out-of-scope 0.
+**Counts:** total 23 — ✅ Done 2 · 🟡 Partial 18 · ⏭️ Deferred 3 · 🚫 Out-of-scope 0.
 
 ---
 
