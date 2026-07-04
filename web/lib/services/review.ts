@@ -5,7 +5,7 @@
  * ANALYTICS (retention/calibration signals).
  */
 import { calibrationScore } from "@/lib/domain/calibration";
-import { schedule, type FsrsParams, type Rating } from "@/lib/domain/fsrs";
+import { retrievability, schedule, type FsrsParams, type Rating } from "@/lib/domain/fsrs";
 import { getPrefs } from "./prefs";
 import { closeGap, MASTERY_THRESHOLD, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { isTestEligible } from "@/lib/domain/types";
@@ -31,6 +31,18 @@ export function getDueCards(userId: string, at: number): ReviewCardRecord[] {
   return reviewCardsOf(getDb(), userId)
     .filter((c) => c.fsrs.due <= at && cardClaimEligible(c))
     .sort((a, b) => a.fsrs.due - b.fsrs.due);
+}
+
+/**
+ * Review-ahead (REVIEW-11): not-yet-due, still-eligible cards ordered by LOWEST
+ * retrievability first — the ones closest to being forgotten, so studying ahead
+ * spends effort where it matters most. Same eligibility gate as the due deck.
+ */
+export function getReviewAheadCards(userId: string, at: number, limit = 10): ReviewCardRecord[] {
+  return reviewCardsOf(getDb(), userId)
+    .filter((c) => c.fsrs.due > at && cardClaimEligible(c))
+    .sort((a, b) => retrievability(a.fsrs, at) - retrievability(b.fsrs, at))
+    .slice(0, limit);
 }
 
 export interface GradeResult {

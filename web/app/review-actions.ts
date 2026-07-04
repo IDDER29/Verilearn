@@ -3,7 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
-import { fsrsParamsFor, getDueCards, gradeCard, type Confidence } from "@/lib/services/review";
+import { fsrsParamsFor, getDueCards, getReviewAheadCards, gradeCard, type Confidence } from "@/lib/services/review";
 import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
@@ -22,34 +22,48 @@ export interface SessionCard {
   intervals: { again: string; hard: string; good: string; easy: string };
 }
 
+import type { ReviewCardRecord } from "@/lib/store/entities";
+
+/** Map a stored review card to the client session shape (shared by due + review-ahead). */
+function toSessionCard(c: ReviewCardRecord, at: number, params: ReturnType<typeof fsrsParamsFor>): SessionCard {
+  const db = getDb();
+  const topic = db.topics.get(c.topicId);
+  const iv = nextIntervals(c.fsrs, at, params);
+  const section = topic?.claims.find((cl) => cl.id === c.claimId)?.sectionId ?? "";
+  const trustState = topic ? ledgerFor(topic).stateOf(c.claimId) : null;
+  return {
+    id: c.id,
+    q: c.question,
+    a: c.answer,
+    source: c.sourceRef,
+    topicTitle: topic?.title ?? "Topic",
+    section,
+    trustState,
+    intervals: {
+      again: formatInterval(iv.again),
+      hard: formatInterval(iv.hard),
+      good: formatInterval(iv.good),
+      easy: formatInterval(iv.easy),
+    },
+  };
+}
+
 /** Due review cards for the current user, mapped to the session shape. */
 export async function getDueCardsAction(): Promise<SessionCard[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const db = getDb();
   const at = now();
   const params = fsrsParamsFor(user.id); // per-learner retention/max-interval (REVIEW-13)
-  return getDueCards(user.id, at).map((c) => {
-    const topic = db.topics.get(c.topicId);
-    const iv = nextIntervals(c.fsrs, at, params);
-    const section = topic?.claims.find((cl) => cl.id === c.claimId)?.sectionId ?? "";
-    const trustState = topic ? ledgerFor(topic).stateOf(c.claimId) : null;
-    return {
-      id: c.id,
-      q: c.question,
-      a: c.answer,
-      source: c.sourceRef,
-      topicTitle: topic?.title ?? "Topic",
-      section,
-      trustState,
-      intervals: {
-        again: formatInterval(iv.again),
-        hard: formatInterval(iv.hard),
-        good: formatInterval(iv.good),
-        easy: formatInterval(iv.easy),
-      },
-    };
-  });
+  return getDueCards(user.id, at).map((c) => toSessionCard(c, at, params));
+}
+
+/** Review-ahead cards (not-yet-due, lowest-retrievability first) for study-ahead (REVIEW-11). */
+export async function reviewAheadCardsAction(): Promise<SessionCard[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  const at = now();
+  const params = fsrsParamsFor(user.id);
+  return getReviewAheadCards(user.id, at).map((c) => toSessionCard(c, at, params));
 }
 
 export interface GradeActionResult {

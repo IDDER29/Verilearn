@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
-import { caughtUpInfoAction, getDueCardsAction, gradeCardAction, type CaughtUpInfo, type SessionCard } from "@/app/review-actions";
+import { caughtUpInfoAction, getDueCardsAction, gradeCardAction, reviewAheadCardsAction, type CaughtUpInfo, type SessionCard } from "@/app/review-actions";
 import { dismissReviewPrimerAction, reviewPrimerSeenAction } from "@/app/prefs-actions";
 import type { Rating } from "@/lib/domain/fsrs";
 
@@ -89,6 +89,21 @@ export default function ReviewPage() {
     dismissReviewPrimerAction();
   }
 
+  // Review-ahead (REVIEW-11): study not-yet-due cards, lowest-retention first.
+  const [aheadLoading, setAheadLoading] = useState(false);
+  async function startReviewAhead() {
+    setAheadLoading(true);
+    const ahead = await reviewAheadCardsAction();
+    setAheadLoading(false);
+    if (ahead.length === 0) return;
+    setCards(ahead);
+    setCaughtUp(null);
+    setCard(0);
+    setPhase("front");
+    setConfidence(null);
+    setRating(null);
+  }
+
   const TOTAL = cards?.length ?? 0;
   const c = cards && cards[card];
   const reviewed = phase === "back" ? card + 1 : card;
@@ -155,9 +170,24 @@ export default function ReviewPage() {
                     ? `Your next card is due ${new Date(caughtUp.nextDue).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}.`
                     : "FSRS will resurface them exactly when you're about to forget."}
                 </div>
-                <Link href="/" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
-                  Back to dashboard
-                </Link>
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                  <Link href="/" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+                    Back to dashboard
+                  </Link>
+                  {(caughtUp?.totalCards ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={startReviewAhead}
+                      disabled={aheadLoading}
+                      style={{ border: "1.5px solid #ece8f4", background: "#fff", color: "#6d5bd0", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: aheadLoading ? "default" : "pointer" }}
+                    >
+                      {aheadLoading ? "Loading…" : "Review ahead →"}
+                    </button>
+                  )}
+                </div>
+                <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#a7a1b8", marginTop: 12, maxWidth: 340, marginLeft: "auto", marginRight: "auto" }}>
+                  Reviewing ahead studies cards before they&apos;re due, weakest-memory first — the intervals it shows are the true, un-fudged next dates.
+                </div>
               </>
             )}
           </div>

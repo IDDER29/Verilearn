@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, fsrsParamsFor, gradeCard, getDueCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { calibrationFor, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
 
 // The service reads the process singleton via getDb(); seed that singleton.
@@ -27,6 +28,19 @@ describe("review service", () => {
 
   it("scopes cards to the owner", () => {
     expect(getDueCards("intruder", SEED_NOW)).toHaveLength(0);
+  });
+
+  it("REVIEW-11: review-ahead returns only not-yet-due cards, lowest-retrievability first", () => {
+    const at = SEED_NOW;
+    const ahead = getReviewAheadCards(USER, at);
+    expect(ahead.length).toBeGreaterThan(0);
+    expect(ahead.every((c) => c.fsrs.due > at)).toBe(true); // strictly not-yet-due
+    expect(ahead.every((c) => !getDueCards(USER, at).some((d) => d.id === c.id))).toBe(true); // disjoint from due
+    // ordered by ascending retrievability (weakest memory first)
+    for (let i = 1; i < ahead.length; i++) {
+      expect(retrievability(ahead[i].fsrs, at)).toBeGreaterThanOrEqual(retrievability(ahead[i - 1].fsrs, at));
+    }
+    expect(getReviewAheadCards("intruder", at)).toHaveLength(0);
   });
 
   it("REVIEW-13: maps saved Review prefs into FSRS params", () => {
