@@ -75,6 +75,25 @@ export class TrustLedger {
     return event;
   }
 
+  /**
+   * Trusted replay of already-authorized events (e.g. rehydrating from storage).
+   * These events were firewall-checked when first recorded, so they bypass the
+   * capability check here. Never call with un-vetted input.
+   */
+  load(events: readonly VerificationEvent[]): this {
+    for (const e of events) {
+      const list = this.events.get(e.claimId) ?? [];
+      list.push(e);
+      this.events.set(e.claimId, list);
+    }
+    return this;
+  }
+
+  /** Every event across all claims, in insertion order per claim. */
+  allEvents(): VerificationEvent[] {
+    return [...this.events.values()].flat();
+  }
+
   /** Full ordered history for a claim. */
   history(claimId: string): readonly VerificationEvent[] {
     return this.events.get(claimId) ?? [];
