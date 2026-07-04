@@ -20,7 +20,7 @@ export default function WorkspaceShell({ initial = "lecture", data = null }: { i
   return (
     <AppShell active="topics">
       {tab === "lecture" && <LectureTab onTab={setTab} data={data} />}
-      {tab === "tasks" && <TasksTab onTab={setTab} />}
+      {tab === "tasks" && <TasksTab onTab={setTab} data={data} />}
       {tab === "conflicts" && <ConflictsTab onTab={setTab} data={data} />}
       {tab === "sources" && <SourcesTab onTab={setTab} data={data} />}
     </AppShell>

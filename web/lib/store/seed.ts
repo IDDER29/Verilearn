@@ -178,4 +178,21 @@ export function seedDb(db: Db, now: number): void {
   // A tracked gap (the disputed Dijkstra claim), plus a closed one that can auto-reopen.
   const g1 = openGap({ id: "gap_1", claimId: "topic_dijkstra_c6", topicId: dijkstra.id, origin: "conflict", severity: "high" }, now);
   db.gaps.set(g1.id, { userId, gap: g1 });
+
+  // A source-anchored task for Dijkstra (the "produce" step; graded on a rubric).
+  db.tasks.set("task_dijkstra_1", {
+    id: "task_dijkstra_1",
+    userId,
+    topicId: dijkstra.id,
+    prompt: "Explain why Dijkstra's algorithm can fail on a graph with negative edge weights, and what to use instead.",
+    rubric: {
+      id: "rubric_dijkstra_1",
+      taskId: "task_dijkstra_1",
+      criteria: [
+        { id: "c1", text: "Identifies that the correctness proof relies on the greedy/cut-property finality", weight: 1, sourceId: "src_clrs", claimId: "topic_dijkstra_c2", keywords: ["greedy"] },
+        { id: "c2", text: "Explains a negative edge can lower an already-finalised distance", weight: 1, sourceId: "src_clrs", claimId: "topic_dijkstra_c6", keywords: ["negative"] },
+        { id: "c3", text: "Names Bellman-Ford as the correct alternative", weight: 1, sourceId: "src_skiena", keywords: ["bellman"] },
+      ],
+    },
+  });
 }
