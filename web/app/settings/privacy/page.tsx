@@ -52,6 +52,7 @@ export default function SettingsPrivacyPage() {
   const [notif, setNotif] = useState<Notif | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
 
   useEffect(() => {
     getPrefsAction().then((p) => {
@@ -62,18 +63,28 @@ export default function SettingsPrivacyPage() {
 
   const loaded = privacy !== null;
 
+  // Optimistic update with real rollback-on-failure (SETTINGS-20): a save that
+  // fails reverts the toggle instead of silently leaving a lie on screen.
   async function toggle(key: keyof Privacy) {
     if (!privacy) return;
+    const prev = privacy;
     const next = { ...privacy, [key]: !privacy[key] };
     setPrivacy(next);
-    await savePrivacyAction({ [key]: next[key] });
+    const r = await savePrivacyAction({ [key]: next[key] });
+    setStatus(r.ok ? "saved" : "error");
+    if (!r.ok) setPrivacy(prev);
+    setTimeout(() => setStatus("idle"), 1800);
   }
 
   async function toggleNotif(key: keyof Notif) {
     if (!notif) return;
+    const prev = notif;
     const next = { ...notif, [key]: !notif[key] };
     setNotif(next);
-    await saveNotificationPrefsAction({ [key]: next[key] });
+    const r = await saveNotificationPrefsAction({ [key]: next[key] });
+    setStatus(r.ok ? "saved" : "error");
+    if (!r.ok) setNotif(prev);
+    setTimeout(() => setStatus("idle"), 1800);
   }
 
   async function exportData() {
@@ -117,10 +128,25 @@ export default function SettingsPrivacyPage() {
                 <path d="M8 11V8a4 4 0 018 0v3" />
               </svg>
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "900 20px var(--font-nunito)" }}>Privacy</div>
               <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699" }}>What we store and what you control</div>
             </div>
+            <span
+              role="status"
+              aria-live="polite"
+              style={{
+                font: "800 12px var(--font-nunito)",
+                color: status === "error" ? "#c0392b" : "#2e9c6a",
+                background: status === "error" ? "#fbeceb" : "#e7f4ee",
+                padding: "6px 12px",
+                borderRadius: 10,
+                opacity: status === "idle" ? 0 : 1,
+                transition: "opacity .2s",
+              }}
+            >
+              {status === "error" ? "Couldn't save — reverted" : "Saved ✓"}
+            </span>
           </div>
 
           {/* what's stored */}

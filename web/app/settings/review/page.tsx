@@ -50,19 +50,25 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 
 export default function SettingsReviewPage() {
   const [rv, setRv] = useState<Review | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
 
   useEffect(() => {
     getPrefsAction().then((p) => p && setRv(p.review));
   }, []);
 
+  // Optimistic update with real rollback-on-failure (SETTINGS-20): a save that
+  // fails reverts the toggle instead of silently leaving a lie on screen.
   function patch(next: Partial<Review>) {
+    const prev = rv;
     setRv((cur) => (cur ? { ...cur, ...next } : cur));
     saveReviewPrefsAction(next).then(({ ok }) => {
       if (ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1400);
+        setStatus("saved");
+      } else {
+        setRv(prev);
+        setStatus("error");
       }
+      setTimeout(() => setStatus("idle"), 1800);
     });
   }
 
@@ -94,17 +100,19 @@ export default function SettingsReviewPage() {
               <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699" }}>Tune the spaced-repetition scheduler</div>
             </div>
             <span
+              role="status"
+              aria-live="polite"
               style={{
                 font: "800 12px var(--font-nunito)",
-                color: "#2e9c6a",
-                background: "#e7f4ee",
+                color: status === "error" ? "#c0392b" : "#2e9c6a",
+                background: status === "error" ? "#fbeceb" : "#e7f4ee",
                 padding: "6px 12px",
                 borderRadius: 10,
-                opacity: saved ? 1 : 0,
+                opacity: status === "idle" ? 0 : 1,
                 transition: "opacity .2s",
               }}
             >
-              Saved ✓
+              {status === "error" ? "Couldn't save — reverted" : "Saved ✓"}
             </span>
           </div>
 
