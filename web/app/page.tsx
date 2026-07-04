@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries, FREE_TOPIC_CAP } from "@/lib/services/topics";
 import { listTestableTopics } from "@/lib/services/tests";
 import { getDueCards } from "@/lib/services/review";
+import RefreshOnFocus from "@/components/RefreshOnFocus";
 import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
   const unreadNotifs = unreadNotificationCount(user.id);
   return (
     <AppShell active="dashboard">
+      <RefreshOnFocus />
       <main
         style={{
           padding: "24px 26px 30px",

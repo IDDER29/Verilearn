@@ -18,7 +18,7 @@ justification** — nothing is silently dropped.
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
-| HOME — Learner Home / Dashboard & Discovery | 22 | 10 | 11 | 1 |
+| HOME — Learner Home / Dashboard & Discovery | 22 | 11 | 10 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 14 | 8 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 11 | 10 | 3 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 3 | 17 |
-| **TOTAL** | **462** | **126** | **211** | **125** |
+| **TOTAL** | **462** | **127** | **210** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -105,7 +105,7 @@ email — each behind a clean seam.
 | HOME-16 | 🟡 Partial | No offline handling on Home — it is a server component that requires a connection to render; grep for "offline" finds only unrelated `lib/domain/gap.ts`. No last-known-counter cache, no "offline — showing your last synced view" banner, no "try again", no offline-review sync copy. |
 | HOME-17 | 🟡 Partial | The Dashboard is a single server component with no per-widget load/error boundaries; an exception in any one data read (e.g. `listTopicSummaries`) would blank the whole page rather than degrading one widget to an inline retry/placeholder. Per-source timeouts and independent recovery are not implemented. |
 | HOME-18 | 🟡 Partial | Because search is unwired (HOME-06), there is no "No topics match '<query>'" state, no client-side fallback filtering, and no "search limited right now" note. The topic list does have a non-search empty state ("No topics yet · Start your first topic →", `app/page.tsx:265-270`), but the search no-results/error distinction the story requires is absent. |
-| HOME-19 | 🟡 Partial | Counters are recomputed from source-of-truth on every server render (`dueCount`/`conflicts` are read live on each load), and after grading in Review the due set naturally shrinks and the Dashboard reflects it on next load; counts are non-negative by construction (`filter(...).length`). Missing: no visibility-change/focus reconciliation, no live/push updates, no optimistic-decrement correction, and no "refresh to update" soft hint on reconciliation failure. |
+| HOME-19 | ✅ Done | Counters recompute from source-of-truth on every server render (`dueCount`/`conflicts`/`pendingTasks` read live), are non-negative by construction, and now **reconcile on tab return**: a `RefreshOnFocus` client island (mounted on the Dashboard) calls `router.refresh()` on `visibilitychange`/`focus`, so counts that went stale while the learner graded or resolved in another tab re-sync automatically without a manual reload (`components/RefreshOnFocus.tsx`, HOME-19). Verified via build. Remaining nuance: true **live/push** decrements and an optimistic pre-server correction need the real-time channel (deferred with the notifications-push infra). |
 | HOME-20 | ⏭️ Deferred | Future-priority, and the current state matches the story's own "documented gap" acceptance: on the single-shared-account model a guardian sees exactly the learner's Home with no separate oversight surface, and no guardian role exists to certify/resolve/edit trust. A distinct read-only guardian view and minor-safety controls are correctly deferred to the Compliance/DPO domain. Note the edge-case risk flagged by the story: Home/Settings still expose an adult-assuming Danger Zone route (`app/settings/danger/page.tsx`) under the shared account. |
 | HOME-21 | 🟡 Partial | The `/welcome` "Or start from an example" curated row (`app/welcome/page.tsx:94-121`) acts as the cheap/curated fallback suggestions the story describes and routes into New Topic — but there is no "learn next" suggestions row on the actual Dashboard, suggestions are not pre-filled into New Topic, not transparent about "why they appear", and not personalized (adjacent subjects / prerequisites of open topics). |
 | HOME-22 | 🟡 Partial | A real 12-role RBAC matrix exists (`lib/domain/rbac.ts`), and Home correctly grants no ledger-mutation power to anyone (Home is read-and-route). But `components/AppShell.tsx` / the sidebar are **not role-branched** — there are no instructor-specific cohort/assignment/reporting entry points on Home, and no coexistence of learner + educator contexts. Depends on the Educator domain surfaces. |
