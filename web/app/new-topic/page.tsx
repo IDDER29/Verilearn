@@ -39,6 +39,8 @@ function GoalPill({ goal, selected, onClick }: { goal: Goal; selected: boolean; 
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
+      aria-label={`Goal: ${goal.label}`}
       style={{
         display: "flex",
         alignItems: "center",
@@ -130,7 +132,7 @@ export default function NewTopicPage() {
                 <FieldNum n={1} />
                 <span style={{ font: "800 15px var(--font-nunito)" }}>The topic</span>
               </div>
-              <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} style={inputStyle(tried && topic.trim().length <= 1)} />
+              <input type="text" aria-label="The topic" value={topic} onChange={(e) => setTopic(e.target.value)} style={inputStyle(tried && topic.trim().length <= 1)} />
               <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 10, alignItems: "center" }}>
                 <span style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>Popular:</span>
                 {["TCP/IP", "Binary trees", "Bloom filters"].map((p) => (
@@ -159,6 +161,7 @@ export default function NewTopicPage() {
               </div>
               <textarea
                 rows={3}
+                aria-label="Where you're starting from"
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
                 style={{ ...inputStyle(tried && level.trim().length <= 3), font: "600 14.5px/1.6 var(--font-nunito)", resize: "none" }}

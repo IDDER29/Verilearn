@@ -166,13 +166,21 @@ function PipelineInner() {
             <div style={{ font: "800 12.5px var(--font-nunito)", color: "#8b8699" }}>{Math.min(stage, STAGES.length)} / {STAGES.length} stages</div>
           </div>
 
+          {/* Live-region announcement of stage transitions for assistive tech (VERIFY-18). */}
+          <div role="status" aria-live="polite" className="vl-sr-only">
+            {done
+              ? "Verification complete."
+              : `Stage ${Math.min(stage + 1, STAGES.length)} of ${STAGES.length}: ${STAGES[Math.min(stage, STAGES.length - 1)]?.activeTitle ?? ""} — running.`}
+          </div>
+
+          <div role="list" aria-label="Verification stages">
           {STAGES.map((s, i) => {
             const isDone = i < stage;
             const isActive = i === stage && !done;
             // Prefer the real pipeline detail for this stage when available (VERIFY-04).
             const doneSub = realDetail[STAGE_KEYS[i]] ?? s.doneSub;
             return (
-              <div key={s.title}>
+              <div key={s.title} role="listitem" aria-label={`${s.title}: ${isDone ? "done" : isActive ? "running" : "waiting"}`}>
                 {i > 0 && <div style={{ height: 1, background: "#f5f3fa" }} />}
                 <div
                   style={{
@@ -228,6 +236,7 @@ function PipelineInner() {
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* CTA */}
