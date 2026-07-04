@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
+import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, getSessionCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
 import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
 
@@ -43,6 +43,21 @@ describe("review service", () => {
     expect(capped.dailyLimit).toBe(1);
     expect(capped.beyondLimit).toBe(Math.max(0, capped.totalDue - 1));
     expect(dueBreakdown("intruder", SEED_NOW).totalDue).toBe(0);
+  });
+
+  it("REVIEW-19: the served session is capped at the learner's daily limit, most-overdue first", () => {
+    const db = globalThis.__verilearnDb!;
+    const full = getDueCards(USER, SEED_NOW);
+    expect(full.length).toBeGreaterThan(1);
+
+    db.users.get(USER)!.prefs.review.dailyLimit = 1;
+    const capped = getSessionCards(USER, SEED_NOW);
+    expect(capped).toHaveLength(1);
+    expect(capped[0].id).toBe(full[0].id); // the single most-overdue card, not an arbitrary one
+
+    // Raising the limit above the full due count serves everything, uncapped.
+    db.users.get(USER)!.prefs.review.dailyLimit = 999;
+    expect(getSessionCards(USER, SEED_NOW)).toHaveLength(full.length);
   });
 
   it("REVIEW-11: review-ahead returns only not-yet-due cards, lowest-retrievability first", () => {

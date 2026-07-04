@@ -3,7 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
-import { dueBreakdown, fsrsParamsFor, getDueCards, getReviewAheadCards, gradeCard, type Confidence, type DueBreakdown } from "@/lib/services/review";
+import { dueBreakdown, fsrsParamsFor, getReviewAheadCards, getSessionCards, gradeCard, type Confidence, type DueBreakdown } from "@/lib/services/review";
 export type { DueBreakdown };
 import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
@@ -49,13 +49,13 @@ function toSessionCard(c: ReviewCardRecord, at: number, params: ReturnType<typeo
   };
 }
 
-/** Due review cards for the current user, mapped to the session shape. */
+/** Due review cards for the current user, capped at the daily limit (REVIEW-19), mapped to the session shape. */
 export async function getDueCardsAction(): Promise<SessionCard[]> {
   const user = await getCurrentUser();
   if (!user) return [];
   const at = now();
   const params = fsrsParamsFor(user.id); // per-learner retention/max-interval (REVIEW-13)
-  return getDueCards(user.id, at).map((c) => toSessionCard(c, at, params));
+  return getSessionCards(user.id, at).map((c) => toSessionCard(c, at, params));
 }
 
 /** Per-topic due breakdown for the session panel (REVIEW-12). */

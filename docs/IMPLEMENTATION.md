@@ -65,7 +65,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting |
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
-| Review (`/review`) | due cards; FSRS reschedule + calibration + gap auto-reopen persisted |
+| Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted |
 | Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
@@ -85,14 +85,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 346 passing across 26 files · build green.
+**Test count:** 347 passing across 26 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 140 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 197 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 141 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 196 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -123,4 +123,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after wiring conflict resolution to the Gap Map (GAP-21) — 140 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the real daily review-session cap (REVIEW-19) — 141 Done; remainder is field-polish or deferred-with-justification._

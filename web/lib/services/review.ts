@@ -33,6 +33,18 @@ export function getDueCards(userId: string, at: number): ReviewCardRecord[] {
     .sort((a, b) => a.fsrs.due - b.fsrs.due);
 }
 
+/**
+ * Cards to actually serve in today's session (REVIEW-19): the eligibility-gated
+ * due deck is already most-overdue-first (ascending `due` among already-due
+ * cards means the longest-overdue sorts first), capped at the learner's daily
+ * limit — the remainder rolls into tomorrow instead of dumping an unbounded
+ * backlog on the learner in one sitting.
+ */
+export function getSessionCards(userId: string, at: number): ReviewCardRecord[] {
+  const dailyLimit = getPrefs(userId)?.review.dailyLimit ?? 40;
+  return getDueCards(userId, at).slice(0, dailyLimit);
+}
+
 export interface DueBreakdown {
   byTopic: { topicId: string; topicTitle: string; due: number; overdue: number }[];
   totalDue: number;
