@@ -1,11 +1,15 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listTestableTopics } from "@/lib/services/tests";
 
 export const metadata = { title: "Tests · VeriLearn" };
 
 const DETAIL_HREF = "/tests/dijkstra-checkpoint";
 
-export default function TestsPage() {
+export default async function TestsPage() {
+  const user = await requireUser();
+  const featured = listTestableTopics(user.id)[0];
   return (
     <AppShell active="tests">
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -79,7 +83,7 @@ export default function TestsPage() {
               Next test · in 2 days
             </div>
             <div style={{ font: "900 23px/1.2 var(--font-nunito)", color: "#fff" }}>
-              Dijkstra&apos;s algorithm — Checkpoint
+              {featured ? `${featured.title} — Checkpoint` : "No topics to test yet"}
             </div>
             <div
               style={{
@@ -90,9 +94,10 @@ export default function TestsPage() {
                 color: "#c9c3d8",
               }}
             >
-              <span>📝 12 questions</span>
+              <span>📝 {featured ? featured.eligibleCount : 12} eligible claims</span>
               <span>🕑 20 min</span>
               <span>✓ pass ≥ 75%</span>
+              {featured && featured.excludedCount > 0 && <span style={{ color: "#f0a99f" }}>⚠ {featured.excludedCount} excluded (disputed/unsupported)</span>}
             </div>
           </div>
           <Link
