@@ -1,9 +1,13 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import WeeksSelect from "@/components/reports/WeeksSelect";
 import { requireUser } from "@/lib/auth/current";
 import { focusAreas, perTopicProgress, progressFor, retentionSeries, signalDisplay } from "@/lib/services/progress";
 import { now } from "@/lib/ids";
 import type { Signal } from "@/lib/domain/signals";
+
+const WEEK_OPTIONS = [4, 6, 8, 12] as const;
+const DEFAULT_WEEKS = 6;
 
 export const metadata = { title: "Progress · VeriLearn" };
 
@@ -37,13 +41,19 @@ const CALIB_DIRECTION: Record<string, string> = {
   well_calibrated: "Well calibrated — your confidence tracks your accuracy.",
 };
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ weeks?: string }> }) {
   const user = await requireUser();
   const { signals, calibration } = progressFor(user.id);
   const calibSub = calibration ? CALIB_DIRECTION[calibration.direction] : "Confidence vs. reality";
 
+  // Real, learner-selectable trend window (ANALYTICS-17) — a genuine query param,
+  // not a decorative label; invalid/missing values fall back to the honest default.
+  const { weeks: weeksRaw } = await searchParams;
+  const weeksParsed = Number(weeksRaw);
+  const weeks = WEEK_OPTIONS.includes(weeksParsed as (typeof WEEK_OPTIONS)[number]) ? weeksParsed : DEFAULT_WEEKS;
+
   // Real weekly retention series for the trend chart (ANALYTICS-05).
-  const series = retentionSeries(user.id, now(), 6);
+  const series = retentionSeries(user.id, now(), weeks);
   const CW = 620, PAD = 10, TOP = 20, BOT = 190;
   const xAt = (i: number) => PAD + (i * (CW - 2 * PAD)) / (series.weeks - 1);
   const yAt = (r: number) => BOT - r * (BOT - TOP);
@@ -77,16 +87,7 @@ export default async function ReportsPage() {
               Four honest signals — no vanity metrics. Each maps to something you actually did.
             </div>
           </div>
-          <button style={{ display: "flex", alignItems: "center", gap: 7, border: "1px solid #ece8f4", background: "#fff", font: "800 12.5px var(--font-nunito)", color: "#4a4560", padding: "10px 15px", borderRadius: 13, cursor: "pointer", boxShadow: "0 6px 18px -12px rgba(80,60,140,.3)" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4.5" width="18" height="16" rx="3" />
-              <path d="M3 9h18M8 3v3M16 3v3" />
-            </svg>
-            Last 30 days
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </button>
+          <WeeksSelect weeks={weeks} />
         </div>
 
         {/* portfolio health bands (ANALYTICS-19) */}
