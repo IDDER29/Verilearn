@@ -69,3 +69,57 @@ export function retentionFor(userId: string): { total: number; correct: number }
   const log = getDb().reviewLog.filter((r) => r.userId === userId);
   return { total: log.length, correct: log.filter((r) => r.correct).length };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Reviews within this window of the latest one count as the same session. */
+export const SESSION_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+export interface SessionSummary {
+  /** Cards graded in the most-recent session. */
+  reviewed: number;
+  /** Of those, how many were recalled (rating !== "again"). */
+  correct: number;
+  /** FSRS rating tally for the session, in schedule order. */
+  ratingCounts: { again: number; hard: number; good: number; easy: number };
+  /** Session-scoped calibration (may be insufficient_data under MIN_RECORDS). */
+  calibration: ReturnType<typeof calibrationScore>;
+  /** Consecutive calendar days (ending on the latest review) with ≥1 review. */
+  streakDays: number;
+  /** Soonest due timestamp among not-yet-due cards, or null if none upcoming. */
+  nextDue: number | null;
+  /** Cards due on that soonest day. */
+  dueSoonCount: number;
+}
+
+/**
+ * Summarise the learner's most-recent review session for the completion screen.
+ * A "session" is the run of graded cards whose timestamps fall within
+ * {@link SESSION_WINDOW_MS} of the latest grade. Pure over (log, cards, now):
+ * no clock/random of its own — `now` is supplied. Traces to REVIEW (session
+ * summary) and ANALYTICS (retention/calibration/streak signals).
+ */
+export function sessionSummaryFor(userId: string, now: number): SessionSummary {
+  const db = getDb();
+  const log = db.reviewLog.filter((r) => r.userId === userId).sort((a, b) => a.at - b.at);
+  const latest = log.length ? log[log.length - 1].at : now;
+  const session = log.filter((r) => latest - r.at <= SESSION_WINDOW_MS);
+
+  const ratingCounts = { again: 0, hard: 0, good: 0, easy: 0 };
+  for (const r of session) ratingCounts[r.rating] += 1;
+  const correct = session.filter((r) => r.correct).length;
+  const calibration = calibrationScore(session.map((r) => ({ confidence: r.confidence, correct: r.correct })));
+
+  // Consecutive-day streak ending on the latest review day.
+  const days = new Set(log.map((r) => Math.floor(r.at / DAY_MS)));
+  let streakDays = 0;
+  for (let d = Math.floor(latest / DAY_MS); days.has(d); d -= 1) streakDays += 1;
+
+  const upcoming = reviewCardsOf(db, userId)
+    .filter((c) => c.fsrs.due > now)
+    .sort((a, b) => a.fsrs.due - b.fsrs.due);
+  const nextDue = upcoming.length ? upcoming[0].fsrs.due : null;
+  const dueSoonCount =
+    nextDue === null ? 0 : upcoming.filter((c) => Math.floor(c.fsrs.due / DAY_MS) === Math.floor(nextDue / DAY_MS)).length;
+
+  return { reviewed: session.length, correct, ratingCounts, calibration, streakDays, nextDue, dueSoonCount };
+}

@@ -23,7 +23,7 @@ justification** — nothing is silently dropped.
 | LEARN — Lecture & Active Listening | 23 | 0 | 22 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 2 | 19 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 3 | 15 | 4 |
-| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 2 | 21 | 1 |
+| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 3 | 20 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 1 | 20 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 0 | 20 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **29** | **308** | **125** |
+| **TOTAL** | **462** | **30** | **307** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -258,7 +258,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-06 | 🟡 Partial | No seeded-drill subsystem. `web/lib/services/progress.ts` passes `drills: []` with the comment "seeded error-drills are not yet wired → honest empty blind-spot," and the review page's "Spot the error" up-next item and "6 / 9 caught" blind-spot card are hardcoded. Controlled false-claim generation/approval fundamentally needs the Skeptic (Deferred LLM verifier); the anti-blind-flag mixing and Gap-Map-on-miss are unbuilt. |
 | REVIEW-07 | ✅ Done | Wired + tested. `gradeCard` (`web/lib/services/review.ts`) on an `again` rating auto-reopens an existing gap via `onLapse` or opens a fresh one tagged `origin: "review"`, and `again` reschedules to a sub-day relearning step (`fsrs.ts` `RELEARN_STEP_DAYS`). The "I had the wrong idea" button in `web/app/review/page.tsx` sets rating `again` and persists through the same path. Tested by `review.test.ts` ("opens a new gap (origin review)", "auto-reopens a previously closed gap"). Not built: lecture-section jump-back anchor and micro-remediation link. |
 | REVIEW-08 | 🟡 Partial | `web/app/review/discuss/page.tsx` is a static Discuss screen; the Skeptic reply is canned and the Raise-Conflict / Track-gap / Accept choices are not wired. A real conflict engine exists (`web/lib/services/conflicts.ts` `resolveConflict` re-verifies via the system verifier) but Discuss does not originate a conflict into it. Live sourced pushback needs the Deferred LLM Skeptic; prompt-injection-as-data hardening is not present here. |
-| REVIEW-09 | 🟡 Partial | `web/app/review/complete/page.tsx` is a static Session-Complete screen with hardcoded figures (4 cards, "2 seeded errors," "Thursday"). Not wired to the real session: no ratings breakdown from `reviewLog`, no computed session calibration, streak, or next-batch date; navigation from `/review` always routes here regardless of what was rated. |
+| REVIEW-09 | ✅ Done | `web/app/review/complete/page.tsx` is now an async server component driven by `sessionSummaryFor(userId, now)` (`web/lib/services/review.ts`): it derives the session as the most-recent `reviewLog` cluster (2h window) and renders real cards-reviewed, recalled count, per-rating breakdown (again/hard/good/easy bars), session calibration score (honest "—" under MIN_RECORDS), consecutive-day streak, and the soonest upcoming due card with its weekday/date and count. Covered by two new `review.test.ts` cases (session counts + next-due; session-window exclusion). Remaining nuance (which cards *this* navigation rated, vs. the whole recent window) is a REVIEW-17 session-model concern, not a blocker. |
 | REVIEW-10 | 🟡 Partial | The session ring (`SessionRing` reviewed/total), "Card {n} of {TOTAL}", and progress dots in `web/app/review/page.tsx` are real and update on each rating from the loaded due-card set. Missing/static: the "Up next" list, the "6 / 9 caught" blind-spot tally, and "~2 min left" are hardcoded; there is no daily-limit bound on "total" and no mid-session decrement on suspension (REVIEW-16 not built). |
 | REVIEW-11 | 🟡 Partial | Not implemented. `getDueCards` (`web/lib/services/review.ts`) returns only cards with `fsrs.due <= now`; there is no review-ahead session over not-yet-due cards, no lowest-retention prioritization, and no true-elapsed-time honesty note. The "Review ahead" affordances on the caught-up and complete screens are static links. |
 | REVIEW-12 | 🟡 Partial | The aggregate due count is real and cross-topic: dashboard (`web/app/page.tsx`) computes `dueCount` over `reviewCardsOf(...)` for all the user's cards, and `getDueCards` spans every topic, so a started session is inherently mixed-topic. Missing: per-topic breakdown, overdue-vs-due-today distinction, the "N beyond today's limit" daily-limit framing, and per-card source-topic labels in the session (card chrome is hardcoded "Dijkstra's algorithm"). |
@@ -275,7 +275,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-23 | 🟡 Partial | `web/app/settings/danger/page.tsx` exists but is static: no "reset review history" that wipes FSRS/calibration/blind-spot/streak, no DSAR export of review/calibration data, and no retention windows. The COPPA age-gate (`web/lib/auth`) provides minor-safe defaults at signup, but review-data-specific minor handling and reset/export/deletion are unbuilt. |
 | REVIEW-24 | ⏭️ Deferred | Team shared-library review (Nice-to-Have, R2/R3 per roadmap). No shared-library topic model or team-seat model is seeded, so shared-source cards, private-vs-shared signal policy, and posting wrong-ideas into a shared Gap Map cannot exist yet. Needs the Teams/Org data model and shared-library sourcing; the individual FSRS/calibration/gap engines it would build on are in place. |
 
-Counts: total 24 — ✅ Done 2, 🟡 Partial 21, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
+Counts: total 24 — ✅ Done 3, 🟡 Partial 20, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
 
 ---
 

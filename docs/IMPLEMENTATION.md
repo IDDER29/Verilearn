@@ -66,6 +66,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
 | Review (`/review`) | due cards; FSRS reschedule + calibration + gap auto-reopen persisted |
+| Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
 | Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted |
@@ -80,14 +81,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 220 passing across 13 files · build green.
+**Test count:** 242 passing across 18 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 29 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 308 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 30 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 307 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |

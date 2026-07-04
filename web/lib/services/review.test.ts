@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, gradeCard, getDueCards, retentionFor } from "./review";
+import { calibrationFor, gradeCard, getDueCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
 
 // The service reads the process singleton via getDb(); seed that singleton.
 declare global {
@@ -57,6 +57,30 @@ describe("review service", () => {
     const r = gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "again", SEED_NOW + 100);
     expect(r.gapReopened).toBe(true);
     expect(db.gaps.get("gap_c3")!.gap.status).toBe("reopened");
+  });
+
+  it("summarises the most-recent session: counts, correct, and next-due", () => {
+    // Grade three cards within one session window.
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "unsure", "hard", SEED_NOW + 1000);
+    gradeCard(USER, "rc_topic_dijkstra_c3", "guessing", "again", SEED_NOW + 2000);
+
+    const s = sessionSummaryFor(USER, SEED_NOW + 3000);
+    expect(s.reviewed).toBe(3);
+    expect(s.correct).toBe(2); // again is the only lapse
+    expect(s.ratingCounts).toEqual({ again: 1, hard: 1, good: 1, easy: 0 });
+    expect(s.streakDays).toBeGreaterThanOrEqual(1);
+    // c1/c2 rescheduled forward, so at least one card is upcoming.
+    expect(s.nextDue).not.toBeNull();
+    expect(s.dueSoonCount).toBeGreaterThanOrEqual(1);
+  });
+
+  it("excludes grades older than the session window from the summary", () => {
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW); // old
+    const later = SEED_NOW + SESSION_WINDOW_MS + 60_000;
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", later); // new session
+    const s = sessionSummaryFor(USER, later);
+    expect(s.reviewed).toBe(1); // only the recent grade counts
   });
 
   it("accumulates calibration + retention across grades", () => {

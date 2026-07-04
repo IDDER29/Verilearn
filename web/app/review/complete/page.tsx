@@ -1,9 +1,39 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { sessionSummaryFor } from "@/lib/services/review";
+import { now } from "@/lib/ids";
 
 export const metadata = { title: "Session Complete · VeriLearn" };
 
-export default function SessionCompletePage() {
+const RATING_ROWS = [
+  { key: "again", label: "Again", color: "#c0392b", track: "#c0392b" },
+  { key: "hard", label: "Hard", color: "#b4830f", track: "#c99a2b" },
+  { key: "good", label: "Good", color: "#3a63b0", track: "#3a63b0" },
+  { key: "easy", label: "Easy", color: "#2e9c6a", track: "#2e9c6a" },
+] as const;
+
+const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export default async function SessionCompletePage() {
+  const user = await requireUser();
+  const at = now();
+  const s = sessionSummaryFor(user.id, at);
+
+  const reviewedLabel = `${s.reviewed} card${s.reviewed === 1 ? "" : "s"}`;
+  const calibrationLabel = s.calibration.status === "ok" ? `${Math.round(s.calibration.score * 100)}%` : "—";
+
+  // Next-review framing derived from the soonest upcoming card.
+  const nextDate = s.nextDue !== null ? new Date(s.nextDue) : null;
+  const daysUntil = s.nextDue !== null ? Math.max(1, Math.ceil((s.nextDue - at) / DAY_MS)) : null;
+  const heroNext =
+    s.nextDue !== null && daysUntil !== null
+      ? `Your next batch is scheduled in ${daysUntil} day${daysUntil === 1 ? "" : "s"}.`
+      : "No cards are scheduled yet — start a new topic to build your review deck.";
+
+  const maxRating = Math.max(1, ...RATING_ROWS.map((r) => s.ratingCounts[r.key]));
+
   return (
     <AppShell active="tasks">
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -18,7 +48,7 @@ export default function SessionCompletePage() {
             </div>
             <div style={{ font: "900 30px var(--font-nunito)", letterSpacing: "-.02em" }}>Session complete! 🎉</div>
             <div style={{ font: "600 14px/1.5 var(--font-nunito)", color: "#e7e1fb", marginTop: 8, maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
-              You reviewed 4 cards and caught 2 seeded errors. Your next batch is scheduled for Thursday.
+              You reviewed {reviewedLabel} and recalled {s.correct} of {s.reviewed}. {heroNext}
             </div>
           </div>
         </div>
@@ -32,7 +62,7 @@ export default function SessionCompletePage() {
               </svg>
             </div>
             <div>
-              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>4</div>
+              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>{s.reviewed}</div>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>Cards reviewed</div>
             </div>
           </div>
@@ -44,8 +74,8 @@ export default function SessionCompletePage() {
               </svg>
             </div>
             <div>
-              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>2 / 2</div>
-              <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>Errors caught</div>
+              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>{s.correct} / {s.reviewed}</div>
+              <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>Recalled</div>
             </div>
           </div>
           <div style={{ background: "#fff", borderRadius: 20, padding: "20px 22px", boxShadow: "0 10px 30px -20px rgba(80,60,140,.28)", display: "flex", alignItems: "center", gap: 14 }}>
@@ -55,7 +85,7 @@ export default function SessionCompletePage() {
               </svg>
             </div>
             <div>
-              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>88%</div>
+              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>{calibrationLabel}</div>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>Calibration</div>
             </div>
           </div>
@@ -66,7 +96,7 @@ export default function SessionCompletePage() {
               </svg>
             </div>
             <div>
-              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>6</div>
+              <div style={{ font: "900 24px var(--font-nunito)", lineHeight: 1 }}>{s.streakDays}</div>
               <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>Day streak</div>
             </div>
           </div>
@@ -79,34 +109,19 @@ export default function SessionCompletePage() {
             <div style={{ font: "900 18px var(--font-nunito)", marginBottom: 4 }}>How you rated recall</div>
             <div style={{ font: "600 12.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>FSRS uses these to schedule your next reviews.</div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 0" }}>
-              <span style={{ width: 76, font: "800 12.5px var(--font-nunito)", color: "#c0392b" }}>Again</span>
-              <div style={{ flex: 1, height: 12, borderRadius: 6, background: "#f3f1f9", overflow: "hidden" }}>
-                <div style={{ width: "0%", height: "100%", background: "#c0392b" }} />
-              </div>
-              <span style={{ width: 24, textAlign: "right", font: "800 13px var(--font-nunito)", color: "#8b8699" }}>0</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 0" }}>
-              <span style={{ width: 76, font: "800 12.5px var(--font-nunito)", color: "#b4830f" }}>Hard</span>
-              <div style={{ flex: 1, height: 12, borderRadius: 6, background: "#f3f1f9", overflow: "hidden" }}>
-                <div style={{ width: "25%", height: "100%", background: "#c99a2b" }} />
-              </div>
-              <span style={{ width: 24, textAlign: "right", font: "800 13px var(--font-nunito)", color: "#8b8699" }}>1</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 0" }}>
-              <span style={{ width: 76, font: "800 12.5px var(--font-nunito)", color: "#3a63b0" }}>Good</span>
-              <div style={{ flex: 1, height: 12, borderRadius: 6, background: "#f3f1f9", overflow: "hidden" }}>
-                <div style={{ width: "50%", height: "100%", background: "#3a63b0" }} />
-              </div>
-              <span style={{ width: 24, textAlign: "right", font: "800 13px var(--font-nunito)", color: "#8b8699" }}>2</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 0" }}>
-              <span style={{ width: 76, font: "800 12.5px var(--font-nunito)", color: "#2e9c6a" }}>Easy</span>
-              <div style={{ flex: 1, height: 12, borderRadius: 6, background: "#f3f1f9", overflow: "hidden" }}>
-                <div style={{ width: "25%", height: "100%", background: "#2e9c6a" }} />
-              </div>
-              <span style={{ width: 24, textAlign: "right", font: "800 13px var(--font-nunito)", color: "#8b8699" }}>1</span>
-            </div>
+            {RATING_ROWS.map((r) => {
+              const count = s.ratingCounts[r.key];
+              const pct = Math.round((count / maxRating) * 100);
+              return (
+                <div key={r.key} style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 0" }}>
+                  <span style={{ width: 76, font: "800 12.5px var(--font-nunito)", color: r.color }}>{r.label}</span>
+                  <div style={{ flex: 1, height: 12, borderRadius: 6, background: "#f3f1f9", overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: r.track }} />
+                  </div>
+                  <span style={{ width: 24, textAlign: "right", font: "800 13px var(--font-nunito)", color: "#8b8699" }}>{count}</span>
+                </div>
+              );
+            })}
 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, padding: "14px 16px", borderRadius: 15, background: "#fbf6ec" }}>
               <div style={{ width: 34, height: 34, borderRadius: 11, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -115,7 +130,13 @@ export default function SessionCompletePage() {
                 </svg>
               </div>
               <div style={{ font: "600 12.5px/1.5 var(--font-nunito)", color: "#6c6780" }}>
-                <b style={{ color: "#221f2e" }}>One card marked &quot;Hard&quot;</b> — &quot;Relaxation step&quot; comes back tomorrow to reinforce it.
+                {s.ratingCounts.again + s.ratingCounts.hard > 0 ? (
+                  <>
+                    <b style={{ color: "#221f2e" }}>{s.ratingCounts.again + s.ratingCounts.hard} card{s.ratingCounts.again + s.ratingCounts.hard === 1 ? "" : "s"} to reinforce</b> — anything you rated &quot;Again&quot; or &quot;Hard&quot; comes back sooner.
+                  </>
+                ) : (
+                  <><b style={{ color: "#221f2e" }}>Clean sweep</b> — every card was recalled, so intervals stretch further out.</>
+                )}
               </div>
             </div>
           </div>
@@ -124,16 +145,20 @@ export default function SessionCompletePage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ background: "#fff", borderRadius: 24, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
               <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14 }}>Next review</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                <div style={{ width: 52, height: 52, borderRadius: 15, background: "#efe9ff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ font: "800 9px var(--font-nunito)", color: "#6d5bd0", textTransform: "uppercase" }}>Thu</span>
-                  <span style={{ font: "900 18px var(--font-nunito)", color: "#6d5bd0", lineHeight: 1 }}>10</span>
+              {nextDate && daysUntil !== null ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 15, background: "#efe9ff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ font: "800 9px var(--font-nunito)", color: "#6d5bd0", textTransform: "uppercase" }}>{WEEKDAY[nextDate.getUTCDay()]}</span>
+                    <span style={{ font: "900 18px var(--font-nunito)", color: "#6d5bd0", lineHeight: 1 }}>{nextDate.getUTCDate()}</span>
+                  </div>
+                  <div>
+                    <div style={{ font: "800 14px var(--font-nunito)" }}>{s.dueSoonCount} card{s.dueSoonCount === 1 ? "" : "s"} due</div>
+                    <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>in {daysUntil} day{daysUntil === 1 ? "" : "s"}</div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ font: "800 14px var(--font-nunito)" }}>3 cards due</div>
-                  <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>in 2 days · Dijkstra, hashing</div>
-                </div>
-              </div>
+              ) : (
+                <div style={{ font: "700 12.5px/1.5 var(--font-nunito)", color: "#8b8699" }}>Nothing scheduled — you&apos;re all caught up.</div>
+              )}
             </div>
 
             <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#6d5bd0", color: "#fff", font: "800 15px var(--font-nunito)", padding: 16, borderRadius: 16, boxShadow: "0 12px 26px -10px rgba(109,91,208,.7)" }}>
@@ -142,12 +167,12 @@ export default function SessionCompletePage() {
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </Link>
-            <button style={{ border: "1.5px solid #ece8f4", background: "#fff", color: "#4a4560", font: "800 14px var(--font-nunito)", padding: 15, borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Link href="/review" style={{ textDecoration: "none", border: "1.5px solid #ece8f4", background: "#fff", color: "#4a4560", font: "800 14px var(--font-nunito)", padding: 15, borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 11A8 8 0 004.6 9M4 4v5h5" />
               </svg>
               Review ahead
-            </button>
+            </Link>
           </div>
         </div>
       </main>
