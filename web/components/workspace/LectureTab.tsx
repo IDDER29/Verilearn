@@ -114,6 +114,16 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
   const claim = resolveClaim(selected);
   const badge = badgeFor(claim.trust);
 
+  // The disputed-claim callout (LEARN-12) must reflect the topic's REAL live
+  // dispute state, not a hardcoded example — when `data` is loaded, it renders
+  // only if a claim is genuinely disputed right now, so resolving the conflict
+  // makes it disappear on the next load rather than persisting a stale flag.
+  // The illustrative fallback only applies when there's no real data at all
+  // (data === null), matching every other span's fallback convention.
+  const realDisputedClaim = data?.disputedClaims[0];
+  const showDisputedCallout = data ? !!realDisputedClaim : true;
+  const disputedClaimText = realDisputedClaim?.text ?? "It works on any weighted graph.";
+
   // Ledger-computed aggregates (fall back to the illustrative Dijkstra numbers).
   const bd = data?.breakdown;
   const disputedCount = bd?.disputed ?? 1;
@@ -254,31 +264,33 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
             finalised, its shortest distance is {claimSpan("correct", "guaranteed to be correct")} — the greedy choice never has to be revised.
           </p>
 
-          {/* highlighted disputed claim */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setSelected("anygraph")}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelected("anygraph")}
-            style={{
-              background: "#fbeceb",
-              borderLeft: "4px solid #c0392b",
-              borderRadius: "0 14px 14px 0",
-              padding: "14px 18px",
-              margin: "0 0 18px",
-              cursor: "pointer",
-              boxShadow: selected === "anygraph" ? "0 0 0 3px rgba(192,57,43,.18)" : "none",
-              transition: "box-shadow .12s",
-            }}
-          >
-            <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#c0392b", marginBottom: 5 }}>⚠️ Disputed claim · the Skeptic flagged this</div>
-            <div style={{ font: "700 14.5px/1.6 var(--font-nunito)", color: "#221f2e" }}>
-              &quot;{data?.claims.find((c) => c.state === "disputed")?.text ?? "It works on any weighted graph."}&quot; — the Skeptic found no source that holds unconditionally.{" "}
-              <button type="button" onClick={(e) => { e.stopPropagation(); onTab("conflicts"); }} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", color: "#c0392b", font: "800 14.5px var(--font-nunito)", textDecoration: "underline" }}>
-                Tap Conflicts to resolve.
-              </button>
+          {/* highlighted disputed claim — only when the topic genuinely has one right now (LEARN-12) */}
+          {showDisputedCallout && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected("anygraph")}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelected("anygraph")}
+              style={{
+                background: "#fbeceb",
+                borderLeft: "4px solid #c0392b",
+                borderRadius: "0 14px 14px 0",
+                padding: "14px 18px",
+                margin: "0 0 18px",
+                cursor: "pointer",
+                boxShadow: selected === "anygraph" ? "0 0 0 3px rgba(192,57,43,.18)" : "none",
+                transition: "box-shadow .12s",
+              }}
+            >
+              <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".06em", textTransform: "uppercase", color: "#c0392b", marginBottom: 5 }}>⚠️ Disputed claim · the Skeptic flagged this</div>
+              <div style={{ font: "700 14.5px/1.6 var(--font-nunito)", color: "#221f2e" }}>
+                &quot;{disputedClaimText}&quot; — the Skeptic found no source that holds unconditionally.{" "}
+                <button type="button" onClick={(e) => { e.stopPropagation(); onTab("conflicts"); }} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", color: "#c0392b", font: "800 14.5px var(--font-nunito)", textDecoration: "underline" }}>
+                  Tap Conflicts to resolve.
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <p style={{ font: "600 15px/1.85 var(--font-nunito)", color: "#3a3550", margin: "0 0 22px" }}>
             The classic implementation uses a {claimSpan("pq", "priority queue keyed by tentative distance")}, giving an overall running time of

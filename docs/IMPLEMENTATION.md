@@ -68,7 +68,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted; interactive "Blind-spot check" seeded error-drill widget with a genuine per-learner catch rate (ANALYTICS-07/REVIEW-06), respecting the Settings › Review drills toggle (REVIEW-14) |
 | Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states); real 7-day trend delta per signal, never fabricated (ANALYTICS-01); real keyboard-operable trend-window selector replacing a decorative button (ANALYTICS-17); real "As of {time}" freshness marker (ANALYTICS-20) |
-| Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
+| Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger; the disputed-claim callout is driven by real `data.disputedClaims` and disappears on reload once the dispute is genuinely resolved, not a hardcoded example (LEARN-12) |
 | Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted; resolving/reopening a dispute now opens/advances/reopens a linked Gap Map entry too (GAP-21) |
 | Workspace › Sources | full real coverage matrix (claims × sources, ledger-coloured cells), real source strip, coverage %/unsupported |
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass); real `localStorage` draft persistence + offline-disabled submit (TASK-16); "Dispute this" opens a real, rate-limited conflict on a missed criterion's claim (TASK-11) |
@@ -92,14 +92,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, audit, workspace loader — all unit-tested.
 
-**Test count:** 469 passing across 37 files · build green.
+**Test count:** 475 passing across 38 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 163 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 175 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 164 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 174 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -114,7 +114,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **175 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **174 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -130,4 +130,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after making the Gap Map's cross-origin merge policy real and explicit (GAP-07) — `Gap.contributingOrigins` (`lib/domain/gap.ts`) is a monotonically-growing provenance set seeded with the founding origin and extended by `noteOriginHit` whenever a DIFFERENT channel (review/task/test/drill/conflict) later hits the same already-tracked claim, so two channels catching the same misconception stay one gap with an honest multi-origin trail instead of a coincidental collapse; also corrected this row's own stale claim that the conflict/reopened-dispute channel was still unwired (GAP-21 had already wired it) — verified live in a real browser: a weak task submission opened a task-origin gap, and disputing that same claim's failed criterion through the real "Dispute this" UI reused the SAME gap and added "conflict" to its trail rather than forking a second one — on top of replacing the Free-tier topic cap's hardcoded `user.plan === "free"` branch with a real, versioned entitlement catalog (ADMIN-07), a real, central, append-only audit log (ADMIN-20) recording every certificate revoke/reinstate, ban/unban, and quarantine/clear from this session's other three admin consoles, a real claim quarantine console (ADMIN-14), real enforced ban/unban (ADMIN-16), the first real, RBAC-gated admin console for certificates (ADMIN-15/22), the embeddable verify badge with a narrow, verified CSP frame-ancestors carve-out (API-15), the dirty-state `beforeunload` navigation guard on the Profile edit forms (SETTINGS-20), the Community thread's real keyboard-operable vote/reply/share controls (COMM-16), real cross-topic, claim-level Dashboard search results (HOME-07), Test Detail's "Boost your odds" levers (TEST-09), the heat-spike notification for a gap whose severity reaches "high" (GAP-22), correcting AUTH-01/AUTH-02's stale "no guest demo" premise, the public certificate verify page (TEST-11), the guest demo-pipeline run and Lecture reader (VERIFY-22/LEARN-17), linking the guest demo path from Login (HOME-12), a password-confirmed change-email action (SETTINGS-03), and the blind-spot subsystem (ANALYTICS-07/REVIEW-06/REVIEW-14) — 163 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after making the Lecture tab's disputed-claim callout genuinely data-driven (LEARN-12) — it previously fell back to a hardcoded "It works on any weighted graph." example even once `data` was loaded and the dispute had actually been resolved, so a resolved conflict kept showing a stale warning on reload; `LectureTab.tsx` now gates the callout on the real `data.disputedClaims` (`lib/services/workspace.ts`), with the illustrative fallback restricted to the true "no data loaded yet" case — verified live in a real browser (the callout is present, resolving the conflict via the real Conflicts tab, then a fresh reload shows it's genuinely gone) and by 6 new tests in a previously-nonexistent `workspace.test.ts`. Recent momentum: an explicit, auditable cross-origin merge policy for the Gap Map (GAP-07), a versioned entitlement catalog behind the Free-tier cap (ADMIN-07), a central append-only audit log across every admin action (ADMIN-20), and the claim-quarantine/ban-unban/certificate-revoke admin consoles (ADMIN-14/16/15/22) that preceded it. Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 164 Done; remainder is field-polish or deferred-with-justification._
