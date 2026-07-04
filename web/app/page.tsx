@@ -7,6 +7,7 @@ import { listTopicSummaries, FREE_TOPIC_CAP } from "@/lib/services/topics";
 import { listTestableTopics } from "@/lib/services/tests";
 import { getDueCards } from "@/lib/services/review";
 import RefreshOnFocus from "@/components/RefreshOnFocus";
+import DashboardSearch from "@/components/DashboardSearch";
 import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
@@ -20,24 +21,45 @@ function topicEmoji(title: string): string {
   return key ? EMOJI[key] : "📗";
 }
 
-export default async function DashboardPage() {
+/**
+ * Topic search predicate (HOME-06/07): trust-state operators
+ * (disputed/unsupported/interpretive/verified) match on the ledger breakdown;
+ * anything else is a case-insensitive substring match on title/level.
+ */
+function topicMatchesQuery(
+  t: { title: string; level: string; verifiedPercent: number; breakdown: Record<string, number> },
+  q: string,
+): boolean {
+  if (q === "disputed") return (t.breakdown.disputed ?? 0) > 0;
+  if (q === "unsupported") return (t.breakdown.unsupported ?? 0) > 0;
+  if (q === "interpretive") return (t.breakdown.interpretive ?? 0) > 0;
+  if (q === "verified") return t.verifiedPercent === 100 || (t.breakdown.verified_execution ?? 0) + (t.breakdown.verified_source ?? 0) > 0;
+  return t.title.toLowerCase().includes(q) || t.level.toLowerCase().includes(q);
+}
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const user = await requireUser();
   const db = getDb();
-  const topics = listTopicSummaries(user.id);
+  const allTopics = listTopicSummaries(user.id);
   // First-run gating (HOME-01): a zero-topic account sees the branded welcome
   // screen, never a Dashboard full of empty widgets.
-  if (topics.length === 0) redirect("/welcome");
+  if (allTopics.length === 0) redirect("/welcome");
+  // Real topic search (HOME-06/07): text match on title/level, plus trust-state
+  // operators (disputed/unsupported/interpretive/verified). Filters the list only;
+  // headline counts stay computed over the full set.
+  const query = ((await searchParams).q ?? "").trim().toLowerCase();
+  const topics = query ? allTopics.filter((t) => topicMatchesQuery(t, query)) : allTopics;
   const at = now();
   const cards = reviewCardsOf(db, user.id);
   // Eligibility-gated to match the review deck (REVIEW-15): contested claims are held out.
   const dueCount = getDueCards(user.id, at).length;
   const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
-  const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
+  const conflicts = allTopics.reduce((n, t) => n + t.disputes, 0);
   // Free plan at its topic cap → the hero CTA nudges to Upgrade instead of New Topic (HOME-13).
-  const atCap = user.plan === "free" && topics.length >= FREE_TOPIC_CAP;
+  const atCap = user.plan === "free" && allTopics.length >= FREE_TOPIC_CAP;
 
   // Real headline stats.
-  const claimsChecked = topics.reduce((n, t) => n + t.claimCount, 0);
+  const claimsChecked = allTopics.reduce((n, t) => n + t.claimCount, 0);
   const certCount = [...db.certificates.values()].filter((c) => c.learnerId === user.id && !c.revoked).length;
   const pendingTasks = [...db.tasks.values()].filter((t) => t.userId === user.id && t.passed !== true).length;
   const testable = listTestableTopics(user.id).filter((t) => t.eligibleCount > 0);
@@ -75,35 +97,7 @@ export default async function DashboardPage() {
                 )}
               </div>
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                background: "#fff",
-                borderRadius: 15,
-                padding: "11px 16px",
-                width: 250,
-                boxShadow: "0 6px 18px -10px rgba(80,60,140,.25)",
-              }}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a7a1b8" strokeWidth="2" strokeLinecap="round">
-                <circle cx="11" cy="11" r="7" />
-                <path d="M21 21l-4-4" />
-              </svg>
-              <input
-                placeholder="Search topics…"
-                aria-label="Search topics"
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "none",
-                  font: "600 13.5px var(--font-nunito)",
-                  color: "#221f2e",
-                  width: "100%",
-                }}
-              />
-            </div>
+            <DashboardSearch initialQuery={query} />
             <Link
               href="/notifications"
               style={{
@@ -243,7 +237,7 @@ export default async function DashboardPage() {
             <StatCard
               bg="#fdf3d0"
               labelColor="#9a7f3a"
-              value={String(topics.length)}
+              value={String(allTopics.length)}
               label="Verified topics"
               icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#d19a2b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -314,10 +308,18 @@ export default async function DashboardPage() {
             </div>
 
             {topics.length === 0 && (
-              <div style={{ padding: "26px 4px", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
-                No topics yet.{" "}
-                <Link href="/new-topic" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>Start your first topic →</Link>
-              </div>
+              query ? (
+                /* Real "no results" state for an active search (HOME-18) */
+                <div style={{ padding: "26px 4px", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
+                  No topics match “{query}”.{" "}
+                  <Link href="/" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>Clear search</Link>
+                </div>
+              ) : (
+                <div style={{ padding: "26px 4px", font: "600 13px var(--font-nunito)", color: "#8b8699" }}>
+                  No topics yet.{" "}
+                  <Link href="/new-topic" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>Start your first topic →</Link>
+                </div>
+              )
             )}
             {topics.map((t, i) => {
               const verified = t.breakdown.verified_execution + t.breakdown.verified_source;
