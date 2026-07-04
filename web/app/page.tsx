@@ -5,6 +5,7 @@ import { StatCard, TrustBar } from "@/components/ui";
 import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
 import { listTestableTopics } from "@/lib/services/tests";
+import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 
@@ -31,6 +32,7 @@ export default async function DashboardPage() {
   const certCount = [...db.certificates.values()].filter((c) => c.learnerId === user.id && !c.revoked).length;
   const pendingTasks = [...db.tasks.values()].filter((t) => t.userId === user.id && t.passed !== true).length;
   const testable = listTestableTopics(user.id).filter((t) => t.eligibleCount > 0);
+  const unreadNotifs = unreadNotificationCount(user.id);
   return (
     <AppShell active="dashboard">
       <main
@@ -100,18 +102,20 @@ export default async function DashboardPage() {
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 004 0" />
               </svg>
-              <span
-                style={{
-                  position: "absolute",
-                  top: 11,
-                  right: 12,
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "#f0563a",
-                  border: "2px solid #fff",
-                }}
-              />
+              {unreadNotifs > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 11,
+                    right: 12,
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#f0563a",
+                    border: "2px solid #fff",
+                  }}
+                />
+              )}
             </Link>
           </div>
 

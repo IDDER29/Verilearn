@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import AppShell from "@/components/AppShell";
+import MarkAllReadButton from "@/components/MarkAllReadButton";
 import { requireUser } from "@/lib/auth/current";
 import { listNotifications, type NotificationKind } from "@/lib/services/notifications";
 
@@ -19,6 +20,15 @@ const KIND: Record<NotificationKind, { bg: string; icon: ReactNode }> = {
   },
   review: { bg: "#fbeadf", icon: "📼" },
   conflict: { bg: "#f2effc", icon: "🧐" },
+  test: {
+    bg: "#eef2fb",
+    icon: (
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3h6l1 3H8zM8 6h8l1 14a1 1 0 01-1 1H8a1 1 0 01-1-1z" />
+        <path d="M10 12h4M10 16h4" />
+      </svg>
+    ),
+  },
 };
 
 export default async function NotificationsPage() {
@@ -55,19 +65,7 @@ export default async function NotificationsPage() {
               {unreadCount} unread · updates on your topics, tests &amp; the Skeptic
             </div>
           </div>
-          <button
-            style={{
-              border: "1.5px solid #ece8f4",
-              background: "#fff",
-              color: "#6c6780",
-              font: "800 12px var(--font-nunito)",
-              padding: "9px 15px",
-              borderRadius: 12,
-              cursor: "pointer",
-            }}
-          >
-            Mark all read
-          </button>
+          <MarkAllReadButton disabled={unreadCount === 0} />
         </div>
 
         {/* filter chips */}

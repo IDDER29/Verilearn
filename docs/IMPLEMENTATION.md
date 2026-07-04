@@ -75,7 +75,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
 | Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed |
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); **real predicted readiness** from the tested `predictReadiness` engine (retention+calibration+coverage, honest low-confidence); score + **fail-closed certificate** verify code |
-| Notifications | derived from real state (verification/review/conflict) |
+| Notifications | derived from real state (verification/review/conflict/test) with persistent read-state + working Mark-all-read |
 | Settings › Verification | real `verification` prefs — depth, interpretive/dispute/sandbox toggles, Skeptic-aggressiveness slider (auto-save; ledger provably untouched) |
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
 | Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
@@ -84,14 +84,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 260 passing across 21 files · build green.
+**Test count:** 264 passing across 22 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 57 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 280 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 59 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 278 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -122,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the Profile + Auth/Danger reconciliation pass — 57 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the Notifications read-state pass — 59 Done; remainder is field-polish or deferred-with-justification._
