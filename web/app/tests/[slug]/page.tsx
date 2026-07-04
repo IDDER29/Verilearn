@@ -3,6 +3,8 @@ import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
 import { buildSession } from "@/lib/services/testsession";
+import { readinessFor } from "@/lib/services/progress";
+import { now } from "@/lib/ids";
 
 export const metadata = { title: "Test Detail · VeriLearn" };
 
@@ -22,6 +24,20 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
   const durationMin = Math.round((session?.durationMs ?? 1_200_000) / 60_000);
   const passBar = session?.passBar ?? 75;
   const excluded = summary?.disputes ?? 0;
+
+  // Real predicted readiness from the tested predictReadiness engine (TEST-01).
+  const readiness = topicId ? readinessFor(user.id, topicId, now()) : { pct: null, lowConfidence: true, basis: "not enough data yet", reviewed: 0, covered: 0 };
+  const rPct = readiness.pct;
+  const noPrediction = rPct === null || readiness.reviewed === 0;
+  const rColor = noPrediction || readiness.lowConfidence ? "#c99a2b" : rPct! >= passBar ? "#2e9c6a" : rPct! >= passBar - 15 ? "#c99a2b" : "#c0392b";
+  const rDeg = noPrediction ? 0 : Math.round((rPct! / 100) * 360);
+  const rSub = noPrediction
+    ? "no prediction yet"
+    : readiness.lowConfidence
+      ? "low confidence"
+      : rPct! >= passBar
+        ? "likely to pass"
+        : "below the bar";
 
   return (
     <AppShell active="tests">
@@ -209,7 +225,7 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
           <div style={{ background: "#fff", borderRadius: 22, padding: 22, textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 14, textAlign: "left" }}>Predicted readiness</div>
             <div style={{ position: "relative", width: 132, height: 132, margin: "0 auto 6px" }}>
-              <div style={{ width: 132, height: 132, borderRadius: "50%", background: "conic-gradient(#2e9c6a 306deg,#eee9f7 0)" }} />
+              <div style={{ width: 132, height: 132, borderRadius: "50%", background: `conic-gradient(${rColor} ${rDeg}deg,#eee9f7 0)` }} />
               <div
                 style={{
                   position: "absolute",
@@ -222,12 +238,14 @@ export default async function TestDetailPage({ searchParams }: { searchParams: P
                   justifyContent: "center",
                 }}
               >
-                <div style={{ font: "900 28px var(--font-nunito)", color: "#2e9c6a" }}>85%</div>
-                <div style={{ font: "700 10px var(--font-nunito)", color: "#8b8699" }}>likely to pass</div>
+                <div style={{ font: "900 28px var(--font-nunito)", color: rColor }}>{noPrediction ? "—" : `${rPct}%`}</div>
+                <div style={{ font: "700 10px var(--font-nunito)", color: "#8b8699" }}>{rSub}</div>
               </div>
             </div>
             <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699", marginTop: 8 }}>
-              Based on your retention &amp; calibration on the covered claims.
+              {noPrediction
+                ? "No prediction yet — review this topic's cards to unlock it."
+                : `${readiness.basis[0].toUpperCase()}${readiness.basis.slice(1)} (${readiness.reviewed} of ${readiness.covered} covered claims reviewed).`}
             </div>
           </div>
 

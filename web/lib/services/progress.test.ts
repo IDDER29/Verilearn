@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { gradeCard } from "./review";
-import { progressFor, signalDisplay } from "./progress";
+import { progressFor, readinessFor, signalDisplay } from "./progress";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -40,6 +40,33 @@ describe("progress signals", () => {
     expect(reviewCount).toBe(4);
     expect(signals.retention.value).toBeCloseTo(0.75, 5);
     expect(signals.retention.confidence).not.toBe("none");
+  });
+
+  it("readiness is low-confidence with no review history (never fabricated)", () => {
+    const r = readinessFor(USER, "topic_dijkstra", SEED_NOW);
+    expect(r.lowConfidence).toBe(true);
+    expect(r.reviewed).toBe(0);
+    expect(r.covered).toBeGreaterThan(0); // dijkstra has eligible claims
+    expect(r.pct).toBe(0); // covered>0 → a number, and 0 with no history
+  });
+
+  it("readiness predicts a real pass-likelihood once covered claims are reviewed", () => {
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c4", "sure", "good", SEED_NOW);
+    const r = readinessFor(USER, "topic_dijkstra", SEED_NOW);
+    expect(r.lowConfidence).toBe(false); // 4 distinct eligible claims ≥ MIN
+    expect(r.reviewed).toBe(4);
+    expect(r.pct!).toBeGreaterThan(0);
+    expect(r.pct!).toBeLessThanOrEqual(100);
+  });
+
+  it("readiness is topic-scoped (other topics' reviews don't count)", () => {
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW);
+    gradeCard(USER, "rc_topic_dijkstra_c3", "sure", "good", SEED_NOW);
+    expect(readinessFor(USER, "topic_merkle", SEED_NOW).reviewed).toBe(0);
   });
 
   it("signalDisplay renders empty and populated states honestly", () => {

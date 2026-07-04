@@ -2,6 +2,8 @@ import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
 import { listTestableTopics } from "@/lib/services/tests";
+import { readinessFor } from "@/lib/services/progress";
+import { now } from "@/lib/ids";
 
 export const metadata = { title: "Tests · VeriLearn" };
 
@@ -10,6 +12,10 @@ const DETAIL_HREF = "/tests/dijkstra-checkpoint";
 export default async function TestsPage() {
   const user = await requireUser();
   const featured = listTestableTopics(user.id)[0];
+  // Real predicted readiness for the featured topic (tested engine); "—" until reviewed.
+  const heroReady = featured ? readinessFor(user.id, featured.topicId, now()) : null;
+  const heroPct = heroReady && heroReady.reviewed > 0 && heroReady.pct !== null ? heroReady.pct : null;
+  const heroDeg = heroPct === null ? 0 : Math.round((heroPct / 100) * 360);
   return (
     <AppShell active="tests">
       <main style={{ padding: "24px 26px 30px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -47,7 +53,7 @@ export default async function TestsPage() {
               height: 96,
               flexShrink: 0,
               borderRadius: "50%",
-              background: "conic-gradient(#8b78e8 306deg,rgba(255,255,255,.14) 0)",
+              background: `conic-gradient(#8b78e8 ${heroDeg}deg,rgba(255,255,255,.14) 0)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -66,7 +72,7 @@ export default async function TestsPage() {
                 color: "#fff",
               }}
             >
-              <span style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>85%</span>
+              <span style={{ font: "900 22px var(--font-nunito)", lineHeight: 1 }}>{heroPct === null ? "—" : `${heroPct}%`}</span>
               <span style={{ font: "700 9px var(--font-nunito)", color: "#b3a7f0" }}>ready</span>
             </div>
           </div>
