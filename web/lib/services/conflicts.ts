@@ -5,12 +5,34 @@
  * triggers RE-VERIFICATION, and the system verifier emits the new verification
  * event. Traces to TRUST (conflicts), VERIFY-13, and the firewall invariant.
  */
+import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { TrustState } from "@/lib/domain/types";
-import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
+import { getDb, gapsOf, ledgerFor, topicsOf, type Db } from "@/lib/store/db";
 import { newId, now } from "@/lib/ids";
 
 const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSME: false };
+
+/**
+ * Open (or reopen, if already tracked) a `conflict`-origin gap for a disputed
+ * claim (GAP-21/GAP-07) — a dispute is itself evidence of a misconception
+ * worth tracking, the same way a review lapse or a missed task criterion is.
+ */
+function trackConflictGap(db: Db, userId: string, topicId: string, claimId: string, at: number): void {
+  const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
+  if (rec) {
+    rec.gap = onLapse(rec.gap, at, "claim disputed again");
+  } else {
+    const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "conflict", severity: "med" }, at);
+    db.gaps.set(gap.id, { userId, gap });
+  }
+}
+
+/** Advance a tracked gap toward closure once its claim's dispute resolves (GAP-21). */
+function advanceConflictGap(db: Db, userId: string, claimId: string, at: number): void {
+  const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
+  if (rec) rec.gap = toWatching(rec.gap, at);
+}
 
 export interface ConflictItem {
   topicId: string;
@@ -77,6 +99,7 @@ export function raiseDispute(userId: string, topicId: string, claimId: string, r
   db.disputeLog.push({ userId, at });
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  trackConflictGap(db, userId, topicId, claimId, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
 
@@ -149,6 +172,7 @@ export function resolveConflict(userId: string, topicId: string, claimId: string
 
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  advanceConflictGap(db, userId, claimId, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
 
@@ -180,13 +204,14 @@ export function resolveAsInterpretive(userId: string, topicId: string, claimId: 
   if (mapped.length < 2) return { ok: false, error: "Map at least two competing positions to record an interpretive resolution." };
 
   const cited = mapped.find((p) => p.sourceId)?.sourceId;
+  const at = now();
   ledger.record(SYSTEM, {
     id: newId("ve"),
     claimId,
     state: "interpretive",
     producedBy: SYSTEM.id,
     producerVersion: "interpretive-v1",
-    at: now(),
+    at,
     evidence: {
       method: cited ? "citation" : "skeptic",
       sourceId: cited,
@@ -198,6 +223,7 @@ export function resolveAsInterpretive(userId: string, topicId: string, claimId: 
 
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  advanceConflictGap(db, userId, claimId, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
 
@@ -239,17 +265,19 @@ export function reopenConflict(userId: string, topicId: string, claimId: string,
   const ledger = ledgerFor(topic);
   if (ledger.stateOf(claimId) === "disputed") return { ok: false, error: "This conflict is already open." };
 
+  const at = now();
   ledger.record(SYSTEM, {
     id: newId("ve"),
     claimId,
     state: "disputed",
     producedBy: SYSTEM.id,
     producerVersion: "reopen-v1",
-    at: now(),
+    at,
     evidence: { method: "skeptic", detail: `Reopened by the learner: "${reason.trim()}"`, confidence: 0.4, resolved: false },
   });
 
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
+  trackConflictGap(db, userId, topicId, claimId, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }

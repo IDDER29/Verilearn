@@ -26,7 +26,7 @@ with justification** — nothing among them is silently dropped.
 | TASK — Tasks & Rubric Assessment | 24 | 13 | 8 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 13 | 10 | 1 |
-| GAP — Gap Map & Misconception Tracking | 23 | 13 | 8 | 2 |
+| GAP — Gap Map & Misconception Tracking | 23 | 14 | 7 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 4 | 16 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
@@ -39,7 +39,7 @@ with justification** — nothing among them is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **139** | **198** | **124** |
+| **TOTAL** | **461** | **140** | **197** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -307,11 +307,11 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-18 | 🟡 Partial | COPPA age-gate / minor-safe defaults exist in auth. No DSAR export of gaps+origins+history+threads, no retention/deletion propagation, and threads are unmodeled — Privacy lists them but nothing serializes them. |
 | GAP-19 | 🟡 Partial | The "never a false state" invariant is real and tested: illegal transitions are no-ops returning the same reference, `closeGap` refuses closure by fiat, `gradeCard` persists atomically. Missing infra: offline queue, optimistic-concurrency/etag guards, and stale-write reconciliation (store is in-memory). |
 | GAP-20 | ✅ Done | The Danger-zone "Reset gap map" card is wired: its button calls `resetGapMapAction` (`app/danger-actions.ts`), which deletes every `GapRecord` for the current user from the store and revalidates. `app/settings/danger/page.tsx` is a client component with per-action busy/confirmation handling. Remaining nice-to-have: discussion-thread deletion (threads are unmodeled — GAP-18). |
-| GAP-21 | 🟡 Partial | `conflict` is a modeled origin and the seed contains a conflict-origin gap (`gap_1`, `seed.ts:179`). But `resolveConflict` (`web/lib/services/conflicts.ts`) contains no gap wiring — resolving/reopening a dispute does not create or reopen a linked gap. |
-| GAP-22 | 🟡 Partial | Notifications are derived from real state and `gradeCard` already surfaces `gapReopened`. No gap-reopen / heat-spike event is emitted into the notifications feed, and no batching/throttling for gap events exists. |
+| GAP-21 | ✅ Done | `conflict` is a modeled origin and the seed contains a conflict-origin gap (`gap_1`, `seed.ts:179`) — and the wiring is now real (`lib/services/conflicts.ts`): raising a dispute (`raiseDispute`, `reopenConflict`) opens a NEW `conflict`-origin gap or reopens an already-tracked one via `onLapse` (`trackConflictGap`) — a dispute is itself evidence of a misconception, the same way a review lapse or a missed task criterion is (GAP-07). Resolving a conflict (`resolveConflict`, `resolveAsInterpretive`) advances the tracked gap toward closure via `toWatching` (`advanceConflictGap`), mirroring the existing task-criterion → gap pattern (TASK-14). A rejected dispute/resolution attempt (bad input, wrong owner, not actually disputed) never touches gap state. 5 new tests in `conflicts.test.ts`. |
+| GAP-22 | 🟡 Partial | Notifications are derived from real state and `gradeCard` already surfaces `gapReopened`. **The gap-reopen event is now real** (NOTIF-23): `listNotifications` emits a `gap`-kind item for every active gap, naming a reopened one explicitly rather than by color alone, with its own opt-out toggle and a jump-to-the-exact-card deep link (`/gap-map?gap=<id>`, real scroll+highlight). Still missing: a distinct **heat-spike** signal (severity-escalation crossing a threshold, independent of the open/reopened transition itself) and batching/throttling across multiple simultaneous gap events (each currently emits its own item, like every other notification kind here — no cross-item collapse). |
 | GAP-23 | ⏭️ Deferred | PRD-scoped Future. Requires a real guardian↔dependent account relationship (Auth/Org) that does not exist; today's single-account model cannot provide a per-child gap view. Explicitly unsupported rather than approximated. |
 
-Counts: 23 total — ✅ 11 Done, 🟡 10 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
+Counts: 23 total — ✅ 14 Done, 🟡 7 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
 
 ---
 

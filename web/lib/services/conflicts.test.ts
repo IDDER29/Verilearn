@@ -146,4 +146,56 @@ describe("conflicts service", () => {
     // an already-disputed (never-resolved) claim cannot be reopened
     expect(reopenConflict(USER, "topic_merkle", "topic_merkle_c4", "x").ok).toBe(false);
   });
+
+  describe("GAP-21: conflict-origin gap wiring", () => {
+    it("raising a dispute opens a new conflict-origin gap for the claim", () => {
+      const db = globalThis.__verilearnDb!;
+      expect([...db.gaps.values()].some((g) => g.gap.claimId === "topic_dijkstra_c1")).toBe(false);
+
+      raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "not convinced");
+
+      const rec = [...db.gaps.values()].find((g) => g.gap.claimId === "topic_dijkstra_c1")!;
+      expect(rec).toBeTruthy();
+      expect(rec.gap.origin).toBe("conflict");
+      expect(rec.gap.status).toBe("open");
+    });
+
+    it("resolving a conflict advances its tracked gap toward closure (like a correct recall)", () => {
+      const db = globalThis.__verilearnDb!;
+      // The seed already tracks an open, conflict-origin gap for c6 (gap_1).
+      expect(db.gaps.get("gap_1")!.gap.status).toBe("open");
+
+      const r = resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "only non-negative edge weights" });
+      expect(r.ok).toBe(true);
+      expect(db.gaps.get("gap_1")!.gap.status).toBe("watching");
+    });
+
+    it("reopening a resolved conflict reopens its tracked gap too", () => {
+      const db = globalThis.__verilearnDb!;
+      resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "only non-negative edge weights" });
+      expect(db.gaps.get("gap_1")!.gap.status).toBe("watching");
+
+      const r = reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", "the source doesn't cover directed graphs");
+      expect(r.ok).toBe(true);
+      expect(db.gaps.get("gap_1")!.gap.status).toBe("reopened");
+    });
+
+    it("an interpretive resolution also advances the tracked gap toward closure", () => {
+      const db = globalThis.__verilearnDb!;
+      raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c2", "not convinced");
+      const rec = [...db.gaps.values()].find((g) => g.gap.claimId === "topic_dijkstra_c2")!;
+      expect(rec.gap.status).toBe("open");
+
+      const r = resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c2", [{ stance: "a" }, { stance: "b" }]);
+      expect(r.ok).toBe(true);
+      expect(db.gaps.get(rec.gap.id)!.gap.status).toBe("watching");
+    });
+
+    it("a rejected dispute/resolution attempt never touches gap state", () => {
+      const db = globalThis.__verilearnDb!;
+      const before = db.gaps.get("gap_1")!.gap.status;
+      resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "" }); // rejected: no constraint
+      expect(db.gaps.get("gap_1")!.gap.status).toBe(before);
+    });
+  });
 });
