@@ -33,13 +33,13 @@ with justification** — nothing among them is silently dropped.
 | NOTIF — Notifications, Reminders & Messaging | 23 | 8 | 6 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 10 | 2 | 9 |
 | SETTINGS — Settings, Profile & Privacy | 23 | 13 | 7 | 3 |
-| BILL — Billing, Plans & Subscriptions | 23 | 7 | 4 | 12 |
+| BILL — Billing, Plans & Subscriptions | 23 | 8 | 3 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 6 | 14 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 3 | 1 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 3 | 4 | 16 |
-| **TOTAL** | **461** | **145** | **192** | **124** |
+| **TOTAL** | **461** | **146** | **191** | **124** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -535,7 +535,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | BILL-09 | ⏭️ Deferred | No invoice/receipt model, no PDF generation, billing history is a static empty state. Requires Stripe invoicing + the COMPLIANCE-DPO retention policy (deferred). |
 | BILL-10 | ⏭️ Deferred | No cycle-switch flow and no proration engine. Requires the Stripe subscription + deterministic proration engine (deferred key-technical-requirement). |
 | BILL-11 | 🟡 Partial | The "cancel anytime — your verified lectures stay yours" invariant copy is present (`web/app/upgrade/page.tsx`), the domain guarantees content/certificate persistence (immutable trust ledger, fail-closed certs), and the "Downgrade to Free" button is now **wired** — it calls `downgradeToFreeAction` (`web/app/billing-actions.ts`) via `UpgradeButton`, flipping `user.plan` back to free and refreshing (content preserved: the 3-cap is an activation limit, never a deletion). Still Partial: real billing cancels at period end (no proration/scheduling — Deferred with the Stripe seam), whereas the demo downgrades immediately. |
-| BILL-12 | 🟡 Partial | Content/trust preservation on downgrade is guaranteed by the engine — trust states are immutable and no billing path can rewrite the ledger (`web/lib/domain/trust.ts`, `rbac.ts` firewall). **The "choose which 3 stay active" prompt and the downgrade flow are now real**: `downgradeToFreeAction` (`app/billing-actions.ts`) refuses to downgrade a learner with more than `FREE_TOPIC_CAP` active topics and instead routes to `/upgrade/choose-topics` — a real page where the learner picks exactly 3, and `chooseFreeTopics` (`lib/services/topics.ts`, tested) archives the rest (content + events untouched, never deleted; a previously-archived kept topic is restored) before the plan actually flips. `createTopic`'s cap check now correctly excludes archived topics, and the Dashboard shows an honest "📦 Archived" status instead of a stale one. **Still missing:** true read-only enforcement — an archived topic isn't currently blocked from review/task submission elsewhere in the app, so "archived" is accurate bookkeeping and a real UI signal but not yet a hard gate everywhere. 4 new tests. |
+| BILL-12 | ✅ Done | Content/trust preservation on downgrade is guaranteed by the engine — trust states are immutable and no billing path can rewrite the ledger (`web/lib/domain/trust.ts`, `rbac.ts` firewall). The "choose which 3 stay active" prompt and the downgrade flow are real: `downgradeToFreeAction` (`app/billing-actions.ts`) refuses to downgrade a learner with more than `FREE_TOPIC_CAP` active topics and instead routes to `/upgrade/choose-topics` — a real page where the learner picks exactly 3, and `chooseFreeTopics` (`lib/services/topics.ts`, tested) archives the rest (content + events untouched, never deleted; a previously-archived kept topic is restored) before the plan actually flips. `createTopic`'s cap check correctly excludes archived topics, and the Dashboard shows an honest "📦 Archived" status. **Read-only enforcement is now real too**: `gradeCard`/`getDueCards` (review), `gradeSubmission` (tasks), and `raiseDispute`/`resolveConflict`/`resolveAsInterpretive`/`reopenConflict` (conflicts) all refuse to act on an archived topic's claims — a server-side gate, not just a UI hint. 7 new tests across `topics.test.ts`/`review.test.ts`/`tasks.test.ts`/`conflicts.test.ts`. |
 | BILL-13 | ⏭️ Deferred | Teams tenant entity exists (`web/lib/store/entities.ts`: `plan: "team"`, `seatLimit`), but there is no seat-count purchase flow. "Contact sales" is now a working `mailto:` link (`components/PlanTiers.tsx`, BILL-03) rather than an inert button, but that only opens an email — real sales-assisted seat provisioning + Stripe remain deferred. |
 | BILL-14 | ⏭️ Deferred | No seat-ceiling change flow, no proration, no occupied-seat/5-seat-minimum enforcement engine. `billing:manage` permission is modeled in RBAC but no service backs it. Requires the deferred proration/seat engine. |
 | BILL-15 | 🟡 Partial | The defining authority split is modeled and tested at the RBAC layer (`web/lib/domain/rbac.ts` + `rbac.test.ts`): `org_admin` holds `org:manage_seats`/`org:manage_roles` but not spend; `billing_admin` holds `billing:manage` but not seats; neither holds `trust:write`. However, no seat-allocation UI/service (invite/assign/reclaim, "32 of 50" utilization, "seats full — request increase" routing) is built. Permission boundary done; the operational flow is not. |
@@ -548,7 +548,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | BILL-22 | ⏭️ Deferred | No seat/plan concurrency control — no optimistic locking or single-source-of-truth serialization for a seat pool (none exists yet). Nice-to-have; requires the deferred seat engine. |
 | BILL-23 | ⏭️ Deferred | Future per the PRD. Payer≠learner is not modeled — only a shared single account. The COPPA age-gate exists in Auth but guardian-owned billing (distinct billing identity, guardian views, dependent-content shielding) is unbuilt. |
 
-**Counts:** 23 total — ✅ 7 Done · 🟡 4 Partial · ⏭️ 12 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 23 total — ✅ 8 Done · 🟡 3 Partial · ⏭️ 12 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

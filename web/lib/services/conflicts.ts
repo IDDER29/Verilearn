@@ -73,6 +73,7 @@ export function raiseDispute(userId: string, topicId: string, claimId: string, r
   const db = getDb();
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  if (topic.archived) return { ok: false, error: "This topic is archived — reactivate it to raise a dispute." };
   const claim = topic.claims.find((c) => c.id === claimId);
   if (!claim) return { ok: false, error: "Claim not found." };
   if (!reason.trim()) return { ok: false, error: "Explain why you're disputing this." };
@@ -144,6 +145,7 @@ export function resolveConflict(userId: string, topicId: string, claimId: string
   const db = getDb();
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  if (topic.archived) return { ok: false, error: "This topic is archived — reactivate it to resolve a conflict." };
   const claim = topic.claims.find((c) => c.id === claimId);
   if (!claim) return { ok: false, error: "Claim not found." };
 
@@ -194,6 +196,7 @@ export function resolveAsInterpretive(userId: string, topicId: string, claimId: 
   const db = getDb();
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  if (topic.archived) return { ok: false, error: "This topic is archived — reactivate it to resolve a conflict." };
   const claim = topic.claims.find((c) => c.id === claimId);
   if (!claim) return { ok: false, error: "Claim not found." };
 
@@ -258,6 +261,7 @@ export function reopenConflict(userId: string, topicId: string, claimId: string,
   const db = getDb();
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  if (topic.archived) return { ok: false, error: "This topic is archived — reactivate it to reopen a conflict." };
   const claim = topic.claims.find((c) => c.id === claimId);
   if (!claim) return { ok: false, error: "Claim not found." };
   if (!reason.trim()) return { ok: false, error: "Give a reason to reopen this conflict." };

@@ -198,4 +198,16 @@ describe("conflicts service", () => {
       expect(db.gaps.get("gap_1")!.gap.status).toBe(before);
     });
   });
+
+  describe("BILL-12: archived topics are read-only", () => {
+    it("refuses to raise, resolve, interpret, or reopen a dispute on an archived topic", () => {
+      const db = globalThis.__verilearnDb!;
+      db.topics.get("topic_dijkstra")!.archived = true;
+
+      expect(raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "not convinced").ok).toBe(false);
+      expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "x" }).ok).toBe(false);
+      expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false);
+      expect(reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", "reason").ok).toBe(false);
+    });
+  });
 });

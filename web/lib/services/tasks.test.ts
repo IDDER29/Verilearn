@@ -56,6 +56,14 @@ describe("tasks service (produce step)", () => {
     expect(gradeSubmission("intruder", "task_dijkstra_1", "x").ok).toBe(false);
   });
 
+  it("BILL-12: refuses to grade a task on an archived topic", () => {
+    const db = globalThis.__verilearnDb!;
+    db.topics.get("topic_dijkstra")!.archived = true;
+    const r = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/archived/i);
+  });
+
   it("TASK-22: rejects a too-short submission and one that just echoes the prompt back", () => {
     const tooShort = gradeSubmission(USER, "task_dijkstra_1", "not sure why");
     expect(tooShort.ok).toBe(false);

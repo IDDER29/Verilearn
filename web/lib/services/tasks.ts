@@ -114,6 +114,10 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
   const db = getDb();
   const task = db.tasks.get(taskId);
   if (!task || task.userId !== userId) return { ok: false, error: "Task not found." };
+  // Read-only enforcement (BILL-12): an archived topic can't be graded.
+  if (db.topics.get(task.topicId)?.archived) {
+    return { ok: false, error: "This topic is archived. Upgrade or free up a slot to reactivate it before submitting." };
+  }
   if (!answer.trim()) return { ok: false, error: "Write an answer before submitting." };
 
   // Minimum-substance gate (TASK-22): too short to grade, or just the prompt copied back.

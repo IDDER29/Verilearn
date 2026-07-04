@@ -118,6 +118,20 @@ describe("review service", () => {
     expect(dueAfter.some((c) => c.claimId === target.claimId)).toBe(false);
   });
 
+  it("BILL-12: holds out a due card whose topic is archived, and gradeCard refuses to grade it", () => {
+    const db = globalThis.__verilearnDb!;
+    const dueBefore = getDueCards(USER, SEED_NOW);
+    const target = dueBefore[0];
+    db.topics.get(target.topicId)!.archived = true;
+
+    const dueAfter = getDueCards(USER, SEED_NOW);
+    expect(dueAfter.some((c) => c.id === target.id)).toBe(false);
+
+    const r = gradeCard(USER, target.id, "sure", "good", SEED_NOW);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/archived/i);
+  });
+
   it("a 'good' grade reschedules forward and logs calibration", () => {
     const before = globalThis.__verilearnDb!.reviewLog.length;
     const r = gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);

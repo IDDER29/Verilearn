@@ -21,15 +21,21 @@ function cardClaimEligible(card: ReviewCardRecord): boolean {
   return topic ? isTestEligible(ledgerFor(topic).stateOf(card.claimId)) : false;
 }
 
+/** True when a card's topic has been archived by a Free-plan downgrade (BILL-12) — read-only until reactivated. */
+function cardTopicArchived(card: ReviewCardRecord): boolean {
+  return !!getDb().topics.get(card.topicId)?.archived;
+}
+
 /**
  * Cards due for review, soonest first — gated by LIVE trust eligibility (REVIEW-15):
  * a card whose claim has become `disputed`/`unsupported`/`interpretive` is held
  * out of the deck until it's resolved, so review never reinforces contested
- * content. Recomputed from the ledger on each call, not a stored flag.
+ * content. Recomputed from the ledger on each call, not a stored flag. Also
+ * excludes cards on an archived topic (BILL-12) — archiving is read-only.
  */
 export function getDueCards(userId: string, at: number): ReviewCardRecord[] {
   return reviewCardsOf(getDb(), userId)
-    .filter((c) => c.fsrs.due <= at && cardClaimEligible(c))
+    .filter((c) => c.fsrs.due <= at && cardClaimEligible(c) && !cardTopicArchived(c))
     .sort((a, b) => a.fsrs.due - b.fsrs.due);
 }
 
@@ -128,6 +134,11 @@ export function gradeCard(userId: string, cardId: string, confidence: Confidence
   const db = getDb();
   const card = db.reviewCards.get(cardId);
   if (!card || card.userId !== userId) return { ok: false, error: "Card not found." };
+  // Read-only enforcement (BILL-12): an archived topic can't be reviewed — the
+  // server gate, not just the due-deck filter, so this can't be bypassed.
+  if (db.topics.get(card.topicId)?.archived) {
+    return { ok: false, error: "This topic is archived. Upgrade or free up a slot to reactivate it before reviewing." };
+  }
 
   card.fsrs = schedule(card.fsrs, rating, at, fsrsParamsFor(userId));
   const correct = rating !== "again";
