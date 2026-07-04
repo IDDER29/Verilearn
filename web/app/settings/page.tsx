@@ -26,8 +26,9 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
+      role="switch"
       onClick={onClick}
-      aria-pressed={on}
+      aria-checked={on}
       style={{
         width: 46,
         height: 27,
