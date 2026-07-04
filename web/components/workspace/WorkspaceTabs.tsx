@@ -23,6 +23,7 @@ export default function WorkspaceTabs({ active, onTab }: { active: TabKey; onTab
             key={t.key}
             type="button"
             onClick={() => onTab(t.key)}
+            aria-current={isActive ? "true" : undefined}
             style={{
               flex: 1,
               textAlign: "center",

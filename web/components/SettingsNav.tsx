@@ -166,7 +166,7 @@ export default function SettingsNav({ active }: { active: SettingsKey }) {
               {section.heading}
             </span>
             {section.items.map((item) => (
-              <Link key={item.key} href={item.href} style={itemStyle(item, active === item.key)}>
+              <Link key={item.key} href={item.href} aria-current={active === item.key ? "page" : undefined} style={itemStyle(item, active === item.key)}>
                 {item.icon}
                 {item.label}
               </Link>

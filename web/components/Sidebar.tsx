@@ -178,6 +178,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       }}
       className="vl-navlink"
       data-active={active}
+      aria-current={active ? "page" : undefined}
     >
       {item.icon}
       {item.label}
@@ -229,9 +230,11 @@ export default function Sidebar({ active }: { active?: NavKey }) {
         <span style={{ font: "900 21px var(--font-nunito)", letterSpacing: "-.02em" }}>VeriLearn</span>
       </div>
 
-      {NAV.map((item) => (
-        <NavLink key={item.key} item={item} active={active === item.key} />
-      ))}
+      <nav aria-label="Primary" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {NAV.map((item) => (
+          <NavLink key={item.key} item={item} active={active === item.key} />
+        ))}
+      </nav>
 
       <div style={{ height: 1, background: "#ece8f4", margin: "14px 8px" }} />
 

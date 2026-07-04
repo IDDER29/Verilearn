@@ -34,8 +34,9 @@ export default function AppShell({
           boxShadow: "0 30px 80px -40px rgba(80,60,140,.4)",
         }}
       >
+        <a href="#vl-main" className="vl-skip">Skip to main content</a>
         <Sidebar active={active} />
-        {children}
+        <div id="vl-main" tabIndex={-1} style={{ minWidth: 0, outline: "none" }}>{children}</div>
       </div>
     </div>
   );
