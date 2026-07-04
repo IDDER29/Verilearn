@@ -26,7 +26,14 @@ export default async function ReportsPage() {
   const user = await requireUser();
   const { signals } = progressFor(user.id);
   const topicRows = perTopicProgress(user.id);
-  const focus = focusAreas(user.id).slice(0, 3);
+  const allFocus = focusAreas(user.id);
+  const focus = allFocus.slice(0, 3);
+  // Portfolio health bands (ANALYTICS-19): count topics by their weakest-signal tone.
+  const bands = {
+    green: allFocus.filter((f) => f.tone === "green").length,
+    amber: allFocus.filter((f) => f.tone === "amber").length,
+    red: allFocus.filter((f) => f.tone === "red").length,
+  };
   const SIGNAL_CARDS = [
     { s: signals.retention, bg: "#eef2fb", stroke: "#3a63b0", label: "Retention", labelColor: "#3a63b0", sub: "How much you recall over time", subColor: "#7d90b5", icon: <path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5" /> },
     { s: signals.transfer, bg: "#eef7f1", stroke: "#2e9c6a", label: "Transfer", labelColor: "#2e9c6a", sub: "Applying it to new problems", subColor: "#6ba888", icon: <path d="M4 17l5-5-5-5M12 19h8" /> },
@@ -55,6 +62,16 @@ export default async function ReportsPage() {
             </svg>
           </button>
         </div>
+
+        {/* portfolio health bands (ANALYTICS-19) */}
+        {allFocus.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", borderRadius: 16, padding: "12px 18px", boxShadow: "0 6px 18px -14px rgba(80,60,140,.3)", font: "800 12.5px var(--font-nunito)" }}>
+            <span style={{ color: "#8b8699", fontWeight: 700 }}>Across {allFocus.length} topic{allFocus.length === 1 ? "" : "s"}:</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#2e9c6a" }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#2e9c6a" }} />{bands.green} solid</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#b4830f" }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#c99a2b" }} />{bands.amber} watch</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#c0392b" }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#c0392b" }} />{bands.red} needs work</span>
+          </div>
+        )}
 
         {/* four signal cards — real values, honest empty/low-confidence states */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
