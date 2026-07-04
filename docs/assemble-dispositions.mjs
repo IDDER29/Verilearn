@@ -25,7 +25,7 @@ const ROWS = [
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],
   ["A11Y", "Accessibility, Mobile & Offline", 24, 6, 14, 4],
   ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 1, 3, 18],
-  ["SEC", "Security, Privacy Eng. & Compliance", 23, 2, 4, 17],
+  ["SEC", "Security, Privacy Eng. & Compliance", 23, 3, 3, 17],
 ];
 
 const sum = (i) => ROWS.reduce((a, r) => a + r[i], 0);
