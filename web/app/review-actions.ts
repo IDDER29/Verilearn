@@ -4,7 +4,8 @@ import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
 import { getDueCards, gradeCard, type Confidence } from "@/lib/services/review";
-import { getDb, reviewCardsOf } from "@/lib/store/db";
+import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
+import type { TrustState } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
 
 export interface SessionCard {
@@ -15,6 +16,8 @@ export interface SessionCard {
   topicTitle: string;
   /** Lecture section the card's claim belongs to (e.g. "s1"). */
   section: string;
+  /** Live trust state of the card's underlying claim, from the ledger (REVIEW-03). */
+  trustState: TrustState | null;
   /** Real FSRS projected interval label per rating (REVIEW-04). */
   intervals: { again: string; hard: string; good: string; easy: string };
 }
@@ -29,6 +32,7 @@ export async function getDueCardsAction(): Promise<SessionCard[]> {
     const topic = db.topics.get(c.topicId);
     const iv = nextIntervals(c.fsrs, at);
     const section = topic?.claims.find((cl) => cl.id === c.claimId)?.sectionId ?? "";
+    const trustState = topic ? ledgerFor(topic).stateOf(c.claimId) : null;
     return {
       id: c.id,
       q: c.question,
@@ -36,6 +40,7 @@ export async function getDueCardsAction(): Promise<SessionCard[]> {
       source: c.sourceRef,
       topicTitle: topic?.title ?? "Topic",
       section,
+      trustState,
       intervals: {
         again: formatInterval(iv.again),
         hard: formatInterval(iv.hard),

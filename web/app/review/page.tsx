@@ -29,6 +29,16 @@ function sectionLabel(section: string): string {
   return m ? `§${m[1]}` : section || "lecture";
 }
 
+/** Card trust badge derived from the claim's LIVE ledger state (REVIEW-03) — never a static label. */
+const TRUST_BADGE: Record<string, { label: string; color: string; bg: string }> = {
+  verified_execution: { label: "Verified · execution", color: "#0e8c6b", bg: "#e7f4ee" },
+  verified_source: { label: "Verified · source", color: "#2d6cdf", bg: "#e7effb" },
+  sourced: { label: "Sourced", color: "#2d6cdf", bg: "#e7effb" },
+  interpretive: { label: "Interpretive", color: "#6d5bd0", bg: "#efe9ff" },
+  disputed: { label: "Disputed", color: "#c0392b", bg: "#fbeceb" },
+  unsupported: { label: "Unsupported", color: "#c0392b", bg: "#fbeceb" },
+};
+
 /** Real per-card calibration verdict from the committed confidence vs. the recall outcome (REVIEW-05). */
 function calibrationVerdict(confidence: ConfKey, rating: Rating): { title: string; tone: string; bg: string; detail: string } {
   const correct = rating !== "again";
@@ -207,13 +217,18 @@ export default function ReviewPage() {
                 </div>
               </div>
               {phase === "front" ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 11px var(--font-nunito)", color: "#2e9c6a", background: "#e7f4ee", padding: "6px 11px", borderRadius: 10 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M8 12.5l2.5 2.5L16 9.5" />
-                  </svg>
-                  Verified card
-                </div>
+                (() => {
+                  const badge = (c.trustState && TRUST_BADGE[c.trustState]) || { label: "Unverified", color: "#8b8699", bg: "#f2f0f6" };
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 11px var(--font-nunito)", color: badge.color, background: badge.bg, padding: "6px 11px", borderRadius: 10 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M8 12.5l2.5 2.5L16 9.5" />
+                      </svg>
+                      {badge.label}
+                    </div>
+                  );
+                })()
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 11px var(--font-nunito)", color: "#6d5bd0", background: "#efe9ff", padding: "6px 11px", borderRadius: 10 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
