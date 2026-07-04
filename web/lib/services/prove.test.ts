@@ -59,4 +59,26 @@ describe("test session (prove loop)", () => {
     expect(fail.certificateId).toBeUndefined();
     expect(globalThis.__verilearnDb!.certificates.size).toBe(1); // unchanged
   });
+
+  it("missed claims become tracked gaps tagged origin=test, ignoring foreign ids (TEST-06)", () => {
+    const db = globalThis.__verilearnDb!;
+    const before = [...db.gaps.values()].filter((g) => g.userId === USER).length;
+    const r = submitTest(USER, "topic_dijkstra", 4, 5, ["topic_dijkstra_c3", "not_a_real_claim"]);
+    expect(r.ok).toBe(true);
+    expect(r.gapsOpened).toBe(1); // the bogus id is ignored; one real miss tracked
+    const gaps = [...db.gaps.values()].filter((g) => g.userId === USER);
+    expect(gaps.length).toBe(before + 1);
+    const opened = gaps.find((g) => g.gap.claimId === "topic_dijkstra_c3")!;
+    expect(opened.gap.origin).toBe("test");
+    expect(opened.gap.status).toBe("open");
+  });
+
+  it("re-missing an already-tracked claim does not duplicate its gap (TEST-06)", () => {
+    const db = globalThis.__verilearnDb!;
+    // seed already tracks a gap on topic_dijkstra_c6 (open); missing it must not add another
+    const before = [...db.gaps.values()].filter((g) => g.userId === USER).length;
+    const r = submitTest(USER, "topic_dijkstra", 4, 5, ["topic_dijkstra_c6"]);
+    expect(r.gapsOpened).toBe(0); // already open — no new/regressed gap
+    expect([...db.gaps.values()].filter((g) => g.userId === USER).length).toBe(before);
+  });
 });
