@@ -83,15 +83,21 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
   if (user.plan === "free" && existing.length >= 3) {
     return { ok: false, error: "Free plan is limited to 3 topics. Upgrade to Pro for unlimited topics." };
   }
+  // Server-side gate mirrors the client (VERIFY-02): all three fields required,
+  // not just the title — the client gate must not be the only guard.
   const title = input.title.trim();
+  const level = input.level.trim();
+  const goal = input.goal.trim();
   if (title.length < 2) return { ok: false, error: "Enter a topic to learn." };
+  if (level.length < 4) return { ok: false, error: "Tell us what you already know about it." };
+  if (goal.length === 0) return { ok: false, error: "Pick what you want to get out of it." };
 
   const topicId = newId("topic");
   const createdAt = now();
   const ledger = new TrustLedger();
   let n = 0;
   const run = runPipeline({
-    topic: { id: topicId, title, level: input.level, goal: input.goal },
+    topic: { id: topicId, title, level, goal },
     verifier: new DeterministicVerifier(),
     ledger,
     actor: SYSTEM,
@@ -104,8 +110,8 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
     id: topicId,
     ownerId: userId,
     title,
-    level: input.level,
-    goal: input.goal,
+    level,
+    goal,
     createdAt,
     claims: run.claims,
     // The deterministic adapter doesn't surface curated source objects; sources are

@@ -8,7 +8,7 @@ const DIR = new URL("./dispositions/", import.meta.url).pathname;
 const ROWS = [
   ["AUTH", "Authentication, Onboarding & Identity", 24, 4, 11, 9],
   ["HOME", "Learner Home / Dashboard & Discovery", 22, 6, 15, 1],
-  ["VERIFY", "Topic Creation & Verification Pipeline", 23, 9, 13, 1],
+  ["VERIFY", "Topic Creation & Verification Pipeline", 23, 10, 12, 1],
   ["LEARN", "Lecture & Active Listening", 23, 3, 19, 1],
   ["TASK", "Tasks & Rubric Assessment", 24, 4, 17, 3],
   ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 7, 11, 4],

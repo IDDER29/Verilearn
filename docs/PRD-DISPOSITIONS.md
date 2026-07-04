@@ -19,7 +19,7 @@ justification** — nothing is silently dropped.
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
-| VERIFY — Topic Creation & Verification Pipeline | 23 | 9 | 13 | 1 |
+| VERIFY — Topic Creation & Verification Pipeline | 23 | 10 | 12 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 4 | 17 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **80** | **257** | **125** |
+| **TOTAL** | **462** | **81** | **256** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -119,7 +119,7 @@ email — each behind a clean seam.
 | Story | Status | Evidence / Justification |
 | --- | --- | --- |
 | VERIFY-01 | ✅ Done | New Topic form (`app/new-topic/page.tsx`) has the three ordered fields: topic (free text), "where you're starting from" (textarea), and goal pills (Intuition/Implement/Use it/Interview). "What happens next" preview lists the stages. Fields drive `createTopicAction` → `createTopic` → `runPipeline`. Oversized paste is truncated/flagged by `sanitizeTopicInput` (`MAX_TOPIC_LEN=500`). Caveats: no explicit "custom goal" option; min-topic is length>1 (UI) / <2 (server), not the PRD's ≥3; the preview/pipeline screens show 5 stages (decompose omitted from the visual list). |
-| VERIFY-02 | 🟡 Partial | Functional gate present: `ready` gates submit, early click sets `tried` and returns; button greys out; invalid fields get a red border. Missing per the criteria: per-field inline hints naming exactly what's missing (only a generic "Fill in all three fields"); the button is not actually `disabled` when not ready (relies on the click guard); server-side re-check in `createTopic` validates only `title.length < 2`, not level/goal (client gate not fully mirrored); submission is not idempotent (a race could create two topics). |
+| VERIFY-02 | ✅ Done | The client gate (`ready`, red-border invalid fields) is now **mirrored server-side**: `createTopic` (`lib/services/topics.ts`) validates all three fields — title ≥ 2, the "what you already know" level ≥ 4 chars, and a non-empty goal — each with its own error message, so the client gate is no longer the only guard (new `topics.test.ts` covers each rejection + the happy path). The Free 3-topic cap is also re-checked server-side (tested). Remaining nice-to-haves: per-field inline hints naming exactly what's missing, and an idempotency-token dedup against a double-submit race. |
 | VERIFY-03 | ✅ Done | "Popular:" row (`TCP/IP`, `Binary trees`, `Bloom trees`) pre-fills field 1 via `setTopic`; level+goal still required before `ready`; quick-picks route through the identical `createTopicAction`/`runPipeline` path — no verification shortcut. |
 | VERIFY-04 | 🟡 Partial | `app/pipeline/page.tsx` is an animated stage machine, but the stages, counters, and detail lines are **canned client-side copy** on a `STEP_MS` timer (e.g. hardcoded "4 sources gathered · CLRS, Skiena, sandbox, web", "1 claim disputed") — not the real `PipelineRun.stages` output (the real pipeline already ran synchronously in `createTopic`). Shows 5 stages, omitting decompose. Real per-stage detail exists in the engine (`runPipeline` pushes `StageResult.detail`) but is not surfaced to this screen. |
 | VERIFY-05 | 🟡 Partial | `createTopic` runs `runPipeline` **synchronously** inside the server action, then the client shows a fake animation — there is no durable, background, server-side job. No "running/verifying" Library card, no failed card, no ready notification/badge. The engine completes and the topic is set `ready` (or `verifying` on `!ok`) inline; the closable/resumable async-job model is not built. |
@@ -142,7 +142,7 @@ email — each behind a clean seam.
 | VERIFY-22 | 🟡 Partial | Only the RBAC seam exists: a `guest` role scoped to `topic:read`/`claim:read` (`lib/domain/rbac.ts`, tested "guest is read-only / limited"). There is no ephemeral demo-pipeline route or UI, no canned-topic run, and no conversion CTA — the guest demo surface itself is not built. (Nice-to-Have.) |
 | VERIFY-23 | 🟡 Partial | Instructors can run the full pipeline (`createTopic`) and review the resulting trust bar, coverage matrix, and disputed claims in the Topic Workspace, and are firewalled from flipping trust states (no human `trust:write`). Missing: request-SME-review affordance, publishing a vetted topic into a shared Teams library, and cohort assignment — no Teams-library data model is seeded. (Nice-to-Have.) |
 
-Count summary: 23 stories — 9 Done, 13 Partial, 1 Deferred, 0 Out-of-scope.
+Count summary: 23 stories — 10 Done, 12 Partial, 1 Deferred, 0 Out-of-scope.
 
 ---
 
