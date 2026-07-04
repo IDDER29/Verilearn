@@ -56,6 +56,49 @@ describe("notifications service", () => {
     expect(listNotifications(USER).every((i) => !i.unread)).toBe(true);
   });
 
+  it("NOTIF-05: emits a streak-at-risk nudge for a live, unreviewed-today streak", () => {
+    const db = globalThis.__verilearnDb!;
+    const day = 86_400_000;
+    const realNow = Date.now();
+    db.reviewLog.push(
+      { userId: USER, claimId: "topic_dijkstra_c1", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - 2 * day },
+      { userId: USER, claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - 1 * day },
+    );
+    const streak = listNotifications(USER).find((i) => i.kind === "streak");
+    expect(streak).toBeTruthy();
+    expect(streak!.title).toMatch(/2-day streak/);
+    expect(streak!.href).toBe("/review");
+  });
+
+  it("no streak nudge with fewer than 2 live days, or once today is already reviewed", () => {
+    const db = globalThis.__verilearnDb!;
+    const day = 86_400_000;
+    const realNow = Date.now();
+    // Single-day streak: no nudge.
+    expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(false);
+    db.reviewLog.push({ userId: USER, claimId: "topic_dijkstra_c1", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - day });
+    expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(false);
+    // A 2-day streak, but already reviewed today too: no nudge (nothing at risk).
+    db.reviewLog.push(
+      { userId: USER, claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - 2 * day },
+      { userId: USER, claimId: "topic_dijkstra_c3", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow },
+    );
+    expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(false);
+  });
+
+  it("NOTIF-08: muting the streak category removes it from the feed", () => {
+    const db = globalThis.__verilearnDb!;
+    const day = 86_400_000;
+    const realNow = Date.now();
+    db.reviewLog.push(
+      { userId: USER, claimId: "topic_dijkstra_c1", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - 2 * day },
+      { userId: USER, claimId: "topic_dijkstra_c2", topicId: "topic_dijkstra", confidence: "sure", rating: "good", correct: true, at: realNow - 1 * day },
+    );
+    expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(true);
+    db.users.get(USER)!.prefs.notifications.streak = false;
+    expect(listNotifications(USER).some((i) => i.kind === "streak")).toBe(false);
+  });
+
   it("read-state is per-user", () => {
     markAllNotificationsRead(USER);
     // A different user's (empty) feed is unaffected; scoping via the namespaced key.

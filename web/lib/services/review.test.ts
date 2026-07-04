@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { closeGap, openGap, toWatching } from "@/lib/domain/gap";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS } from "./review";
+import { calibrationFor, dueBreakdown, fsrsParamsFor, gradeCard, getDueCards, getReviewAheadCards, retentionFor, sessionSummaryFor, SESSION_WINDOW_MS, streakStatus } from "./review";
 import { retrievability } from "@/lib/domain/fsrs";
 import { updatePrefs } from "./prefs";
 
@@ -156,6 +156,40 @@ describe("review service", () => {
     gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", later); // new session
     const s = sessionSummaryFor(USER, later);
     expect(s.reviewed).toBe(1); // only the recent grade counts
+  });
+
+  it("NOTIF-05: a live ≥2-day streak with nothing logged today is at risk", () => {
+    const day = 86_400_000;
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW - 2 * day);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW - 1 * day);
+    const s = streakStatus(USER, SEED_NOW);
+    expect(s.currentStreak).toBe(2);
+    expect(s.atRisk).toBe(true);
+  });
+
+  it("NOTIF-05: a review already logged today keeps the streak going and isn't at risk", () => {
+    const day = 86_400_000;
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW - day);
+    gradeCard(USER, "rc_topic_dijkstra_c2", "sure", "good", SEED_NOW);
+    const s = streakStatus(USER, SEED_NOW);
+    expect(s.currentStreak).toBe(2);
+    expect(s.atRisk).toBe(false);
+  });
+
+  it("NOTIF-05: a single-day streak isn't 'at risk' (avoids nudging on day one)", () => {
+    const day = 86_400_000;
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW - day);
+    const s = streakStatus(USER, SEED_NOW);
+    expect(s.currentStreak).toBe(1);
+    expect(s.atRisk).toBe(false);
+  });
+
+  it("NOTIF-05: a streak already broken before yesterday is just over, not 'at risk'", () => {
+    const day = 86_400_000;
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW - 5 * day);
+    const s = streakStatus(USER, SEED_NOW);
+    expect(s.currentStreak).toBe(0);
+    expect(s.atRisk).toBe(false);
   });
 
   it("GAP-05: correct recalls advance a tracked gap open→watching→closed", () => {

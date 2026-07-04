@@ -225,3 +225,32 @@ export function sessionSummaryFor(userId: string, now: number): SessionSummary {
 
   return { reviewed: session.length, correct, ratingCounts, calibration, streakDays, nextDue, dueSoonCount };
 }
+
+export interface StreakStatus {
+  /** Consecutive calendar days with ≥1 review, counting backward from yesterday (or today). */
+  currentStreak: number;
+  /** True when a real (≥2-day) streak is still alive as of yesterday but nothing is logged yet today. */
+  atRisk: boolean;
+}
+
+/**
+ * A learner's review streak as of `now` (NOTIF-05), independent of
+ * {@link sessionSummaryFor}'s "ending on the latest review" framing: this one
+ * is relative to the calendar day `now` falls on, so it can tell whether
+ * TODAY still needs a review to keep the streak alive. `atRisk` requires a
+ * genuine streak (≥2 days) that's intact through yesterday — a single day
+ * isn't a "streak" worth nudging about, and a streak already broken isn't
+ * "at risk", it's just over.
+ */
+export function streakStatus(userId: string, now: number): StreakStatus {
+  const log = getDb().reviewLog.filter((r) => r.userId === userId);
+  const days = new Set(log.map((r) => Math.floor(r.at / DAY_MS)));
+  const today = Math.floor(now / DAY_MS);
+
+  const reviewedToday = days.has(today);
+  let currentStreak = 0;
+  for (let d = reviewedToday ? today : today - 1; days.has(d); d -= 1) currentStreak += 1;
+
+  const atRisk = !reviewedToday && currentStreak >= 2;
+  return { currentStreak, atRisk };
+}
