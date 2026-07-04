@@ -56,7 +56,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
   const conflicts = allTopics.reduce((n, t) => n + t.disputes, 0);
   // Free plan at its topic cap → the hero CTA nudges to Upgrade instead of New Topic (HOME-13).
-  const atCap = user.plan === "free" && allTopics.length >= FREE_TOPIC_CAP;
+  // Archived topics (BILL-12) don't count against the cap.
+  const activeTopicCount = allTopics.filter((t) => !t.archived).length;
+  const atCap = user.plan === "free" && activeTopicCount >= FREE_TOPIC_CAP;
 
   // Real headline stats.
   const claimsChecked = allTopics.reduce((n, t) => n + t.claimCount, 0);
@@ -329,8 +331,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 { color: "#2d6cdf", pct: pct(t.breakdown.sourced) },
                 { color: "#b4690e", pct: pct(t.breakdown.disputed) },
               ].filter((s) => s.pct > 0);
-              const status =
-                t.status === "failed"
+              const status = t.archived
+                ? { label: "📦 Archived", color: "#8b8699", bg: "#f0edf6" }
+                : t.status === "failed"
                   ? { label: "⚠ Couldn't verify", color: "#c0392b", bg: "#fbeceb" }
                   : t.status === "verifying"
                     ? { label: "◌ Verifying…", color: "#b4830f", bg: "#fbefdd" }

@@ -83,6 +83,13 @@ export interface TopicRecord extends Topic {
   verifiedPercent: number;
   /** Real per-stage pipeline output (VERIFY-04), captured at creation — incl. the failed stage. */
   pipelineStages?: { stage: string; detail: string; status: "done" | "failed" }[];
+  /**
+   * Archived on a Free-plan downgrade past the topic cap (BILL-12): content and
+   * trust ledger are preserved untouched — archiving is never deletion — but the
+   * topic no longer counts against the active cap and is read-only until the
+   * learner re-upgrades or frees up a slot.
+   */
+  archived?: boolean;
 }
 
 export interface ReviewCardRecord {

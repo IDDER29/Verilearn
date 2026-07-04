@@ -62,7 +62,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 ### Screens wired to real data (P4)
 | Screen | Real data source |
 |---|---|
-| Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting |
+| Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting; archived topics (BILL-12) show a real "📦 Archived" status and don't count toward the Free cap |
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
 | Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted |
@@ -80,6 +80,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
 | Settings › Sessions & devices | real live session list scoped to the caller (`db.sessions`), device parsed from the real User-Agent, sign-out-one / sign-out-others / sign-out-everywhere (AUTH-12) |
 | Upgrade / Welcome | real current plan / greeting + counts; Pro CTA runs a real (demo, no-charge) plan activation → entitlements flip |
+| Choose your topics (`/upgrade/choose-topics`) | real "keep exactly 3, archive the rest" downgrade flow (BILL-12) — content/ledger untouched, never deleted |
 | Checkout (`/upgrade/checkout`) | real billing-cycle toggle recomputes the order summary; "Pay" runs the same real (demo, no-charge) plan activation as elsewhere (BILL-04) |
 | Upgrade Success (`/upgrade/success`) | real active plan name + learner email; honest Free-plan guard when no purchase occurred — now consistent with Checkout's real activation |
 | Login / Signup | real auth + COPPA age-gate; "Remember me" TTL + failed-sign-in lockout/backoff (AUTH-06/AUTH-23) |
@@ -87,7 +88,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 364 passing across 27 files · build green.
+**Test count:** 369 passing across 27 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
@@ -125,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after a real, recomputing checkout billing-cycle toggle + real demo-upgrade on Pay (BILL-04) — 145 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the real "choose which topics stay active" downgrade flow (BILL-12) — 145 Done; remainder is field-polish or deferred-with-justification._

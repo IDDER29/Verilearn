@@ -31,13 +31,25 @@ export default function UpgradeButton({
       disabled={busy}
       onClick={async () => {
         setBusy(true);
-        const { ok } = plan === "free" ? await downgradeToFreeAction() : await activateDemoPlanAction(plan);
+        if (plan === "free") {
+          const r = await downgradeToFreeAction();
+          if (r.needsTopicChoice) {
+            router.push("/upgrade/choose-topics");
+            return;
+          }
+          if (!r.ok) {
+            setBusy(false);
+            return;
+          }
+          router.refresh();
+          return;
+        }
+        const { ok } = await activateDemoPlanAction(plan);
         if (!ok) {
           setBusy(false);
           return;
         }
-        if (plan === "free") router.refresh();
-        else router.push("/upgrade/success");
+        router.push("/upgrade/success");
       }}
       style={{ ...style, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}
     >

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { createTopic, listTopicSummaries } from "./topics";
+import { activeTopicCount, chooseFreeTopics, createTopic, FREE_TOPIC_CAP, listTopicSummaries } from "./topics";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -60,5 +60,64 @@ describe("createTopic — server-side gate (VERIFY-02)", () => {
     const r = createTopic(USER, { title: "A fourth topic", level: "some background", goal: "learn it" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toMatch(/Free plan is limited/);
+  });
+
+  it("BILL-12: archived topics don't count against the cap, so a new one can be created", () => {
+    const db = globalThis.__verilearnDb!;
+    const someId = [...db.topics.keys()].find((id) => db.topics.get(id)!.ownerId === USER)!;
+    db.topics.get(someId)!.archived = true;
+    const r = createTopic(USER, { title: "Room again", level: "some background", goal: "learn it" });
+    expect(r.ok).toBe(true);
+  });
+});
+
+describe("chooseFreeTopics (BILL-12)", () => {
+  it("archives everything not kept, and restores a previously-archived kept topic", () => {
+    const db = globalThis.__verilearnDb!;
+    // Two extra topics (simulating a former Pro account) plus the 3 seeded ones.
+    db.users.get(USER)!.plan = "pro"; // lift the cap just to seed them
+    const extra = createTopic(USER, { title: "Extra topic", level: "some background", goal: "learn it" });
+    const r2 = createTopic(USER, { title: "Extra topic 2", level: "some background", goal: "learn it" });
+    db.users.get(USER)!.plan = "free";
+    void extra;
+
+    const owned = listTopicSummaries(USER);
+    expect(owned.length).toBe(5);
+    const keep = owned.slice(0, FREE_TOPIC_CAP).map((t) => t.id);
+
+    const result = chooseFreeTopics(USER, keep);
+    expect(result.ok).toBe(true);
+    expect(activeTopicCount(USER)).toBe(FREE_TOPIC_CAP);
+    const after = listTopicSummaries(USER);
+    for (const t of after) expect(t.archived).toBe(!keep.includes(t.id));
+
+    void r2;
+  });
+
+  it("refuses a selection that isn't exactly the cap size", () => {
+    const db = globalThis.__verilearnDb!;
+    db.users.get(USER)!.plan = "pro";
+    createTopic(USER, { title: "Extra topic", level: "some background", goal: "learn it" });
+    db.users.get(USER)!.plan = "free";
+
+    const owned = listTopicSummaries(USER);
+    expect(owned.length).toBe(4);
+    expect(chooseFreeTopics(USER, owned.slice(0, 1).map((t) => t.id)).ok).toBe(false); // too few
+    expect(chooseFreeTopics(USER, owned.map((t) => t.id)).ok).toBe(false); // too many (all 4)
+  });
+
+  it("refuses a topic id the caller doesn't own", () => {
+    const owned = listTopicSummaries(USER);
+    const keep = [owned[0].id, owned[1].id, "not_mine"];
+    expect(chooseFreeTopics(USER, keep).ok).toBe(false);
+  });
+
+  it("content and trust ledger are untouched by archiving — never deletion", () => {
+    const db = globalThis.__verilearnDb!;
+    const owned = listTopicSummaries(USER);
+    const keep = owned.slice(0, FREE_TOPIC_CAP).map((t) => t.id);
+    chooseFreeTopics(USER, keep);
+    // every owned topic (archived or not) is still a real, readable record
+    for (const t of owned) expect(db.topics.get(t.id)).toBeTruthy();
   });
 });

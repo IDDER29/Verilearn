@@ -19,6 +19,7 @@ export interface TopicSummary {
   status: TopicRecord["status"];
   breakdown: Record<TrustState, number>;
   disputes: number;
+  archived: boolean;
 }
 
 const SYSTEM: VerificationActor = { id: "system:verifier", canVerify: true, isSME: false };
@@ -39,11 +40,21 @@ function summarize(topic: TopicRecord): TopicSummary {
     status: topic.status,
     breakdown,
     disputes: breakdown.disputed,
+    archived: !!topic.archived,
   };
 }
 
 export function listTopicSummaries(userId: string): TopicSummary[] {
   return topicsOf(getDb(), userId).map(summarize);
+}
+
+/** Topics that count against the Free-plan cap — archived topics don't (BILL-12). */
+function activeTopics(userId: string): TopicRecord[] {
+  return topicsOf(getDb(), userId).filter((t) => !t.archived);
+}
+
+export function activeTopicCount(userId: string): number {
+  return activeTopics(userId).length;
 }
 
 export interface TopicView {
@@ -82,8 +93,8 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
   const db = getDb();
   const user = db.users.get(userId);
   if (!user) return { ok: false, error: "Not authenticated." };
-  const existing = topicsOf(db, userId);
-  if (user.plan === "free" && existing.length >= FREE_TOPIC_CAP) {
+  // Archived topics (BILL-12) don't count against the cap they were archived to respect.
+  if (user.plan === "free" && activeTopicCount(userId) >= FREE_TOPIC_CAP) {
     return { ok: false, error: `Free plan is limited to ${FREE_TOPIC_CAP} topics. Upgrade to Pro for unlimited topics.` };
   }
   // Server-side gate mirrors the client (VERIFY-02): all three fields required,
@@ -128,4 +139,37 @@ export function createTopic(userId: string, input: CreateTopicInput): { ok: true
   };
   db.topics.set(topicId, record);
   return { ok: true, topicId };
+}
+
+export interface ChooseFreeTopicsResult {
+  ok: boolean;
+  error?: string;
+  archivedCount?: number;
+}
+
+/**
+ * Downgrade-to-Free topic selection (BILL-12): the learner picks exactly
+ * {@link FREE_TOPIC_CAP} topics to keep active; every other owned topic is
+ * archived (never deleted — content and the trust ledger are untouched) and
+ * any previously-archived topic in the kept set is restored. Refuses a
+ * selection that isn't exactly the cap size or names a topic the caller
+ * doesn't own.
+ */
+export function chooseFreeTopics(userId: string, keepTopicIds: string[]): ChooseFreeTopicsResult {
+  const db = getDb();
+  const owned = topicsOf(db, userId);
+  const keepSet = new Set(keepTopicIds);
+  if (keepSet.size !== FREE_TOPIC_CAP) {
+    return { ok: false, error: `Choose exactly ${FREE_TOPIC_CAP} topics to keep active.` };
+  }
+  if (![...keepSet].every((id) => owned.some((t) => t.id === id))) {
+    return { ok: false, error: "One of those topics isn't yours." };
+  }
+  let archivedCount = 0;
+  for (const t of owned) {
+    const shouldArchive = !keepSet.has(t.id);
+    if (shouldArchive && !t.archived) archivedCount += 1;
+    t.archived = shouldArchive;
+  }
+  return { ok: true, archivedCount };
 }
