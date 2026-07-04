@@ -34,10 +34,21 @@ describe("preferences service", () => {
   it("SETTINGS-08: changing verification/review prefs never mutates the ledger", () => {
     const topic = globalThis.__verilearnDb!.topics.get("topic_dijkstra")!;
     const before = ledgerFor(topic).snapshot(topic.claims);
+    updatePrefs(USER, "verification", { depth: "thorough", executionSandbox: true, skepticAggressiveness: 95 });
     updatePrefs(USER, "activeListening", { closeGate: false, cloze: true });
     updatePrefs(USER, "review", { confidenceGate: false });
     const after = new TrustLedger().load(topic.events).snapshot(topic.claims);
     expect([...after.entries()]).toEqual([...before.entries()]); // ledger unchanged
+  });
+
+  it("persists verification depth/toggles/aggressiveness without touching other sections", () => {
+    updatePrefs(USER, "verification", { depth: "minimal", showInterpretive: false, skepticAggressiveness: 20 });
+    const p = getPrefs(USER)!;
+    expect(p.verification.depth).toBe("minimal");
+    expect(p.verification.showInterpretive).toBe(false);
+    expect(p.verification.skepticAggressiveness).toBe(20);
+    expect(p.verification.alertDisputes).toBe(true); // untouched
+    expect(p.review.targetRetention).toBe(90); // other section untouched
   });
 
   it("returns null for an unknown user", () => {

@@ -75,20 +75,21 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | My Tasks | real due-review + conflict counts |
 | Tests hub / Detail / Results | verified-only eligibility (TEST-02); score + **fail-closed certificate** verify code |
 | Notifications | derived from real state (verification/review/conflict) |
+| Settings › Verification | real `verification` prefs — depth, interpretive/dispute/sandbox toggles, Skeptic-aggressiveness slider (auto-save; ledger provably untouched) |
 | Settings › Profile / Plan | real name/email/role/join; real plan + usage vs cap |
 | Upgrade / Welcome | real current plan / greeting + counts |
 | Login / Signup | real auth + COPPA age-gate |
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 242 passing across 18 files · build green.
+**Test count:** 243 passing across 18 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 30 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 307 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 31 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 306 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |

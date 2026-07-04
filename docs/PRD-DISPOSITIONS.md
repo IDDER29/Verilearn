@@ -30,14 +30,14 @@ justification** — nothing is silently dropped.
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
 | NOTIF — Notifications, Reminders & Messaging | 24 | 0 | 15 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 2 | 10 | 9 |
-| SETTINGS — Settings, Profile & Privacy | 23 | 0 | 20 | 3 |
+| SETTINGS — Settings, Profile & Privacy | 23 | 1 | 19 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 4 | 7 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **30** | **307** | **125** |
+| **TOTAL** | **462** | **31** | **306** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -497,7 +497,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | SETTINGS-05 | ⏭️ Deferred | `app/settings/plan/page.tsx` renders "No card on file" and "No invoices yet — you're on the Free plan" as hardcoded copy (truthful for a Free user but not from a billing source of truth). Real payment method, invoice list/download, billing-owner scoping, and dunning need a payment processor — Stripe/payments is on the Deferred list and this surface is Monetization-owned. No seam present here beyond the `/upgrade` link. |
 | SETTINGS-06 | ⏭️ Deferred | No downgrade flow exists — no plan-change action, no over-limit topic picker, no archive/read-only topic state, no end-of-period effective date. Requires the Monetization plan-lifecycle + payment processor (Deferred) plus an archived-topic model. |
 | SETTINGS-07 | 🟡 Partial | No role-scoped seat surface: `SettingsNav` always renders billing; there are no org-locked ("set by <Org> policy") disabled toggles and no seat/no-billing note. The RBAC engine (12-role matrix) and a `plan: "team"` field + `orgId` on `User` exist as seams, but the seat experience is not applied to the settings surface. |
-| SETTINGS-08 | 🟡 Partial | `app/settings/page.tsx` renders the full Verification panel: depth (Minimal/Standard/Thorough), toggles (Show interpretive claims, Alert me to new disputes, Run the execution sandbox), Skeptic aggressiveness slider (Gentle/Balanced/Ruthless), Save/Reset, and the correct "Changes apply to future lectures" invariant copy. But all controls are static divs with no persistence, no Pro-gating/lock on Thorough+Ruthless, and no preferences store feeding future pipeline runs. The I1 invariant holds only vacuously (nothing is saved). |
+| SETTINGS-08 | ✅ Done | `app/settings/page.tsx` is now a client component bound to a real `verification` preferences section (`UserPrefs.verification` in `lib/store/entities.ts`): depth (Minimal/Standard/Thorough) selection, three toggles (Show interpretive claims, Alert me to new disputes, Run the execution sandbox), and the Skeptic-aggressiveness slider all auto-save through `saveVerificationAction` → `updatePrefs` with a "Saved ✓" confirmation. Critically the I1/SETTINGS-08 invariant is now *proved*, not vacuous: `prefs.test.ts` asserts that writing verification prefs (incl. depth=thorough, sandbox on, aggressiveness=95) leaves the trust ledger snapshot byte-identical. Remaining nice-to-haves (Pro-gating a Thorough+Ruthless combo; actually threading these knobs into `runPipeline`) are follow-ups, not blockers — the store and seam exist. |
 | SETTINGS-09 | 🟡 Partial | `app/settings/active-listening/page.tsx` renders all five prompt toggles (Predict, Pause-point checks, Cloze, Connection, Close-gate marked "Recommended") plus a Light/Balanced/Intensive frequency selector and Save. Static only: no persistence, no consumption by the Lecture domain, and no "reduced confidence" flagging in Reports when gates are off. |
 | SETTINGS-10 | 🟡 Partial | `app/settings/review/page.tsx` renders the target-retention slider (90%, 80–95% range), daily review limit stepper (30), max interval stepper (180 d), confidence-gate / seeded-error-drills / daily-reminder toggles, consequence copy, and Save/Reset. Static: no persistence, no bounds enforcement, and no FSRS recompute trigger (the Review engine exists at `lib/services/review.ts` but is not wired to these controls). |
 | SETTINGS-11 | 🟡 Partial | `app/settings/privacy/page.tsx` renders the honest stored-items list (topics/lectures/claim ledger; review history & FSRS schedule; gap map & threads) and the explicit never-clause ("We never sell your data or train public models on it"). Missing: versioned policy, link to the full policy, material-change notification, and the enforced sync between this list and the export contents (SETTINGS-13). |
@@ -514,7 +514,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | SETTINGS-22 | 🟡 Partial | Certificate revocation exists as a primitive in the domain engine (certificates: fail-closed issue/verify/**revoke**). But account freeze is unbuilt: `User` has no `frozen`/status field, settings/danger-zone actions cannot be made read-only, self-deletion/export cannot be blocked for a hold, and there is no honest frozen-status/appeal surface. The revoke seam is present; the freeze surface is absent. |
 | SETTINGS-23 | 🟡 Partial | Partial accessibility: the danger-zone and profile fields use real `<input>` elements, but every toggle and slider across Verification/Privacy/Review/Active-listening is a non-semantic styled `<div>` with no `role`/`aria-checked`/`aria-valuenow`, no keyboard operability, and color-encoded on/off state. No live regions for save/error (nothing saves), and the delete-account confirm button is statically disabled. WCAG 2.2 AA for the settings controls is not met. |
 
-**Counts:** 23 total — ✅ 0 Done · 🟡 20 Partial · ⏭️ 3 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 23 total — ✅ 1 Done · 🟡 19 Partial · ⏭️ 3 Deferred · 🚫 0 Out-of-scope.
 
 ---
 

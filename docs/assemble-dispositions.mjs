@@ -19,7 +19,7 @@ const ROWS = [
   ["EVENT", "Events: Workshops, Groups & Challenges", 25, 0, 18, 7],
   ["NOTIF", "Notifications, Reminders & Messaging", 24, 0, 15, 9],
   ["ANALYTICS", "Progress, Reports & Analytics", 21, 2, 10, 9],
-  ["SETTINGS", "Settings, Profile & Privacy", 23, 0, 20, 3],
+  ["SETTINGS", "Settings, Profile & Privacy", 23, 1, 19, 3],
   ["BILL", "Billing, Plans & Subscriptions", 23, 4, 7, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],

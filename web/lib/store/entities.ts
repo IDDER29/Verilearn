@@ -16,7 +16,11 @@ export type AgeBand = "adult" | "minor" | "unknown";
  * FUTURE lectures/sessions only — they never mutate the trust ledger (SETTINGS-08 /
  * invariant I1). Privacy toggles govern analytics/visibility/email.
  */
+export type VerificationDepth = "minimal" | "standard" | "thorough";
+
 export interface UserPrefs {
+  /** How the verification pipeline runs on FUTURE topics (never rewrites past ledgers — I1/SETTINGS-08). */
+  verification: { depth: VerificationDepth; showInterpretive: boolean; alertDisputes: boolean; executionSandbox: boolean; skepticAggressiveness: number };
   activeListening: { predict: boolean; pause: boolean; cloze: boolean; connection: boolean; closeGate: boolean; frequency: number };
   review: { targetRetention: number; dailyLimit: number; maxIntervalDays: number; confidenceGate: boolean; drills: boolean; reminders: boolean };
   privacy: { analytics: boolean; communityVisible: boolean; emailUpdates: boolean };
@@ -24,6 +28,7 @@ export interface UserPrefs {
 
 export function defaultPrefs(): UserPrefs {
   return {
+    verification: { depth: "standard", showInterpretive: true, alertDisputes: true, executionSandbox: false, skepticAggressiveness: 55 },
     activeListening: { predict: true, pause: true, cloze: false, connection: false, closeGate: true, frequency: 2 },
     review: { targetRetention: 90, dailyLimit: 40, maxIntervalDays: 365, confidenceGate: true, drills: true, reminders: true },
     privacy: { analytics: true, communityVisible: true, emailUpdates: false },

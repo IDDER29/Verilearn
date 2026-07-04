@@ -10,6 +10,14 @@ export async function getPrefsAction(): Promise<UserPrefs | null> {
   return user ? getPrefs(user.id) : null;
 }
 
+export async function saveVerificationAction(patch: Partial<UserPrefs["verification"]>): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false };
+  updatePrefs(user.id, "verification", patch);
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
 export async function saveActiveListeningAction(patch: Partial<UserPrefs["activeListening"]>): Promise<{ ok: boolean }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
