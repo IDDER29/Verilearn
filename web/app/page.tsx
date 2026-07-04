@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { StatCard, TrustBar } from "@/components/ui";
 import { requireUser } from "@/lib/auth/current";
 import { listTopicSummaries } from "@/lib/services/topics";
+import { listTestableTopics } from "@/lib/services/tests";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 
@@ -16,9 +18,19 @@ function topicEmoji(title: string): string {
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  const db = getDb();
   const topics = listTopicSummaries(user.id);
-  const dueCount = reviewCardsOf(getDb(), user.id).filter((c) => c.fsrs.due <= now()).length;
+  // First-run gating (HOME-01): a zero-topic account sees the branded welcome
+  // screen, never a Dashboard full of empty widgets.
+  if (topics.length === 0) redirect("/welcome");
+  const dueCount = reviewCardsOf(db, user.id).filter((c) => c.fsrs.due <= now()).length;
   const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
+
+  // Real headline stats.
+  const claimsChecked = topics.reduce((n, t) => n + t.claimCount, 0);
+  const certCount = [...db.certificates.values()].filter((c) => c.learnerId === user.id && !c.revoked).length;
+  const pendingTasks = [...db.tasks.values()].filter((t) => t.userId === user.id && t.passed !== true).length;
+  const testable = listTestableTopics(user.id).filter((t) => t.eligibleCount > 0);
   return (
     <AppShell active="dashboard">
       <main
@@ -192,7 +204,7 @@ export default async function DashboardPage() {
             <StatCard
               bg="#fdf3d0"
               labelColor="#9a7f3a"
-              value="24"
+              value={String(topics.length)}
               label="Verified topics"
               icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#d19a2b" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -203,7 +215,7 @@ export default async function DashboardPage() {
             <StatCard
               bg="#dcefe4"
               labelColor="#3d8763"
-              value="128"
+              value={String(claimsChecked)}
               label="Claims checked"
               icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -215,7 +227,7 @@ export default async function DashboardPage() {
             <StatCard
               bg="#dce8fb"
               labelColor="#3a63b0"
-              value="10"
+              value={String(certCount)}
               label="Certificates"
               icon={
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#3a6fd4" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -325,7 +337,7 @@ export default async function DashboardPage() {
             >
               🧑‍🎨
             </div>
-            <div style={{ font: "900 18px var(--font-nunito)" }}>Adeline Watson</div>
+            <div style={{ font: "900 18px var(--font-nunito)" }}>{user.displayName}</div>
             <div
               style={{
                 display: "inline-flex",
@@ -340,7 +352,7 @@ export default async function DashboardPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              Verified Learner 🌟
+              {user.plan === "free" ? "Verified Learner 🌟" : `${user.plan[0].toUpperCase()}${user.plan.slice(1)} Learner ⭐`}
             </div>
           </div>
 
@@ -412,96 +424,68 @@ export default async function DashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fbeadf", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📼</div>
               <Link href="/review" style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>4 flashcards due</div>
+                <div style={{ font: "800 13.5px var(--font-nunito)" }}>{dueCount} flashcard{dueCount === 1 ? "" : "s"} due</div>
                 <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>Spaced review · today</div>
               </Link>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
               </svg>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderTop: "1px solid #f5f3fa" }}>
+            <Link href="/topics/conflicts" style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderTop: "1px solid #f5f3fa", textDecoration: "none", color: "inherit" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚖️</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Resolve 2 conflicts</div>
-                <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>Merkle trees · Nov 14</div>
+                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Resolve {conflicts} conflict{conflicts === 1 ? "" : "s"}</div>
+                <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>{conflicts > 0 ? "Disputed claims awaiting resolution" : "No open conflicts — nice"}</div>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
               </svg>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderTop: "1px solid #f5f3fa" }}>
+            </Link>
+            <Link href="/my-tasks" style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderTop: "1px solid #f5f3fa", textDecoration: "none", color: "inherit" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: "#e7f3ec", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✍️</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Finish 1 task</div>
-                <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>Dijkstra · Nov 13</div>
+                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Finish {pendingTasks} task{pendingTasks === 1 ? "" : "s"}</div>
+                <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>{pendingTasks > 0 ? "Rubric-graded practice" : "All tasks complete"}</div>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
               </svg>
-            </div>
+            </Link>
           </div>
 
           {/* upcoming tests */}
           <div style={{ background: "#fff", borderRadius: 22, padding: "20px 22px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
               <span style={{ font: "900 16px var(--font-nunito)" }}>Upcoming tests</span>
-              <span style={{ font: "800 10px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "4px 9px", borderRadius: 8 }}>3 soon</span>
+              <span style={{ font: "800 10px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "4px 9px", borderRadius: 8 }}>{testable.length} ready</span>
             </div>
             <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699", marginBottom: 14 }}>
               Verified check-ins on what you&apos;ve learned
             </div>
 
-            <Link href="/tests/dijkstra-checkpoint" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M15 9l-2 5-4 1 2-5z" />
-                </svg>
+            {testable.length === 0 && (
+              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699", padding: "10px 0" }}>
+                No tests ready yet — verify a topic&apos;s claims to unlock one.
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Dijkstra&apos;s algorithm</div>
-                <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>
-                  Checkpoint · <span style={{ color: "#c0392b", fontWeight: 800 }}>in 2 days</span>
+            )}
+            {testable.slice(0, 3).map((t, i) => (
+              <Link
+                key={t.topicId}
+                href={`/tests/${t.topicId}?topic=${t.topicId}`}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", textDecoration: "none", color: "inherit", ...(i > 0 ? { borderTop: "1px solid #f5f3fa" } : {}) }}
+              >
+                <div style={{ width: 42, height: 42, borderRadius: 13, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>{topicEmoji(t.title)}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "800 13.5px var(--font-nunito)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                  <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>
+                    {t.level} · <span style={{ color: "#2e9c6a", fontWeight: 800 }}>{t.eligibleCount} eligible claim{t.eligibleCount === 1 ? "" : "s"}</span>
+                  </div>
                 </div>
-              </div>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
-            <Link href="/tests" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid #f5f3fa", textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, background: "#e9f7ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e9c6a" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v18M12 7l4-2M12 11l5-2.5" />
-                  <path d="M6 21h12" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
                 </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Merkle trees</div>
-                <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>
-                  Checkpoint · <span style={{ color: "#b4830f", fontWeight: 800 }}>18 Jul</span>
-                </div>
-              </div>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
-            <Link href="/tests" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid #f5f3fa", textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, background: "#e2ecfb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M21 21l-4-4" />
-                </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 13.5px var(--font-nunito)" }}>Binary search</div>
-                <div style={{ font: "600 11px var(--font-nunito)", color: "#8b8699" }}>
-                  Mastery test · <span style={{ color: "#8b8699", fontWeight: 800 }}>24 Jul</span>
-                </div>
-              </div>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
+              </Link>
+            ))}
 
             <Link
               href="/tests"
