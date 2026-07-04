@@ -65,7 +65,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting; archived topics (BILL-12) show a real "📦 Archived" status and don't count toward the Free cap |
 | New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
 | Pipeline (`/pipeline`) | animated stage machine (topic from query) |
-| Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted |
+| Review (`/review`) | due cards capped at the real daily limit, most-overdue first (REVIEW-19); FSRS reschedule + calibration + gap auto-reopen persisted; interactive "Blind-spot check" seeded error-drill widget with a genuine per-learner catch rate (ANALYTICS-07/REVIEW-06), respecting the Settings › Review drills toggle (REVIEW-14) |
 | Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states); real 7-day trend delta per signal, never fabricated (ANALYTICS-01); real keyboard-operable trend-window selector replacing a decorative button (ANALYTICS-17); real "As of {time}" freshness marker (ANALYTICS-20) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
@@ -88,14 +88,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 372 passing across 27 files · build green.
+**Test count:** 384 passing across 28 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 146 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 191 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 148 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 189 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 124 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -110,7 +110,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **304 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **189 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -126,4 +126,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after server-side read-only enforcement on archived topics (BILL-12) — 146 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after wiring the seeded error-drill blind-spot subsystem (ANALYTICS-07/REVIEW-06) and its Settings toggle (REVIEW-14) to real per-learner data — 148 Done; remainder is field-polish or deferred-with-justification._

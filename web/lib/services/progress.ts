@@ -11,6 +11,7 @@ import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
 import type { ReviewLogEntry } from "@/lib/store/entities";
 import { listTopicSummaries } from "./topics";
 import { openGapCountForClaims } from "./gaps";
+import { blindSpotOutcomes } from "./drills";
 import { now } from "@/lib/ids";
 
 /** Trend-delta comparison window for the four signals (ANALYTICS-01): "vs. 7 days ago". */
@@ -93,13 +94,13 @@ export function progressFor(userId: string): ProgressView {
       reviews: log.map((r) => r.correct),
       tasks,
       calibration,
-      drills: [], // seeded error-drills are not yet wired → honest empty blind-spot
+      drills: blindSpotOutcomes(userId),
     },
     {
       reviews: priorLog.map((r) => r.correct),
       tasks: priorTasks,
       calibration: calibrationSummaryFor(priorLog),
-      drills: [],
+      drills: blindSpotOutcomes(userId, cutoff),
     },
   );
 

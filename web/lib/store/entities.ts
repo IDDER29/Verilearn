@@ -108,6 +108,34 @@ export interface GapRecord {
   gap: Gap;
 }
 
+/**
+ * A seeded error-drill (ANALYTICS-07 / REVIEW-06): a statement salted into
+ * review that may be true or may be the deliberate seeded error, testing
+ * whether the learner catches it rather than pattern-matching. Content is
+ * hand-authored fixtures here (the same honest stand-in as the seeded task
+ * rubric) — real Skeptic-generated drills are Deferred behind the LLM verifier.
+ */
+export interface DrillRecord {
+  id: string;
+  topicId: string;
+  statement: string;
+  /** Whether the statement, as written, is actually true. */
+  isCorrect: boolean;
+  /** The real fact, shown after the learner answers either way. */
+  explanation: string;
+}
+
+/** One learner's attempt at a drill — per-user, unlike the shared DrillRecord content. */
+export interface DrillAttempt {
+  userId: string;
+  drillId: string;
+  topicId: string;
+  guessedCorrect: boolean;
+  /** True iff the learner's guess matched the drill's real answer — a genuine catch. */
+  caught: boolean;
+  at: number;
+}
+
 /** The cognitive demand a task makes (TASK-01) — shown as a label on each task. */
 export type TaskType = "explain" | "reason" | "apply";
 

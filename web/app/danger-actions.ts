@@ -7,12 +7,13 @@ import { newCard } from "@/lib/domain/fsrs";
 import { getDb } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 
-/** Reset spaced-review history: clear the review log and return every card to "new". */
+/** Reset spaced-review history: clear the review log, drill attempts, and return every card to "new". */
 export async function resetReviewHistoryAction(): Promise<{ ok: boolean }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
   const db = getDb();
   db.reviewLog = db.reviewLog.filter((r) => r.userId !== user.id);
+  db.drillLog = db.drillLog.filter((a) => a.userId !== user.id);
   for (const card of db.reviewCards.values()) {
     if (card.userId === user.id) card.fsrs = newCard(now());
   }
@@ -54,6 +55,7 @@ export async function deleteAccountAction(confirm: string): Promise<{ ok: boolea
   const db = getDb();
   db.users.delete(user.id);
   db.reviewLog = db.reviewLog.filter((r) => r.userId !== user.id);
+  db.drillLog = db.drillLog.filter((a) => a.userId !== user.id);
   for (const [id, t] of db.topics) if (t.ownerId === user.id) db.topics.delete(id);
   for (const [id, c] of db.reviewCards) if (c.userId === user.id) db.reviewCards.delete(id);
   for (const [id, g] of db.gaps) if (g.userId === user.id) db.gaps.delete(id);

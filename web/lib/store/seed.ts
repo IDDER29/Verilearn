@@ -199,4 +199,29 @@ export function seedDb(db: Db, now: number): void {
     modelAnswer:
       "Dijkstra finalises a node's distance the moment it's popped as the minimum, relying on the greedy/cut-property argument that no later path can improve it. A negative edge breaks that assumption: it can lower an already-finalised distance, so the greedy finality no longer holds and the result can be wrong. For graphs with negative edge weights, use Bellman-Ford, which relaxes all edges V−1 times and also detects negative cycles.",
   });
+
+  // Seeded error-drills (ANALYTICS-07 / REVIEW-06): hand-authored fixtures —
+  // real Skeptic-generated drills are Deferred behind the LLM verifier — but the
+  // catch mechanic and blind-spot signal they feed are genuinely real and tested.
+  db.drills.set("drill_dijkstra_1", {
+    id: "drill_dijkstra_1",
+    topicId: dijkstra.id,
+    statement: "Dijkstra's algorithm produces correct shortest paths even when some edge weights are negative.",
+    isCorrect: false,
+    explanation: "A negative edge can lower an already-finalised distance, breaking the greedy cut-property the algorithm relies on. Use Bellman-Ford for graphs with negative edge weights.",
+  });
+  db.drills.set("drill_dijkstra_2", {
+    id: "drill_dijkstra_2",
+    topicId: dijkstra.id,
+    statement: "Dijkstra's algorithm always expands the unvisited node with the smallest tentative distance next.",
+    isCorrect: true,
+    explanation: "That greedy choice is exactly the correctness argument — the algorithm always picks the nearest unvisited node.",
+  });
+  db.drills.set("drill_dijkstra_3", {
+    id: "drill_dijkstra_3",
+    topicId: dijkstra.id,
+    statement: "Once a node is popped from the priority queue, its shortest-path distance can still improve later.",
+    isCorrect: false,
+    explanation: "A popped node's distance is finalised — that finality is the cut-property invariant the algorithm depends on (and exactly what a negative edge would violate).",
+  });
 }

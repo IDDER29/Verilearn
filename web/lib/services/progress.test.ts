@@ -3,6 +3,7 @@ import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { gradeCard } from "./review";
 import { gradeSubmission } from "./tasks";
+import { submitDrillAnswer } from "./drills";
 import { focusAreas, perTopicProgress, progressFor, readinessFor, retentionSeries, signalDisplay } from "./progress";
 
 declare global {
@@ -191,6 +192,14 @@ describe("progress signals", () => {
     expect(signals.transfer.value).toBeCloseTo(0.5, 5);
     // prior: only the timestamped one counts → 0/1 = 0 — the legacy pass never leaks in
     expect(signals.transfer.delta).toBeCloseTo(0.5, 5);
+  });
+
+  it("ANALYTICS-07: blind-spot signal is real once drill attempts exist, and trends vs. the prior window", () => {
+    submitDrillAnswer(USER, "drill_dijkstra_1", false, SEED_NOW - 8 * 86_400_000); // caught, in the prior window
+    submitDrillAnswer(USER, "drill_dijkstra_2", false, Date.now()); // missed, recent
+    const { signals } = progressFor(USER);
+    expect(signals.blindSpot.value).toBeCloseTo(0.5, 5); // 1 of 2 caught overall
+    expect(signals.blindSpot.delta).toBeCloseTo(-0.5, 5); // prior window was 1/1 = 1.0
   });
 
   it("signalDisplay renders empty and populated states honestly", () => {

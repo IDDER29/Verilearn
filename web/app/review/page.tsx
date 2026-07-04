@@ -5,7 +5,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
-import { caughtUpInfoAction, dueBreakdownAction, getDueCardsAction, gradeCardAction, reviewAheadCardsAction, type CaughtUpInfo, type DueBreakdown, type SessionCard } from "@/app/review-actions";
+import {
+  blindSpotSummaryAction,
+  caughtUpInfoAction,
+  dueBreakdownAction,
+  getDueCardsAction,
+  gradeCardAction,
+  nextDrillAction,
+  reviewAheadCardsAction,
+  submitDrillAnswerAction,
+  type BlindSpotSummary,
+  type CaughtUpInfo,
+  type DrillAnswerActionResult,
+  type DrillPrompt,
+  type DueBreakdown,
+  type SessionCard,
+} from "@/app/review-actions";
 import { dismissReviewPrimerAction, reviewPrimerSeenAction } from "@/app/prefs-actions";
 import type { Rating } from "@/lib/domain/fsrs";
 
@@ -63,6 +78,105 @@ function SessionRing({ reviewed, total }: { reviewed: number; total: number }) {
 
 /** Map the confidence-gate key to the domain calibration vocabulary. */
 const CONF_TO_DOMAIN = { confident: "sure", unsure: "unsure", guessing: "guessing" } as const;
+
+/** Real, interactive seeded error-drill widget (ANALYTICS-07 / REVIEW-06) — catch rate is genuine per-learner history. */
+function BlindSpotCard() {
+  const [drill, setDrill] = useState<DrillPrompt | null | undefined>(undefined);
+  const [summary, setSummary] = useState<BlindSpotSummary | null>(null);
+  const [result, setResult] = useState<DrillAnswerActionResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    nextDrillAction().then(setDrill);
+    blindSpotSummaryAction().then(setSummary);
+  }, []);
+
+  async function answer(guessedCorrect: boolean) {
+    if (!drill || submitting) return;
+    setSubmitting(true);
+    const res = await submitDrillAnswerAction(drill.id, guessedCorrect);
+    setSubmitting(false);
+    if (!res.ok) return;
+    setResult(res);
+    setSummary((s: BlindSpotSummary | null) => ({ caught: (s?.caught ?? 0) + (res.caught ? 1 : 0), total: (s?.total ?? 0) + 1 }));
+  }
+
+  function nextOne() {
+    setResult(null);
+    setDrill(undefined);
+    nextDrillAction().then(setDrill);
+  }
+
+  const rate = summary && summary.total > 0 ? Math.round((summary.caught / summary.total) * 100) : null;
+
+  return (
+    <SpotlightCard radius={22} padding={22} raised>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 13, background: "rgba(255,255,255,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b3a7f0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+        <div>
+          <div style={{ font: "900 15px var(--font-nunito)" }}>Blind-spot check</div>
+          <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>Seeded error-drills</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+        <span style={{ font: "900 30px var(--font-nunito)" }}>{rate === null ? "—" : `${rate}%`}</span>
+        <span style={{ font: "800 15px var(--font-nunito)", color: "#b3a7f0" }}>
+          {summary && summary.total > 0 ? `${summary.caught}/${summary.total} caught` : "none yet"}
+        </span>
+      </div>
+
+      {drill === undefined ? (
+        <div style={{ font: "600 11.5px var(--font-nunito)", color: "#c9c3d8", marginTop: 10 }}>Loading…</div>
+      ) : result ? (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ font: "800 12.5px var(--font-nunito)", color: result.caught ? "#8fe0b8" : "#f0b3ab", marginBottom: 6 }}>
+            {result.caught ? "Caught it! ✓" : "Missed it"}
+          </div>
+          <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginBottom: 12 }}>{result.explanation}</div>
+          <button
+            type="button"
+            onClick={nextOne}
+            style={{ border: "1.5px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", font: "800 12px var(--font-nunito)", padding: "8px 14px", borderRadius: 10, cursor: "pointer" }}
+          >
+            Next drill →
+          </button>
+        </div>
+      ) : drill ? (
+        <>
+          <div style={{ font: "700 13px/1.5 var(--font-nunito)", color: "#e8e5f2", margin: "10px 0 12px" }}>{drill.statement}</div>
+          <div style={{ font: "600 10.5px var(--font-nunito)", color: "#9a92c0", marginBottom: 10 }}>{drill.topicTitle} — true or false?</div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => answer(true)}
+              style={{ flex: 1, border: "1.5px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", font: "800 12.5px var(--font-nunito)", padding: 10, borderRadius: 10, cursor: submitting ? "default" : "pointer" }}
+            >
+              True
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => answer(false)}
+              style={{ flex: 1, border: "1.5px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", font: "800 12.5px var(--font-nunito)", padding: 10, borderRadius: 10, cursor: submitting ? "default" : "pointer" }}
+            >
+              False
+            </button>
+          </div>
+        </>
+      ) : (
+        <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginTop: 10 }}>
+          No drills left to catch right now — nice work, or none seeded for your topics yet.
+        </div>
+      )}
+    </SpotlightCard>
+  );
+}
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -557,28 +671,8 @@ export default function ReviewPage() {
                 )}
               </div>
 
-              {/* blind-spot */}
-              <SpotlightCard radius={22} padding={22} raised>
-                <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 13, background: "rgba(255,255,255,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b3a7f0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div style={{ font: "900 15px var(--font-nunito)" }}>Blind-spot check</div>
-                    <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>Seeded error-drills</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
-                  <span style={{ font: "900 30px var(--font-nunito)" }}>—</span>
-                  <span style={{ font: "800 15px var(--font-nunito)", color: "#b3a7f0" }}>none this session</span>
-                </div>
-                <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginTop: 10 }}>
-                  Drills salt deliberately-false claims into your reviews so you can catch them — they turn on once the Skeptic is generating them.
-                </div>
-              </SpotlightCard>
+              {/* blind-spot (ANALYTICS-07 / REVIEW-06) */}
+              <BlindSpotCard />
             </>
           ) : (
             <button

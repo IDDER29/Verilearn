@@ -5,6 +5,8 @@ import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
 import { dueBreakdown, fsrsParamsFor, getReviewAheadCards, getSessionCards, gradeCard, type Confidence, type DueBreakdown } from "@/lib/services/review";
 export type { DueBreakdown };
+import { blindSpotSummary, nextDrillFor, submitDrillAnswer, type BlindSpotSummary, type DrillPrompt } from "@/lib/services/drills";
+export type { BlindSpotSummary, DrillPrompt };
 import { getDb, ledgerFor, reviewCardsOf } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
 import { now } from "@/lib/ids";
@@ -103,4 +105,31 @@ export async function gradeCardAction(cardId: string, confidence: Confidence, ra
   if (!user) return { ok: false, error: "Please sign in again." };
   const r = gradeCard(user.id, cardId, confidence, rating, now());
   return { ok: r.ok, gapReopened: r.gapReopened, error: r.error };
+}
+
+/** The learner's real blind-spot catch rate, for the "Blind-spot check" card (ANALYTICS-07). */
+export async function blindSpotSummaryAction(): Promise<BlindSpotSummary> {
+  const user = await getCurrentUser();
+  return user ? blindSpotSummary(user.id) : { caught: 0, total: 0 };
+}
+
+/** The next not-yet-attempted seeded error-drill for the learner, or null if none remain (REVIEW-06). */
+export async function nextDrillAction(): Promise<DrillPrompt | null> {
+  const user = await getCurrentUser();
+  return user ? nextDrillFor(user.id) : null;
+}
+
+export interface DrillAnswerActionResult {
+  ok: boolean;
+  error?: string;
+  caught?: boolean;
+  actualCorrect?: boolean;
+  explanation?: string;
+}
+
+/** Record the learner's true/false judgment on a drill (REVIEW-06). */
+export async function submitDrillAnswerAction(drillId: string, guessedCorrect: boolean): Promise<DrillAnswerActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Please sign in again." };
+  return submitDrillAnswer(user.id, drillId, guessedCorrect, now());
 }
