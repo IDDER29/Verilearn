@@ -1,9 +1,16 @@
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
+import { requireUser } from "@/lib/auth/current";
+import { listTopicSummaries } from "@/lib/services/topics";
+import { getDueCards } from "@/lib/services/review";
+import { now } from "@/lib/ids";
 
 export const metadata = { title: "My Tasks · VeriLearn" };
 
-export default function MyTasksPage() {
+export default async function MyTasksPage() {
+  const user = await requireUser();
+  const dueCount = getDueCards(user.id, now()).length;
+  const conflictCount = listTopicSummaries(user.id).reduce((n, t) => n + t.disputes, 0);
   return (
     <AppShell active="tasks">
       <main
@@ -47,7 +54,7 @@ export default function MyTasksPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 13, background: "#fff", borderRadius: 16, padding: "15px 17px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: "#fbeadf", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>📼</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 14px var(--font-nunito)" }}>4 flashcards due for review</div>
+                <div style={{ font: "800 14px var(--font-nunito)" }}>{dueCount} flashcard{dueCount === 1 ? "" : "s"} due for review</div>
                 <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>Spaced repetition</div>
               </div>
               <Link href="/review" style={{ textDecoration: "none", font: "800 11px var(--font-nunito)", color: "#fff", background: "#6d5bd0", padding: "8px 14px", borderRadius: 10, whiteSpace: "nowrap" }}>Start</Link>
@@ -60,10 +67,10 @@ export default function MyTasksPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 13, background: "#fff", borderRadius: 16, padding: "15px 17px", marginBottom: 10, boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: "#fbefdd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>⚖️</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "800 14px var(--font-nunito)" }}>Resolve 2 conflicts</div>
-                <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>Merkle trees · by Nov 14</div>
+                <div style={{ font: "800 14px var(--font-nunito)" }}>Resolve {conflictCount} conflict{conflictCount === 1 ? "" : "s"}</div>
+                <div style={{ font: "700 11.5px var(--font-nunito)", color: "#8b8699" }}>Across your topics</div>
               </div>
-              <span style={{ font: "800 11px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "6px 12px", borderRadius: 10, whiteSpace: "nowrap" }}>2 open</span>
+              <span style={{ font: "800 11px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "6px 12px", borderRadius: 10, whiteSpace: "nowrap" }}>{conflictCount} open</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 13, background: "#fff", borderRadius: 16, padding: "15px 17px", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

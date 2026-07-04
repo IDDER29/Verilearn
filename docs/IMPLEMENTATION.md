@@ -52,9 +52,21 @@ testable, and complete in intent while being honest about what runs locally.
 | P1 Identity & RBAC | ✅ Done | scrypt auth, HMAC sessions, COPPA age-gate, proxy auth gate, logout; RBAC matrix (no human trust:write) |
 | P2 Persistence | ✅ Done | entity model, owner/tenant-scoped in-memory repo, deterministic seed, reviewLog |
 | P3 Services & API | ✅ Done (core loop) | topics + review services; server actions for create/grade; 🟡 remaining domains' services pending |
-| P4 UI wiring | 🟡 Core loop wired | Dashboard, New Topic (create+cap), Pipeline, Review (persist) on real data; ~30 screens still faithful-static |
+| P4 UI wiring | 🟡 8 areas wired | real data on: Dashboard, New Topic (create+cap), Pipeline, Review (FSRS persist), Progress (4 signals), Topic Workspace header/trust panel, Settings Profile + Plan; ~20 screens still faithful-static |
 | P5 Compliance & ops | 🟡 Partial | age-gate + auth gate + tenant scoping + prompt-injection guard live; KMS/DSAR/audit-log/breach = ⏭️ infra |
-| P6 Disposition sweep | ✅ Done | all 462 stories classified — see `docs/PRD-DISPOSITIONS.md` |
+| P6 Disposition sweep | ✅ Done | all 462 stories classified — see `docs/PRD-DISPOSITIONS.md` (counts predate the later wirings above, which move a handful HOME/LEARN/REVIEW/ANALYTICS/SETTINGS/TRUST stories Partial→Done) |
+
+### Screens wired to real data (P4)
+| Screen | Real data source |
+|---|---|
+| Dashboard (`/`) | topics + ledger trust bars, due-review & conflict counts, greeting |
+| New Topic (`/new-topic`) | createTopic → pipeline; Free 3-topic cap |
+| Pipeline (`/pipeline`) | animated stage machine (topic from query) |
+| Review (`/review`) | due cards from store; FSRS reschedule + calibration + gap auto-reopen persisted |
+| Progress (`/reports`) | four honest signals from the review log (honest empty states) |
+| Topic Workspace (`/topics`) | title, verified %, claim/source counts, trust breakdown, section-trust panel from the ledger |
+| Settings › Profile | name, email, role, join date from the authenticated user |
+| Settings › Plan | plan, active-topic usage vs real cap, limit notice |
 
 **Test count:** 220 passing across 13 files · build green.
 
