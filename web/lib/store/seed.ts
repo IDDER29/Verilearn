@@ -26,8 +26,10 @@ function evFor(claimId: string, state: TrustState, sourceId: string | undefined,
     producerVersion: "seed-v1",
     at,
     evidence: {
+      // Execution-verified claims are backed by the sandbox source; disputed
+      // claims cite nothing; everything else cites its source.
       method,
-      sourceId: method === "citation" ? sourceId : undefined,
+      sourceId: method === "skeptic" ? undefined : sourceId,
       detail: `${state} via ${method}`,
       confidence: state === "disputed" ? 0.45 : 0.94,
       resolved: true,
