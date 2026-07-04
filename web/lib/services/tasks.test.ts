@@ -78,6 +78,30 @@ describe("tasks service (produce step)", () => {
     expect(g2b.gap.status).toBe("watching");
   });
 
+  it("TASK-21: flags a recorded pass for re-verification when a criterion's claim later becomes disputed", () => {
+    const db = globalThis.__verilearnDb!;
+    // Pass the task cleanly.
+    const good = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(good.passed).toBe(true);
+    expect(getTasks(USER, "topic_dijkstra")[0].needsReverify).toBeFalsy();
+
+    // A criterion of this task anchors to topic_dijkstra_c2 — dispute it.
+    const topic = db.topics.get("topic_dijkstra")!;
+    topic.events.push({
+      id: "ve_task21",
+      claimId: "topic_dijkstra_c2",
+      state: "disputed",
+      producedBy: "system:verifier",
+      producerVersion: "test",
+      at: SEED_NOW,
+      evidence: { method: "skeptic", detail: "contested", confidence: 0.3, resolved: false },
+    });
+
+    const view = getTasks(USER, "topic_dijkstra")[0];
+    expect(view.passed).toBe(true); // the historical record is preserved…
+    expect(view.needsReverify).toBe(true); // …but flagged stale until re-verified
+  });
+
   it("TASK-04: refuses to grade when a criterion anchors to a non-eligible claim", () => {
     // Point a criterion at the disputed claim → the rubric is no longer gradeable.
     const db = globalThis.__verilearnDb!;

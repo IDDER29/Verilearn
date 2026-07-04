@@ -142,6 +142,14 @@ export default function TasksTab({ onTab, data = null }: { onTab: (t: TabKey) =>
               </div>
               <h2 style={{ font: "900 20px/1.35 var(--font-nunito)", letterSpacing: "-.01em", margin: "0 0 18px" }}>{task.prompt}</h2>
 
+              {/* Stale pass: a criterion's claim is no longer verified/sourced (TASK-21). */}
+              {task.needsReverify && (
+                <div role="status" style={{ display: "flex", alignItems: "center", gap: 9, background: "#fbefdd", border: "1.5px solid #f0dcae", borderRadius: 14, padding: "12px 15px", marginBottom: 18, font: "700 12.5px/1.5 var(--font-nunito)", color: "#9a7f2a" }}>
+                  <span aria-hidden style={{ fontSize: 16 }}>↻</span>
+                  This pass needs re-verification — one of its criteria now rests on a claim that isn&apos;t verified or sourced. Resolve the conflict, then re-submit.
+                </div>
+              )}
+
               {/* write-in answer */}
               <div style={{ font: "800 11px var(--font-nunito)", color: "#9a95a8", marginBottom: 8 }}>YOUR ANSWER</div>
               <textarea

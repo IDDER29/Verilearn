@@ -5,7 +5,7 @@
  */
 import { assertRubricGradeable, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
 import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
-import type { TrustState } from "@/lib/domain/types";
+import { isTestEligible, type TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 import { newId, now } from "@/lib/ids";
 import type { TaskRecord, TaskType } from "@/lib/store/entities";
@@ -22,6 +22,12 @@ export interface TaskView {
   passed?: boolean;
   hit: string[];
   missing: string[];
+  /**
+   * True when a graded task rests on a criterion whose claim is no longer
+   * test-eligible (a later dispute / source revoke) — the recorded pass is
+   * stale and must be re-verified (TASK-21).
+   */
+  needsReverify?: boolean;
 }
 
 function toView(task: TaskRecord): TaskView {
@@ -42,7 +48,19 @@ function toView(task: TaskRecord): TaskView {
 }
 
 export function getTasks(userId: string, topicId: string): TaskView[] {
-  return [...getDb().tasks.values()].filter((t) => t.userId === userId && t.topicId === topicId).map(toView);
+  const db = getDb();
+  const topic = db.topics.get(topicId);
+  const ledger = topic ? ledgerFor(topic) : null;
+  return [...db.tasks.values()]
+    .filter((t) => t.userId === userId && t.topicId === topicId)
+    .map((t) => {
+      const view = toView(t);
+      // A recorded pass whose criteria now anchor to a non-eligible claim is stale (TASK-21).
+      if (ledger && t.passed) {
+        view.needsReverify = t.rubric.criteria.some((c) => c.claimId != null && !isTestEligible(ledger.stateOf(c.claimId)));
+      }
+      return view;
+    });
 }
 
 export interface GradeSubmissionResult {

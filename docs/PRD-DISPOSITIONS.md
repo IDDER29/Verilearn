@@ -21,7 +21,7 @@ justification** — nothing is silently dropped.
 | HOME — Learner Home / Dashboard & Discovery | 22 | 10 | 11 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 12 | 10 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 4 | 18 | 1 |
-| TASK — Tasks & Rubric Assessment | 24 | 9 | 12 | 3 |
+| TASK — Tasks & Rubric Assessment | 24 | 10 | 11 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 10 | 13 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 13 | 8 | 2 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **107** | **230** | **125** |
+| **TOTAL** | **462** | **108** | **229** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -204,7 +204,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-18 | 🟡 Partial | Building blocks exist: the four honest signals (`lib/domain/signals.ts`, `lib/services/progress.ts`) and an instructor role in the RBAC matrix. But there is no cohort assignment, no aggregate task pass/revise/to-do rate view, no most-missed-criteria surface, and no Teams data model seeded (R2/R3 per roadmap). |
 | TASK-19 | ✅ Done | The grade result is now a `role="status" aria-live="polite"` region that **announces the outcome on grade** via a screen-reader summary — "Passed / Not yet a pass — {pct} percent, {n} of {m} criteria met" — with met criteria prefixed "Met:" and unmet already labeled "Missing:" (hit/miss is text, never colour-only), and the decorative ✓/emoji marks are `aria-hidden` (`components/workspace/TasksTab.tsx`, TASK-19). Native `textarea`/buttons remain keyboard-operable. Verified via tsc/lint/build. Remaining nuance: explicit visible-focus rings and a WCAG 2.2 AA contrast pass are the cross-cutting A11Y sweep. |
 | TASK-20 | 🟡 Partial | The RBAC firewall guarantees no human role (incl. support) can write trust state (`lib/domain/rbac.ts`, tested), so support can never fabricate a pass. But there is no task-support tooling: no re-queue of a stuck grade, no state-restore-under-scoped-consent, and no per-task audit log of actor/scope/reason. |
-| TASK-21 | 🟡 Partial | `assertRubricGradeable` detects criteria anchored to now-ineligible claims and `grade()` recomputes over whatever criteria it is given. But there is no ledger subscription/eventing to **suspend** derived criteria on a claim-dispute/source-revoke, recompute persisted grades against the reduced rubric, mark "under re-verification", or notify the learner. Not wired. |
+| TASK-21 | ✅ Done | A recorded pass that rests on a now-ineligible claim is no longer treated as clean. `getTasks` recomputes `needsReverify` at read-time from the **live ledger** — true when any of a passed task's criteria anchors to a claim that is no longer `isTestEligible` (a later dispute / source revoke) — and the Tasks tab surfaces a **"This pass needs re-verification"** banner (`role="status"`) telling the learner to resolve the conflict and re-submit (`lib/services/tasks.ts`, `components/workspace/TasksTab.tsx`, TASK-21). New grading is already blocked in that state by `assertRubricGradeable` (TASK-04). The historical pass record is preserved (append-only spirit) and simply flagged, rather than silently rewritten. Covered by `tasks.test.ts` (pass → dispute a criterion's claim → `needsReverify` flips true while `passed` stays recorded). Remaining nuance: a push/event-subscription to notify **out-of-app** the moment a claim flips (vs. on next read) is R2 real-time infra. |
 | TASK-22 | 🟡 Partial | Empty/whitespace answers are rejected (`gradeSubmission` returns an error; the UI disables submit on an empty field). Missing: no minimum-substance/length floor, no paste-of-prompt/lecture "not your own words" detection, no relevance floor, and no substance-specific inline hint. |
 | TASK-23 | 🟡 Partial | The store has OWNER/TENANT scoping (`lib/store`) and RBAC prevents learners from editing rubrics/trust states. But there is no shared team topic library, no shared-gap contribution from a team learner's misses, and Teams is not seeded (roadmap R2/R3). |
 | TASK-24 | ⏭️ Deferred | No answer-level DSAR export, deletion, retention windows, or anonymize-not-delete for audit-critical pass records. Needs compliance tooling and a retention policy model (owned by the Compliance domain); learner answers are stored but not governed as exportable/deletable personal data yet. |
