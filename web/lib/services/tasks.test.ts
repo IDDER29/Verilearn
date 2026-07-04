@@ -41,4 +41,14 @@ describe("tasks service (produce step)", () => {
     expect(gradeSubmission(USER, "task_dijkstra_1", "  ").ok).toBe(false);
     expect(gradeSubmission("intruder", "task_dijkstra_1", "x").ok).toBe(false);
   });
+
+  it("TASK-04: refuses to grade when a criterion anchors to a non-eligible claim", () => {
+    // Point a criterion at the disputed claim → the rubric is no longer gradeable.
+    const db = globalThis.__verilearnDb!;
+    const task = db.tasks.get("task_dijkstra_1")!;
+    task.rubric.criteria[0].claimId = "topic_dijkstra_c6"; // disputed
+    const r = gradeSubmission(USER, "task_dijkstra_1", "greedy finality fails; use Bellman-Ford.");
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/verified or sourced/i);
+  });
 });

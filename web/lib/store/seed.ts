@@ -191,8 +191,8 @@ export function seedDb(db: Db, now: number): void {
       taskId: "task_dijkstra_1",
       criteria: [
         { id: "c1", text: "Identifies that the correctness proof relies on the greedy/cut-property finality", weight: 1, sourceId: "src_clrs", claimId: "topic_dijkstra_c2", keywords: ["greedy"] },
-        { id: "c2", text: "Explains a negative edge can lower an already-finalised distance", weight: 1, sourceId: "src_clrs", claimId: "topic_dijkstra_c6", keywords: ["negative"] },
-        { id: "c3", text: "Names Bellman-Ford as the correct alternative", weight: 1, sourceId: "src_skiena", keywords: ["bellman"] },
+        { id: "c2", text: "Explains a negative edge can lower an already-finalised distance", weight: 1, sourceId: "src_clrs", claimId: "topic_dijkstra_c5", keywords: ["negative"] },
+        { id: "c3", text: "Names Bellman-Ford as the correct alternative", weight: 1, sourceId: "src_skiena", claimId: "topic_dijkstra_c2", keywords: ["bellman"] },
       ],
     },
   });

@@ -21,7 +21,7 @@ justification** — nothing is silently dropped.
 | HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 9 | 13 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
-| TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
+| TASK — Tasks & Rubric Assessment | 24 | 4 | 17 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 8 | 15 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 11 | 10 | 2 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **79** | **258** | **125** |
+| **TOTAL** | **462** | **80** | **257** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -187,7 +187,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-01 | 🟡 Partial | Tasks tab (`components/workspace/TasksTab.tsx` via `app/topics/tasks/page.tsx`) loads real tasks through `getTasksAction` → `getTasks` (`lib/services/tasks.ts`), shows a header "N of M tasks passed" and a passed/revise/to-do breakdown, distinguishes passed vs. revise vs. to-do by state, and has an honest empty state ("No tasks yet for this topic"). Missing: no task **type** label (Explain/Reason/Apply) — `TaskRecord`/`Rubric` carry no `type` field; only one task is seeded so the "ordered set" is thin; the "no verified claims to test against" empty message is generic, not claim-aware. |
 | TASK-02 | 🟡 Partial | Free-text `textarea` → `gradeTaskAction` → `gradeSubmission` grades and **preserves** the answer (`task.submittedAnswer`, re-shown on reload; tested in `tasks.test.ts`). But grading is literally `keywordMatcher` (case-insensitive substring match in `lib/domain/rubric.ts`) — the exact opposite of the AC's "semantic, explicitly not keyword match." The UI even claims "not a keyword match" while the implementation is keyword-based. Real semantic grading needs the LLM verifier (Deferred). Minimum-substance gate (TASK-22) not enforced. |
 | TASK-03 | ✅ Done | `grade()` in `lib/domain/rubric.ts` returns per-criterion hit/missing partitions (each retaining `sourceId`), a weighted `scorePct`, and `passed` at the inclusive **≥75%** bar (`PASS_THRESHOLD` with a 1e-9 epsilon so exactly-75% passes); unknown-criterion hits and empty/zero-weight rubrics are rejected as `MalformedRubricError`. Tested in `rubric.test.ts`. UI renders ✓/"Missing:" per criterion, the % and a pass vs. "Not yet a pass" state. |
-| TASK-04 | 🟡 Partial | Every `Criterion` REQUIRES a `sourceId` (malformed otherwise); the "How it's graded" panel + a `Source · …` label render in `TasksTab.tsx`; `assertRubricGradeable` enforces that criteria anchor only to Verified·execution/Verified·source/Sourced claims and is tested (`rubric.test.ts`). Gaps: `assertRubricGradeable` is **not called** by the grading service (`gradeSubmission` never checks trust state) — the seed even anchors criterion `c2` to the disputed claim `topic_dijkstra_c6`; source objects are seed ids, not verified as identical to the live coverage-matrix objects at grade time; suspend/recompute (TASK-21) not wired. |
+| TASK-04 | ✅ Done | Grading is now **trust-gated end-to-end**: `gradeSubmission` (`lib/services/tasks.ts`) builds the live `trustByClaimId` map from the topic's ledger and calls `assertRubricGradeable` before scoring, so a criterion anchored to a disputed/unsupported claim makes the task ungradeable with an honest "resolve that conflict first" error (never a silent pass). The malformed seed was also corrected — every criterion now anchors to a real **test-eligible** claim (`c2`→`topic_dijkstra_c5`, `c3` given `topic_dijkstra_c2`), so `assertRubricGradeable` passes on the seed. Covered by a new `tasks.test.ts` case (pointing a criterion at the disputed claim is refused). Remaining nice-to-have: suspend/recompute a graded task when a cited claim is later downgraded (TASK-21). |
 | TASK-05 | 🟡 Partial | Revise-to-pass fully works: re-grading the same rubric flips `passed` false→true and persists (tested in `tasks.test.ts`); UI shows a "Revise to pass" panel with the current score and a "Revise & resubmit" button; attempts are unlimited. Missing: the follow-up is generic ("fold the missing points in"), not a specific per-missing-criterion question; no "open a 2-min micro-chapter" remediation link; no "nothing changed" note on identical resubmission. |
 | TASK-06 | 🟡 Partial | "See model answer" is disabled until `grade.passed`, with the note "Model answer unlocks at a pass (≥75%)" (`TasksTab.tsx`). But no model-answer content is stored or revealed (the button is inert when enabled), there is no give-up/records-as-unpassed-revealed path, and no signal-suppression logic beyond the disabled control. |
 | TASK-07 | ✅ Done | Right-column progress ring (`TasksTab.tsx`) shows `passedCount/total` with a passed/revise/to-do breakdown, matches the header count, counts only genuine ≥75% passes, and updates immediately on grade via client state. Denominator/ring recompute from real task states. (Contribution of task completion to the Dashboard/Library completion state is not separately evidenced.) |
@@ -209,7 +209,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | TASK-23 | 🟡 Partial | The store has OWNER/TENANT scoping (`lib/store`) and RBAC prevents learners from editing rubrics/trust states. But there is no shared team topic library, no shared-gap contribution from a team learner's misses, and Teams is not seeded (roadmap R2/R3). |
 | TASK-24 | ⏭️ Deferred | No answer-level DSAR export, deletion, retention windows, or anonymize-not-delete for audit-critical pass records. Needs compliance tooling and a retention policy model (owned by the Compliance domain); learner answers are stored but not governed as exportable/deletable personal data yet. |
 
-**Counts:** 24 total — ✅ 3 Done (TASK-03, TASK-07, TASK-08) · 🟡 18 Partial · ⏭️ 3 Deferred (TASK-10, TASK-17, TASK-24) · 🚫 0 Out-of-scope.
+**Counts:** 24 total — ✅ 4 Done (TASK-03, TASK-04, TASK-07, TASK-08) · 🟡 17 Partial · ⏭️ 3 Deferred (TASK-10, TASK-17, TASK-24) · 🚫 0 Out-of-scope.
 
 ---
 

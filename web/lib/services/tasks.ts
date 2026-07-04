@@ -3,8 +3,9 @@
  * source-anchored rubric (each criterion traces to a canonical source), ≥75% to
  * pass, revise-to-pass. Traces to TASK-04 (source-traced rubric), TASK.
  */
-import { grade, keywordMatcher, type Criterion } from "@/lib/domain/rubric";
-import { getDb } from "@/lib/store/db";
+import { assertRubricGradeable, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
+import type { TrustState } from "@/lib/domain/types";
+import { getDb, ledgerFor } from "@/lib/store/db";
 import type { TaskRecord } from "@/lib/store/entities";
 
 export interface TaskView {
@@ -51,6 +52,24 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
   const task = db.tasks.get(taskId);
   if (!task || task.userId !== userId) return { ok: false, error: "Task not found." };
   if (!answer.trim()) return { ok: false, error: "Write an answer before submitting." };
+
+  // Trust-gate the rubric (TASK-04): every criterion must anchor to a live
+  // test-eligible (verified/sourced) claim. A criterion pointing at a disputed/
+  // unsupported claim makes the task ungradeable until the conflict is resolved.
+  const topic = db.topics.get(task.topicId);
+  if (topic) {
+    const ledger = ledgerFor(topic);
+    const trustByClaimId: Record<string, TrustState> = {};
+    for (const cl of topic.claims) trustByClaimId[cl.id] = ledger.stateOf(cl.id);
+    try {
+      assertRubricGradeable(task.rubric, trustByClaimId);
+    } catch (e) {
+      if (e instanceof UngradeableCriterionError) {
+        return { ok: false, error: "This task can't be graded yet — one of its criteria references a claim that isn't verified or sourced. Resolve that conflict first." };
+      }
+      throw e;
+    }
+  }
 
   const submission = { id: taskId, answer };
   const hits: Record<string, boolean> = {};
