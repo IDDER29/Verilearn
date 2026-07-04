@@ -6,7 +6,9 @@
  * it feeds are genuinely computed from real per-learner attempts, never
  * fabricated.
  */
-import { getDb, topicsOf } from "@/lib/store/db";
+import { onLapse, openGap } from "@/lib/domain/gap";
+import { getDb, gapsOf, topicsOf } from "@/lib/store/db";
+import { newId } from "@/lib/ids";
 import { getPrefs } from "./prefs";
 
 export interface DrillPrompt {
@@ -42,12 +44,34 @@ export interface DrillAnswerResult {
   caught?: boolean;
   actualCorrect?: boolean;
   explanation?: string;
+  /** True when missing this drill opened or reopened a tracked gap (GAP-07). */
+  gapReopened?: boolean;
+}
+
+/**
+ * A missed, claim-anchored drill is a genuine misconception sighting — feed it
+ * into the Gap Map (GAP-07) the same way a review lapse or a missed test/task
+ * criterion does: open a fresh gap, or regress an already-tracked one via
+ * `onLapse`. Gaps never touch trust state (read-only linkage to the claim).
+ */
+function applyDrillMiss(userId: string, claimId: string, topicId: string, at: number): boolean {
+  const db = getDb();
+  const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
+  if (rec) {
+    const before = rec.gap.status;
+    rec.gap = onLapse(rec.gap, at, "missed a blind-spot drill");
+    return rec.gap.status !== before;
+  }
+  const gap = openGap({ id: newId("gap"), claimId, topicId, origin: "drill", severity: "med" }, at);
+  db.gaps.set(gap.id, { userId, gap });
+  return true;
 }
 
 /**
  * Record a learner's true/false judgment on a drill (fail-closed ownership:
  * refuses a foreign, archived, or already-answered drill). `caught` is real —
- * true only when the guess matches the drill's actual answer.
+ * true only when the guess matches the drill's actual answer. A miss on a
+ * claim-anchored drill opens/reopens a tracked gap (GAP-07).
  */
 export function submitDrillAnswer(userId: string, drillId: string, guessedCorrect: boolean, at: number): DrillAnswerResult {
   const db = getDb();
@@ -62,7 +86,8 @@ export function submitDrillAnswer(userId: string, drillId: string, guessedCorrec
 
   const caught = guessedCorrect === drill.isCorrect;
   db.drillLog.push({ userId, drillId, topicId: drill.topicId, guessedCorrect, caught, at });
-  return { ok: true, caught, actualCorrect: drill.isCorrect, explanation: drill.explanation };
+  const gapReopened = !caught && drill.claimId ? applyDrillMiss(userId, drill.claimId, drill.topicId, at) : false;
+  return { ok: true, caught, actualCorrect: drill.isCorrect, explanation: drill.explanation, gapReopened };
 }
 
 export interface BlindSpotSummary {

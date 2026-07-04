@@ -125,9 +125,10 @@ export interface DrillAnswerActionResult {
   caught?: boolean;
   actualCorrect?: boolean;
   explanation?: string;
+  gapReopened?: boolean;
 }
 
-/** Record the learner's true/false judgment on a drill (REVIEW-06). */
+/** Record the learner's true/false judgment on a drill (REVIEW-06); a miss may open/reopen a gap (GAP-07). */
 export async function submitDrillAnswerAction(drillId: string, guessedCorrect: boolean): Promise<DrillAnswerActionResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Please sign in again." };

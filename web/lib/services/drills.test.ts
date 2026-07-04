@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
+import { toWatching } from "@/lib/domain/gap";
+import { createDb, gapsOf, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { blindSpotOutcomes, blindSpotSummary, nextDrillFor, submitDrillAnswer } from "./drills";
 
@@ -92,5 +93,56 @@ describe("seeded error-drills (ANALYTICS-07 / REVIEW-06)", () => {
 
     expect(blindSpotOutcomes(USER, SEED_NOW)).toEqual([true]);
     expect(blindSpotOutcomes(USER)).toEqual([true, true]);
+  });
+
+  describe("GAP-07: a missed claim-anchored drill feeds the Gap Map", () => {
+    it("opens a fresh gap on a missed drill for a claim with no tracked gap", () => {
+      const before = gapsOf(globalThis.__verilearnDb!, USER).find((g) => g.gap.claimId === "topic_dijkstra_c1");
+      expect(before).toBeUndefined();
+
+      const res = submitDrillAnswer(USER, "drill_dijkstra_2", false, SEED_NOW); // isCorrect: true, guessed false → missed
+      expect(res.caught).toBe(false);
+      expect(res.gapReopened).toBe(true);
+
+      const gap = gapsOf(globalThis.__verilearnDb!, USER).find((g) => g.gap.claimId === "topic_dijkstra_c1");
+      expect(gap).toBeDefined();
+      expect(gap!.gap.origin).toBe("drill");
+      expect(gap!.gap.status).toBe("open");
+    });
+
+    it("does not touch the Gap Map when the drill is caught", () => {
+      const res = submitDrillAnswer(USER, "drill_dijkstra_2", true, SEED_NOW); // caught
+      expect(res.caught).toBe(true);
+      expect(res.gapReopened).toBe(false);
+      expect(gapsOf(globalThis.__verilearnDb!, USER).find((g) => g.gap.claimId === "topic_dijkstra_c1")).toBeUndefined();
+    });
+
+    it("regresses (reopens) an already-tracked gap on the same claim rather than duplicating it", () => {
+      const db = globalThis.__verilearnDb!;
+      // The seeded gap on topic_dijkstra_c6 (origin: conflict) — advance it to watching first
+      // so a lapse has somewhere reopenable to regress to.
+      const rec = gapsOf(db, USER).find((g) => g.gap.claimId === "topic_dijkstra_c6")!;
+      rec.gap = toWatching(rec.gap, SEED_NOW);
+      const countBefore = gapsOf(db, USER).length;
+
+      const res = submitDrillAnswer(USER, "drill_dijkstra_1", true, SEED_NOW + 1); // isCorrect: false, guessed true → missed
+      expect(res.gapReopened).toBe(true);
+
+      const after = gapsOf(db, USER);
+      expect(after.length).toBe(countBefore); // no duplicate gap opened
+      const gap = after.find((g) => g.gap.claimId === "topic_dijkstra_c6")!;
+      expect(gap.gap.status).toBe("reopened");
+      expect(gap.gap.origin).toBe("conflict"); // origin trail is immutable — the original catch, not overwritten by the drill
+    });
+
+    it("never opens a gap for a drill with no claim anchor", () => {
+      const db = globalThis.__verilearnDb!;
+      db.drills.set("drill_unanchored", { id: "drill_unanchored", topicId: "topic_dijkstra", statement: "x", isCorrect: true, explanation: "y" });
+      const before = gapsOf(db, USER).length;
+      const res = submitDrillAnswer(USER, "drill_unanchored", false, SEED_NOW); // missed, but no claimId to anchor to
+      expect(res.caught).toBe(false);
+      expect(res.gapReopened).toBe(false);
+      expect(gapsOf(db, USER).length).toBe(before);
+    });
   });
 });

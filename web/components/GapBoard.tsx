@@ -16,6 +16,7 @@ const ORIGIN_LABEL: Record<GapView["origin"], string> = {
   task: "caught in a task",
   test: "caught in a test",
   conflict: "from a conflict",
+  drill: "caught in a blind-spot drill",
 };
 
 const STATUS_BADGE: Record<GapView["status"], { label: string; color: string; bg: string }> = {

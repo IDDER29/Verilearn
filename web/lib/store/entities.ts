@@ -123,6 +123,8 @@ export interface DrillRecord {
   isCorrect: boolean;
   /** The real fact, shown after the learner answers either way. */
   explanation: string;
+  /** The claim this drill probes, when it anchors to one (GAP-07: feeds a missed-drill gap). */
+  claimId?: string;
 }
 
 /** One learner's attempt at a drill — per-user, unlike the shared DrillRecord content. */

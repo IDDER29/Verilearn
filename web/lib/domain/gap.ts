@@ -37,7 +37,7 @@ import type { Rating } from "./fsrs";
 // ----------------------------------------------------------------------------
 
 /** How a gap was caught. The origin trail is immutable and honest (GAP-07). */
-export type GapOrigin = "review" | "task" | "test" | "conflict";
+export type GapOrigin = "review" | "task" | "test" | "conflict" | "drill";
 
 /** Severity / heat band. Computed from behavior, escalates on reopen (GAP-06/11). */
 export type GapSeverity = "low" | "med" | "high";

@@ -138,13 +138,20 @@ function BlindSpotCard() {
             {result.caught ? "Caught it! ✓" : "Missed it"}
           </div>
           <div style={{ font: "600 11.5px/1.5 var(--font-nunito)", color: "#c9c3d8", marginBottom: 12 }}>{result.explanation}</div>
-          <button
-            type="button"
-            onClick={nextOne}
-            style={{ border: "1.5px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", font: "800 12px var(--font-nunito)", padding: "8px 14px", borderRadius: 10, cursor: "pointer" }}
-          >
-            Next drill →
-          </button>
+          {result.gapReopened && (
+            <Link href="/gap-map" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 12, textDecoration: "none", font: "800 11px var(--font-nunito)", color: "#e8e5f2", background: "rgba(255,255,255,.1)", padding: "6px 11px", borderRadius: 9 }}>
+              🎯 Tracked as a gap — open Gap Map
+            </Link>
+          )}
+          <div>
+            <button
+              type="button"
+              onClick={nextOne}
+              style={{ border: "1.5px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", font: "800 12px var(--font-nunito)", padding: "8px 14px", borderRadius: 10, cursor: "pointer" }}
+            >
+              Next drill →
+            </button>
+          </div>
         </div>
       ) : drill ? (
         <>

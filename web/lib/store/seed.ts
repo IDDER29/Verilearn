@@ -209,6 +209,7 @@ export function seedDb(db: Db, now: number): void {
     statement: "Dijkstra's algorithm produces correct shortest paths even when some edge weights are negative.",
     isCorrect: false,
     explanation: "A negative edge can lower an already-finalised distance, breaking the greedy cut-property the algorithm relies on. Use Bellman-Ford for graphs with negative edge weights.",
+    claimId: "topic_dijkstra_c6", // "It works on any weighted graph." (disputed)
   });
   db.drills.set("drill_dijkstra_2", {
     id: "drill_dijkstra_2",
@@ -216,6 +217,7 @@ export function seedDb(db: Db, now: number): void {
     statement: "Dijkstra's algorithm always expands the unvisited node with the smallest tentative distance next.",
     isCorrect: true,
     explanation: "That greedy choice is exactly the correctness argument — the algorithm always picks the nearest unvisited node.",
+    claimId: "topic_dijkstra_c1", // "Pick the unvisited node with the smallest tentative distance."
   });
   db.drills.set("drill_dijkstra_3", {
     id: "drill_dijkstra_3",
@@ -223,5 +225,6 @@ export function seedDb(db: Db, now: number): void {
     statement: "Once a node is popped from the priority queue, its shortest-path distance can still improve later.",
     isCorrect: false,
     explanation: "A popped node's distance is finalised — that finality is the cut-property invariant the algorithm depends on (and exactly what a negative edge would violate).",
+    claimId: "topic_dijkstra_c5", // "Relaxation never increases a tentative distance."
   });
 }
