@@ -39,6 +39,12 @@ export interface Certificate {
   revokedReason?: string;
   /** Server timestamp (epoch ms) of revocation, present once revoked. */
   revokedAt?: number;
+  /** Actor id that revoked it — the reinstatement reviewer-other-than-actor gate keys off this (ADMIN-22). */
+  revokedBy?: string;
+  /** Present once reinstated. The prior revocation fields above are kept as history, never erased. */
+  reinstatedAt?: number;
+  reinstatedBy?: string;
+  reinstatedReason?: string;
   /** Stable, tamper-evident code backing the public verify-URL / QR. */
   verifyCode: string;
 }
@@ -122,17 +128,55 @@ export function verifyCertificate(cert: Certificate | undefined): VerificationRe
 }
 
 /**
- * Revoke a certificate, recording the actor-supplied reason category and the
- * revocation timestamp. Returns a new certificate object (the input is not
- * mutated). Revoking an already-revoked cert is idempotent-friendly: it restamps
- * with the new reason/time.
+ * Revoke a certificate, recording the actor-supplied reason category, the
+ * revocation timestamp, and the revoking actor. Returns a new certificate
+ * object (the input is not mutated). Revoking an already-revoked cert is
+ * idempotent-friendly: it restamps with the new reason/time/actor.
  */
-export function revokeCertificate(cert: Certificate, reason: string, now: number): Certificate {
+export function revokeCertificate(cert: Certificate, reason: string, now: number, revokedBy: string): Certificate {
   return {
     ...cert,
     revoked: true,
     revokedReason: reason,
     revokedAt: now,
+    revokedBy,
+  };
+}
+
+/** Thrown when a reinstatement attempt violates the ADMIN-22 guarantees. */
+export class ReinstateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ReinstateError";
+  }
+}
+
+/**
+ * Reinstate a wrongly-revoked certificate (ADMIN-22). Requires:
+ *  - the cert is actually revoked (nothing to reinstate otherwise);
+ *  - a non-empty reason;
+ *  - a reviewer DISTINCT from whoever revoked it — a revocation can never be
+ *    quietly self-reversed by the same actor, the reviewer-other-than-actor gate.
+ * The prior revocation fields are kept as history, not erased — reinstatement
+ * adds a new fact rather than rewriting the past, the same append-only spirit
+ * as the trust ledger and gap history elsewhere in this codebase.
+ */
+export function reinstateCertificate(cert: Certificate, reviewerId: string, reason: string, now: number): Certificate {
+  if (!cert.revoked) {
+    throw new ReinstateError("This certificate isn't revoked — nothing to reinstate.");
+  }
+  if (!reason.trim()) {
+    throw new ReinstateError("A reason is required to reinstate a certificate.");
+  }
+  if (cert.revokedBy && reviewerId === cert.revokedBy) {
+    throw new ReinstateError("The reviewer reinstating a certificate must be someone other than whoever revoked it.");
+  }
+  return {
+    ...cert,
+    revoked: false,
+    reinstatedAt: now,
+    reinstatedBy: reviewerId,
+    reinstatedReason: reason.trim(),
   };
 }
 

@@ -3,6 +3,8 @@ import {
   Certificate,
   CertificateIssuanceError,
   issueCertificate,
+  reinstateCertificate,
+  ReinstateError,
   revokeCertificate,
   shouldRevokeOnClaimDowngrade,
   verifyCertificate,
@@ -62,7 +64,7 @@ describe("verifyCertificate — fail-closed (TEST-11 / TEST-21)", () => {
   });
 
   it("resolves a revoked cert to invalid with the reason category", () => {
-    const cert = revokeCertificate(issued(), "claim-downgraded", 2_000);
+    const cert = revokeCertificate(issued(), "claim-downgraded", 2_000, "trust_safety_lead:a");
     const res = verifyCertificate(cert);
     expect(res.valid).toBe(false);
     expect(res.reason).toBe("revoked");
@@ -90,20 +92,58 @@ describe("verifyCertificate — fail-closed (TEST-11 / TEST-21)", () => {
 });
 
 describe("revokeCertificate", () => {
-  it("sets revoked fields and does not mutate the input", () => {
+  it("sets revoked fields (incl. the revoking actor) and does not mutate the input", () => {
     const cert = issued();
-    const revoked = revokeCertificate(cert, "fraud", 5_000);
-    expect(revoked).toMatchObject({ revoked: true, revokedReason: "fraud", revokedAt: 5_000 });
+    const revoked = revokeCertificate(cert, "fraud", 5_000, "trust_safety_lead:a");
+    expect(revoked).toMatchObject({ revoked: true, revokedReason: "fraud", revokedAt: 5_000, revokedBy: "trust_safety_lead:a" });
     // original is untouched
     expect(cert.revoked).toBe(false);
     expect(cert.revokedReason).toBeUndefined();
   });
 
-  it("restamps an already-revoked cert with the new reason/time", () => {
-    const first = revokeCertificate(issued(), "fraud", 5_000);
-    const second = revokeCertificate(first, "claim-downgraded", 9_000);
+  it("restamps an already-revoked cert with the new reason/time/actor", () => {
+    const first = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
+    const second = revokeCertificate(first, "claim-downgraded", 9_000, "trust_safety_lead:b");
     expect(second.revokedReason).toBe("claim-downgraded");
     expect(second.revokedAt).toBe(9_000);
+    expect(second.revokedBy).toBe("trust_safety_lead:b");
+  });
+});
+
+describe("reinstateCertificate (ADMIN-22)", () => {
+  it("reinstates a revoked cert, keeping the revocation fields as history", () => {
+    const revoked = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
+    const reinstated = reinstateCertificate(revoked, "trust_safety_lead:b", "appeal upheld — false positive", 9_000);
+    expect(reinstated.revoked).toBe(false);
+    expect(reinstated.reinstatedAt).toBe(9_000);
+    expect(reinstated.reinstatedBy).toBe("trust_safety_lead:b");
+    expect(reinstated.reinstatedReason).toBe("appeal upheld — false positive");
+    // history preserved, not erased
+    expect(reinstated.revokedReason).toBe("fraud");
+    expect(reinstated.revokedAt).toBe(5_000);
+    expect(reinstated.revokedBy).toBe("trust_safety_lead:a");
+    // a reinstated cert verifies clean again
+    expect(verifyCertificate(reinstated).valid).toBe(true);
+  });
+
+  it("refuses to reinstate a certificate that isn't revoked", () => {
+    expect(() => reinstateCertificate(issued(), "trust_safety_lead:b", "reason", 9_000)).toThrow(ReinstateError);
+  });
+
+  it("requires a non-empty reason", () => {
+    const revoked = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
+    expect(() => reinstateCertificate(revoked, "trust_safety_lead:b", "   ", 9_000)).toThrow(ReinstateError);
+  });
+
+  it("refuses a self-reviewed reinstatement (reviewer-other-than-actor gate)", () => {
+    const revoked = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
+    expect(() => reinstateCertificate(revoked, "trust_safety_lead:a", "changed my mind", 9_000)).toThrow(ReinstateError);
+  });
+
+  it("does not mutate the input certificate", () => {
+    const revoked = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
+    reinstateCertificate(revoked, "trust_safety_lead:b", "appeal upheld", 9_000);
+    expect(revoked.revoked).toBe(true);
   });
 });
 
@@ -117,7 +157,7 @@ describe("shouldRevokeOnClaimDowngrade (TEST-13)", () => {
   });
 
   it("does not re-trigger on an already-revoked cert", () => {
-    const revoked = revokeCertificate(issued(), "fraud", 5_000);
+    const revoked = revokeCertificate(issued(), "fraud", 5_000, "trust_safety_lead:a");
     expect(shouldRevokeOnClaimDowngrade(revoked, true)).toBe(false);
   });
 });
