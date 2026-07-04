@@ -4,7 +4,7 @@
  * row is an unsupported/disputed claim (the coverage gap the learner must close).
  */
 import { ledgerFor, getDb } from "@/lib/store/db";
-import { verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
+import { TrustLedger, verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { Source, SourceKind, TrustState } from "@/lib/domain/types";
 import { newId, now } from "@/lib/ids";
 
@@ -54,6 +54,63 @@ export function coverageMatrix(userId: string, topicId: string): CoverageMatrix 
     rows,
     backedCount,
     coveragePercent: topic.claims.length === 0 ? 0 : Math.round((backedCount / topic.claims.length) * 100),
+  };
+}
+
+export interface TrustReadClaim {
+  claimId: string;
+  text: string;
+  state: TrustState;
+  confidence: number;
+}
+
+export interface TrustReadModel {
+  topicId: string;
+  title: string;
+  /**
+   * `pipeline_incomplete` while the verification pipeline is still running or
+   * failed to finish (topic.status !== "ready") — never presented as a
+   * finalized read (API-04). This reflects the topic's CURRENT pipeline state;
+   * there is no per-stage completion timestamp to say whether a historical
+   * `asOf` cut fell before/after completion, so an in-flight/failed topic
+   * reads `pipeline_incomplete` at every `asOf`.
+   */
+  status: "complete" | "pipeline_incomplete";
+  /** The instant this snapshot reflects (epoch ms) — `asOf` if requested, else now. */
+  asOf: number;
+  claims: TrustReadClaim[];
+  verifiedPercent: number;
+}
+
+/**
+ * The read-only trust-state model behind the `/api/topics/[id]/trust` surface
+ * (API-04): the five-state per-claim trust read, ledger-versioned via `asOf`
+ * (replays only the events recorded at-or-before that instant — the ledger is
+ * event-sourced, so this is a genuine historical snapshot, not an approximation).
+ * Scoped to the authenticated caller's OWN topic (tenant/ownership check) —
+ * there is no separate `trust:read` API-key/OAuth scope model (that needs the
+ * deferred credential infrastructure, API-01/02); the session is the scope.
+ */
+export function trustReadModel(userId: string, topicId: string, opts: { asOf?: number } = {}): TrustReadModel | null {
+  const topic = getDb().topics.get(topicId);
+  if (!topic || topic.ownerId !== userId) return null;
+
+  const asOf = opts.asOf ?? now();
+  const ledger = new TrustLedger().load(topic.events.filter((e) => e.at <= asOf));
+
+  const claims: TrustReadClaim[] = topic.claims.map((c) => {
+    const state = ledger.stateOf(c.id);
+    const evidence = ledger.evidenceOf(c.id);
+    return { claimId: c.id, text: c.text, state, confidence: evidence?.confidence ?? 0 };
+  });
+
+  return {
+    topicId: topic.id,
+    title: topic.title,
+    status: topic.status === "ready" ? "complete" : "pipeline_incomplete",
+    asOf,
+    claims,
+    verifiedPercent: verifiedPercent(claims.map((c) => c.state)),
   };
 }
 

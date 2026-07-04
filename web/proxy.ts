@@ -10,10 +10,20 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC = new Set(["/login", "/signup", "/pricing"]);
 // The public certificate-verify endpoint (API-03) — no session required, by design.
 const PUBLIC_PREFIXES = ["/api/verify/"];
+// JSON API routes that DO require auth, but should fail with a JSON 401 from the
+// route handler itself (via getCurrentUser()) rather than an HTML redirect to
+// /login — the right shape for a fetch/API client (API-04).
+const JSON_API_PREFIXES = ["/api/topics/"];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.has(pathname) || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
+  if (
+    PUBLIC.has(pathname) ||
+    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    JSON_API_PREFIXES.some((p) => pathname.startsWith(p))
+  ) {
+    return NextResponse.next();
+  }
   const hasSession = req.cookies.has("vl_session");
   if (!hasSession) {
     const url = req.nextUrl.clone();

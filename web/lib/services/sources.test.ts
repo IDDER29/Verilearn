@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { addSourceForClaim, coverageMatrix, removeSource, setPreferredSource } from "./sources";
+import { addSourceForClaim, coverageMatrix, removeSource, setPreferredSource, trustReadModel } from "./sources";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -89,5 +89,53 @@ describe("coverage matrix", () => {
     expect(addSourceForClaim(USER, "topic_dijkstra", backed.claimId, { title: "x" }).ok).toBe(false);
     const disputed = cov.rows.find((r) => r.state === "disputed")!;
     expect(addSourceForClaim(USER, "topic_dijkstra", disputed.claimId, { title: "   " }).ok).toBe(false);
+  });
+});
+
+describe("trustReadModel (API-04)", () => {
+  it("returns the live per-claim trust read with verifiedPercent and a complete status", () => {
+    const model = trustReadModel(USER, "topic_dijkstra")!;
+    expect(model.claims.length).toBe(6);
+    expect(model.status).toBe("complete"); // seed topic is status "ready"
+    const c1 = model.claims.find((c) => c.claimId === "topic_dijkstra_c1")!;
+    expect(c1.state).toBe("verified_execution");
+    expect(model.verifiedPercent).toBeGreaterThan(0);
+  });
+
+  it("as_of ledger-versions: a later event is invisible to an earlier snapshot", () => {
+    const db = globalThis.__verilearnDb!;
+    const topic = db.topics.get("topic_dijkstra")!;
+    // A later dispute lands on c1 (originally verified_execution) after SEED_NOW.
+    topic.events.push({
+      id: "ve_later_dispute",
+      claimId: "topic_dijkstra_c1",
+      state: "disputed",
+      producedBy: "system:verifier",
+      producerVersion: "test",
+      at: SEED_NOW + 5000,
+      evidence: { method: "skeptic", detail: "later contest", confidence: 0.3, resolved: false },
+    });
+
+    const before = trustReadModel(USER, "topic_dijkstra", { asOf: SEED_NOW })!;
+    expect(before.claims.find((c) => c.claimId === "topic_dijkstra_c1")!.state).toBe("verified_execution");
+
+    const after = trustReadModel(USER, "topic_dijkstra", { asOf: SEED_NOW + 5000 })!;
+    expect(after.claims.find((c) => c.claimId === "topic_dijkstra_c1")!.state).toBe("disputed");
+
+    // Omitting as_of reads live (now), which is after the later event.
+    expect(trustReadModel(USER, "topic_dijkstra")!.claims.find((c) => c.claimId === "topic_dijkstra_c1")!.state).toBe("disputed");
+  });
+
+  it("reads pipeline_incomplete while the topic's verification run hasn't finished", () => {
+    const db = globalThis.__verilearnDb!;
+    db.topics.get("topic_dijkstra")!.status = "verifying";
+    expect(trustReadModel(USER, "topic_dijkstra")!.status).toBe("pipeline_incomplete");
+    db.topics.get("topic_dijkstra")!.status = "failed";
+    expect(trustReadModel(USER, "topic_dijkstra")!.status).toBe("pipeline_incomplete");
+  });
+
+  it("scopes to the owner — null for a foreign user or unknown topic", () => {
+    expect(trustReadModel("intruder", "topic_dijkstra")).toBeNull();
+    expect(trustReadModel(USER, "not_a_real_topic")).toBeNull();
   });
 });
