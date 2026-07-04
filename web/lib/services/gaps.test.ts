@@ -22,6 +22,8 @@ describe("gap map service", () => {
     const g = gaps[0];
     expect(g.claimText).not.toBe(g.claimId); // resolved to real claim prose
     expect(g.topicTitle).toBeTruthy();
+    // GAP-04: read-only trust state of the linked claim is surfaced.
+    expect(g.claimState).not.toBeNull();
   });
 
   it("groups gaps into active / watching / closed columns", () => {

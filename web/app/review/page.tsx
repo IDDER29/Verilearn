@@ -61,6 +61,7 @@ export default function ReviewPage() {
   const [confidence, setConfidence] = useState<ConfKey | null>(null);
   const [rating, setRating] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tracked, setTracked] = useState(0);
 
   useEffect(() => {
     getDueCardsAction().then(setCards);
@@ -74,8 +75,11 @@ export default function ReviewPage() {
     if (!c) return;
     // Persist the graded card (FSRS reschedule + calibration + gap auto-reopen).
     setSaving(true);
-    await gradeCardAction(c.id, CONF_TO_DOMAIN[confidence ?? "unsure"], (rating as Rating) ?? "again");
+    const gradeRating = (rating as Rating) ?? "again";
+    const res = await gradeCardAction(c.id, CONF_TO_DOMAIN[confidence ?? "unsure"], gradeRating);
     setSaving(false);
+    // A lapse ("again") opens or reopens a Gap Map entry — confirm it to the learner (GAP-01).
+    if (res.ok && gradeRating === "again") setTracked((n) => n + 1);
     if (card + 1 >= TOTAL) {
       router.push("/review/complete");
       return;
@@ -403,6 +407,14 @@ export default function ReviewPage() {
             <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>
               {TOTAL - reviewed > 0 ? `${TOTAL - reviewed} card${TOTAL - reviewed === 1 ? "" : "s"} left in this session` : "Last card — nice work!"}
             </div>
+            {tracked > 0 && (
+              <Link href="/gap-map" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12, textDecoration: "none", font: "800 11.5px var(--font-nunito)", color: "#6d5bd0", background: "#f1eefb", padding: "7px 12px", borderRadius: 10 }}>
+                🎯 {tracked} gap{tracked === 1 ? "" : "s"} tracked — open Gap Map
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </Link>
+            )}
           </div>
 
           {phase === "front" ? (

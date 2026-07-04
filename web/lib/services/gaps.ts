@@ -5,7 +5,8 @@
  * GAP-08 (empty states), GAP-11/12 (severity + cross-topic surfacing).
  */
 import type { GapOrigin, GapSeverity, GapStatus } from "@/lib/domain/gap";
-import { getDb, gapsOf } from "@/lib/store/db";
+import type { TrustState } from "@/lib/domain/types";
+import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 
 export interface GapView {
   id: string;
@@ -16,6 +17,8 @@ export interface GapView {
   origin: GapOrigin;
   severity: GapSeverity;
   status: GapStatus;
+  /** Read-only current trust state of the linked claim (gaps never mutate it). */
+  claimState: TrustState | null;
   /** epoch ms of the most recent history event (last transition). */
   updatedAt: number;
 }
@@ -37,6 +40,7 @@ export function listGaps(userId: string): GapView[] {
         origin: gap.origin,
         severity: gap.severity,
         status: gap.status,
+        claimState: topic ? ledgerFor(topic).stateOf(gap.claimId) : null,
         updatedAt: last?.at ?? 0,
       };
     })

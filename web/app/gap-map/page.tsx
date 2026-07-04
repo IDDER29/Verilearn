@@ -25,6 +25,15 @@ const STATUS_BADGE: Record<GapView["status"], { label: string; color: string; bg
   closed: { label: "✓ Closed", color: "#2e9c6a", bg: "#e4f4ec" },
 };
 
+const CLAIM_TRUST: Record<string, { label: string; color: string }> = {
+  verified_execution: { label: "claim: verified by execution", color: "#0e8c6b" },
+  verified_source: { label: "claim: source-backed", color: "#2d6cdf" },
+  sourced: { label: "claim: sourced", color: "#2d6cdf" },
+  disputed: { label: "claim: disputed", color: "#c0392b" },
+  unsupported: { label: "claim: unsupported", color: "#c0392b" },
+  interpretive: { label: "claim: interpretive", color: "#6d5bd0" },
+};
+
 function GapCard({ g }: { g: GapView }) {
   const sev = SEVERITY[g.severity];
   const st = STATUS_BADGE[g.status];
@@ -39,6 +48,12 @@ function GapCard({ g }: { g: GapView }) {
       </div>
       <div style={{ font: "700 13.5px/1.5 var(--font-nunito)", color: "#221f2e", marginBottom: 8 }}>{g.claimText}</div>
       <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>{g.topicTitle} · {ORIGIN_LABEL[g.origin]}</div>
+      {g.claimState && CLAIM_TRUST[g.claimState] && (
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8, font: "700 10.5px var(--font-nunito)", color: CLAIM_TRUST[g.claimState].color }}>
+          <span style={{ width: 8, height: 8, borderRadius: 3, background: CLAIM_TRUST[g.claimState].color }} />
+          {CLAIM_TRUST[g.claimState].label}
+        </div>
+      )}
     </Link>
   );
 }

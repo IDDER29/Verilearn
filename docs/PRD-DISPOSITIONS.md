@@ -24,7 +24,7 @@ justification** — nothing is silently dropped.
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 6 | 17 | 1 |
-| GAP — Gap Map & Misconception Tracking | 23 | 6 | 15 | 2 |
+| GAP — Gap Map & Misconception Tracking | 23 | 8 | 13 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **61** | **276** | **125** |
+| **TOTAL** | **462** | **63** | **274** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -285,10 +285,10 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 
 | Story | Status | Evidence / Justification |
 |-------|--------|--------------------------|
-| GAP-01 | 🟡 Partial | `openGap` + persistence exist; `gradeCard` auto-opens a `review`-origin gap on an `again` lapse (`review.ts:51-53`) and persists it. Missing: the `＋ Add to gap map` button on the wrong-idea branch, the named-misconception text, and the inline "Tracking this gap" confirmation — no board to surface the new gap. |
+| GAP-01 | ✅ Done | `gradeCard` auto-opens a `review`-origin gap on an `again` lapse and persists it, and the review loop now **confirms the intake inline** (`app/review/page.tsx`): each lapse increments a session counter and surfaces a "🎯 N gaps tracked — open Gap Map" chip that deep-links to the real board, so the learner sees the misconception was captured. The board (GAP-02) surfaces the new gap with its claim text, origin, and severity. Remaining nice-to-have: a free-text "name this misconception" field (gaps are currently keyed to the claim text). |
 | GAP-02 | ✅ Done | A real **Gap Map board** now exists at `/gap-map` (`app/gap-map/page.tsx`), reachable from a new sidebar nav item. `gapBoard(userId)` (`lib/services/gaps.ts`) groups the learner's real gaps into Open (open + reopened), Watching, and Closed columns — each with a per-column count, cards showing the real claim text, topic, origin ("caught in review/task/test/from a conflict"), a distinct `↻ Reopened` badge, and a severity chip — sorted by severity (high→low) then recency. Covered by `gaps.test.ts` (grouping + owner scoping). Remaining nice-to-have: a `Group by` toggle (Status/Topic/Severity). |
 | GAP-03 | 🟡 Partial | Gap model carries status, severity, origin, and append-only `history` (`gap.ts` `Gap`/`GapEvent`). No detail view, no manual status control, no `＋ Add a drill` / `✓ Mark closed` buttons. |
-| GAP-04 | 🟡 Partial | Each gap stores a stable anchor (`claimId` + `topicId`) suitable for a deep-link. No `Revisit` action/route and no read-only trust-state display exist for gaps (contrast the wired `/topics/{sources,conflicts,tasks}` deep-links). |
+| GAP-04 | ✅ Done | Each gap card on the board is a **Revisit deep-link** into its topic's Conflicts surface (`/topics/conflicts?topic=<id>`), and now shows the linked claim's **read-only current trust state**: `listGaps` computes `claimState` from `ledgerFor(topic).stateOf(claimId)` (gaps never mutate it) and the card renders a labelled dot ("claim: disputed / sourced / verified by execution / …"). Covered by a `gaps.test.ts` assertion that `claimState` is surfaced. |
 | GAP-05 | ✅ Done | `toWatching` and evidence-gated `closeGap` are now **wired into live grading**: `gradeCard` (`review.ts`) advances a tracked gap on a correct recall — open/reopened → watching on the first correct recall, then watching → closed once sustained correct recalls on that claim reach `MASTERY_THRESHOLD` (closure earned, not asserted — `closeGap` still throws on insufficient evidence). Returns `gapAdvanced`/`gapClosed`, and the transitions surface on the new Gap Map board. Covered by a new `review.test.ts` case (open→watching→closed across two correct recalls). |
 | GAP-06 | ✅ Done | The headline mechanic. `onLapse` / `applyReviewOutcome` auto-reopen a closed/watching gap, bump severity, and append history (`gap.ts`), tested in `gap.test.ts`. Wired + persisted in `gradeCard` (`review.ts:45-49`) which returns `gapReopened`; surfaced through `app/review-actions.ts`. Note: only the FSRS `again` lapse channel is wired; test-miss / missed-drill / re-flagged-wrong-idea / conflict-reopen channels (GAP-07/21) are not yet. |
 | GAP-07 | 🟡 Partial | Origin vocabulary (`review`/`task`/`test`/`conflict`) modeled; one channel (review lapse) auto-creates. Missing: auto-creation from missed drills, repeated failed task criteria, resolved disputes, and test misses; and **no dedupe/merge logic** (no dedupe key or "uncertain → link, don't merge" resolution) exists anywhere. |
@@ -309,7 +309,7 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-22 | 🟡 Partial | Notifications are derived from real state and `gradeCard` already surfaces `gapReopened`. No gap-reopen / heat-spike event is emitted into the notifications feed, and no batching/throttling for gap events exists. |
 | GAP-23 | ⏭️ Deferred | PRD-scoped Future. Requires a real guardian↔dependent account relationship (Auth/Org) that does not exist; today's single-account model cannot provide a per-child gap view. Explicitly unsupported rather than approximated. |
 
-Counts: 23 total — ✅ 6 Done, 🟡 15 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
+Counts: 23 total — ✅ 8 Done, 🟡 13 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
