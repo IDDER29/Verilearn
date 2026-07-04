@@ -7,6 +7,7 @@
 import { banUser, ModerationError, unbanUser } from "@/lib/domain/moderation";
 import { can, type Role } from "@/lib/domain/rbac";
 import { getDb } from "@/lib/store/db";
+import { recordAudit } from "./audit";
 
 export interface AdminUserView {
   id: string;
@@ -42,6 +43,7 @@ export function banUserForAdmin(actorId: string, actorRole: Role, targetUserId: 
     db.users.set(targetUserId, banUser(target, reason, now, actorId));
     // A ban takes effect immediately — end every live session, not just future sign-ins.
     for (const [token, s] of db.sessions) if (s.userId === targetUserId) db.sessions.delete(token);
+    recordAudit({ actorId, actorRole, action: "user_ban", targetType: "user", targetId: targetUserId, reason: reason.trim(), before: { banned: false }, after: { banned: true }, now });
     return { ok: true };
   } catch (e) {
     if (e instanceof ModerationError) return { ok: false, error: e.message };
@@ -57,6 +59,7 @@ export function unbanUserForAdmin(actorId: string, actorRole: Role, targetUserId
   if (!target) return { ok: false, error: "Account not found." };
   try {
     db.users.set(targetUserId, unbanUser(target, actorId, reason, now));
+    recordAudit({ actorId, actorRole, action: "user_unban", targetType: "user", targetId: targetUserId, reason: reason.trim(), before: { banned: true }, after: { banned: false }, now });
     return { ok: true };
   } catch (e) {
     if (e instanceof ModerationError) return { ok: false, error: e.message };

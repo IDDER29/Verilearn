@@ -24,6 +24,8 @@ import {
   type AdminClaimView,
   type AdminQuarantineResult,
 } from "@/lib/services/quarantine";
+import { listAuditLogForAdmin, type AdminAuditView } from "@/lib/services/audit";
+import type { AuditQuery } from "@/lib/domain/audit";
 import { now } from "@/lib/ids";
 
 /** RBAC-gated: only a `cert:revoke`-holding role sees any real data (ADMIN-15). */
@@ -93,7 +95,14 @@ export async function quarantineClaimAction(claimId: string, topicId: string, re
 export async function unquarantineClaimAction(claimId: string): Promise<AdminQuarantineResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Please sign in again." };
-  const r = unquarantineClaimForAdmin(user.role, claimId);
+  const r = unquarantineClaimForAdmin(user.id, user.role, claimId, now());
   if (r.ok) revalidatePath("/admin/quarantine");
   return r;
+}
+
+/** RBAC-gated: only an `audit:read`-holding role sees any real data (ADMIN-20). */
+export async function listAdminAuditAction(query: AuditQuery = {}): Promise<AdminAuditView[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  return listAuditLogForAdmin(user.role, query);
 }

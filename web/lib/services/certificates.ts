@@ -14,6 +14,7 @@
 import { ReinstateError, reinstateCertificate, revokeCertificate, verifyCertificate } from "@/lib/domain/certificates";
 import { can, type Role } from "@/lib/domain/rbac";
 import { getDb } from "@/lib/store/db";
+import { recordAudit } from "./audit";
 
 export interface PublicVerifyResult {
   verifyCode: string;
@@ -101,6 +102,17 @@ export function revokeCertificateForAdmin(actorId: string, actorRole: Role, cert
   if (!reason.trim()) return { ok: false, error: "A reason is required." };
   if (cert.revoked) return { ok: false, error: "This certificate is already revoked." };
   db.certificates.set(certId, revokeCertificate(cert, reason.trim(), now, actorId));
+  recordAudit({
+    actorId,
+    actorRole,
+    action: "cert_revoke",
+    targetType: "certificate",
+    targetId: certId,
+    reason: reason.trim(),
+    before: { revoked: false },
+    after: { revoked: true },
+    now,
+  });
   return { ok: true };
 }
 
@@ -117,6 +129,17 @@ export function reinstateCertificateForAdmin(actorId: string, actorRole: Role, c
   if (!cert) return { ok: false, error: "Certificate not found." };
   try {
     db.certificates.set(certId, reinstateCertificate(cert, actorId, reason, now));
+    recordAudit({
+      actorId,
+      actorRole,
+      action: "cert_reinstate",
+      targetType: "certificate",
+      targetId: certId,
+      reason,
+      before: { revoked: true },
+      after: { revoked: false },
+      now,
+    });
     return { ok: true };
   } catch (e) {
     if (e instanceof ReinstateError) return { ok: false, error: e.message };

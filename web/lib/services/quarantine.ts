@@ -9,6 +9,7 @@
 import { can, type Role } from "@/lib/domain/rbac";
 import { getDb, ledgerFor } from "@/lib/store/db";
 import type { TrustState } from "@/lib/domain/types";
+import { recordAudit } from "./audit";
 
 /** Whether a claim is currently quarantined — the single check every gated learner surface reuses. */
 export function isQuarantined(claimId: string): boolean {
@@ -72,14 +73,16 @@ export function quarantineClaimForAdmin(actorId: string, actorRole: Role, claimI
   if (!db.topics.get(topicId)?.claims.some((c) => c.id === claimId)) return { ok: false, error: "Claim not found." };
   if (db.quarantinedClaims.has(claimId)) return { ok: false, error: "This claim is already quarantined." };
   db.quarantinedClaims.set(claimId, { claimId, topicId, reason: reason.trim(), quarantinedAt: now, quarantinedBy: actorId });
+  recordAudit({ actorId, actorRole, action: "claim_quarantine", targetType: "claim", targetId: claimId, reason: reason.trim(), before: { quarantined: false }, after: { quarantined: true }, now });
   return { ok: true };
 }
 
 /** Clear a claim's quarantine (ADMIN-14) — never touches the claim's real ledger-derived trust state. */
-export function unquarantineClaimForAdmin(actorRole: Role, claimId: string): AdminQuarantineResult {
+export function unquarantineClaimForAdmin(actorId: string, actorRole: Role, claimId: string, now: number): AdminQuarantineResult {
   if (!can(actorRole, "integrity:quarantine")) return { ok: false, error: "You don't have permission to clear a quarantine." };
   const db = getDb();
   if (!db.quarantinedClaims.has(claimId)) return { ok: false, error: "This claim isn't quarantined." };
   db.quarantinedClaims.delete(claimId);
+  recordAudit({ actorId, actorRole, action: "claim_unquarantine", targetType: "claim", targetId: claimId, reason: "Quarantine cleared", before: { quarantined: true }, after: { quarantined: false }, now });
   return { ok: true };
 }

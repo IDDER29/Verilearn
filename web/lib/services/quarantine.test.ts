@@ -55,13 +55,13 @@ describe("claim quarantine admin console (ADMIN-14)", () => {
 
   it("clearing a quarantine restores full eligibility without any reviewer-distinctness requirement", () => {
     quarantineClaimForAdmin(REVIEWER1, "trust_safety_lead", VERIFIED_CLAIM, DIJKSTRA, "fraud", SEED_NOW);
-    const res = unquarantineClaimForAdmin("trust_safety_lead", VERIFIED_CLAIM);
+    const res = unquarantineClaimForAdmin(REVIEWER1, "trust_safety_lead", VERIFIED_CLAIM, SEED_NOW);
     expect(res.ok).toBe(true);
     expect(isQuarantined(VERIFIED_CLAIM)).toBe(false);
   });
 
   it("refuses to clear a claim that isn't quarantined", () => {
-    expect(unquarantineClaimForAdmin("trust_safety_lead", VERIFIED_CLAIM).ok).toBe(false);
+    expect(unquarantineClaimForAdmin(REVIEWER1, "trust_safety_lead", VERIFIED_CLAIM, SEED_NOW).ok).toBe(false);
   });
 
   describe("quarantine actually holds the claim out of every gated learner surface", () => {
