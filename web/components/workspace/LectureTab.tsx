@@ -119,6 +119,20 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
   const title = data?.title ?? "Dijkstra's algorithm";
   const verifiedPct = data?.verifiedPercent ?? 83;
 
+  // Real sections derived from the claims' sectionIds (LEARN-01/04).
+  const sectionAgg = new Map<string, { total: number; disputed: number }>();
+  for (const c of data?.claims ?? []) {
+    const s = sectionAgg.get(c.sectionId) ?? { total: 0, disputed: 0 };
+    s.total += 1;
+    if (c.state === "disputed" || c.state === "unsupported") s.disputed += 1;
+    sectionAgg.set(c.sectionId, s);
+  }
+  const sections = [...sectionAgg.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([id, agg], i) => ({ id, label: `§${i + 1}`, total: agg.total, disputed: agg.disputed }));
+  // Honest verified chip tone (never a green 0%).
+  const verifiedTone = verifiedPct >= 67 ? { color: "#2e9c6a", bg: "#e4f4ec", mark: "✓" } : verifiedPct >= 34 ? { color: "#b4830f", bg: "#fbefdd", mark: "◐" } : { color: "#c0392b", bg: "#fbeceb", mark: "⚠" };
+
   // A render helper (not a nested component) so the same span can be reused inline
   // without creating a new component type each render.
   const claimSpan = (id: string, children: React.ReactNode) => {
@@ -156,8 +170,8 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
             <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Topics / {data?.level ?? "Algorithms"}</div>
             <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{title}</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 12.5px var(--font-nunito)", color: "#2e9c6a", background: "#e4f4ec", padding: "9px 15px", borderRadius: 12 }}>
-            ✓ {verifiedPct}% verified
+          <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 12.5px var(--font-nunito)", color: verifiedTone.color, background: verifiedTone.bg, padding: "9px 15px", borderRadius: 12 }}>
+            {verifiedTone.mark} {verifiedPct}% verified
           </div>
         </div>
 
@@ -174,11 +188,11 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
           </div>
           <div style={{ flex: 1, minWidth: 150 }}>
             <div style={{ display: "flex", justifyContent: "space-between", font: "700 11.5px var(--font-nunito)", color: "#8b8699", marginBottom: 6 }}>
-              <span>Section 2 of 4</span>
-              <span>50%</span>
+              <span>{sections.length || 1} section{sections.length === 1 ? "" : "s"} · {data?.claimCount ?? 0} claims</span>
+              <span>{verifiedPct}% verified</span>
             </div>
             <div style={{ height: 8, borderRadius: 5, background: "#eee9f7", overflow: "hidden" }}>
-              <div style={{ width: "50%", height: "100%", borderRadius: 5, background: "#6d5bd0" }} />
+              <div style={{ width: `${verifiedPct}%`, height: "100%", borderRadius: 5, background: "#6d5bd0" }} />
             </div>
           </div>
         </div>
@@ -188,12 +202,23 @@ export default function LectureTab({ onTab, data = null }: { onTab: (t: TabKey) 
 
         {/* lecture reader */}
         <div style={{ background: "#fff", borderRadius: 22, padding: "26px 30px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-          {/* section chips */}
+          {/* section chips — real sections from the claims' sectionIds */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
-            <span style={{ font: "800 12px var(--font-nunito)", color: "#2e9c6a", background: "#e7f4ee", padding: "7px 13px", borderRadius: 11 }}>✓ Prereqs</span>
-            <span style={{ font: "800 12px var(--font-nunito)", color: "#fff", background: "#6d5bd0", padding: "7px 13px", borderRadius: 11 }}>§1 Core idea</span>
-            <span style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8", background: "#f3f1f9", padding: "7px 13px", borderRadius: 11 }}>§2 Implementation</span>
-            <span style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8", background: "#f3f1f9", padding: "7px 13px", borderRadius: 11 }}>§3 Limits</span>
+            {sections.map((s, i) => (
+              <span
+                key={s.id}
+                title={`${s.total} claim${s.total === 1 ? "" : "s"}${s.disputed > 0 ? `, ${s.disputed} to resolve` : ""}`}
+                style={{
+                  font: "800 12px var(--font-nunito)",
+                  color: i === 0 ? "#fff" : s.disputed > 0 ? "#c0392b" : "#6c6780",
+                  background: i === 0 ? "#6d5bd0" : s.disputed > 0 ? "#fbeceb" : "#f3f1f9",
+                  padding: "7px 13px",
+                  borderRadius: 11,
+                }}
+              >
+                {s.disputed > 0 ? "⚠ " : ""}{s.label} · {s.total} claim{s.total === 1 ? "" : "s"}
+              </span>
+            ))}
           </div>
 
           <h2 style={{ font: "900 21px var(--font-nunito)", letterSpacing: "-.01em", margin: "0 0 14px" }}>The core idea: greedily grow the shortest-path tree</h2>

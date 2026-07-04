@@ -20,7 +20,7 @@ justification** — nothing is silently dropped.
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 9 | 13 | 1 |
-| LEARN — Lecture & Active Listening | 23 | 2 | 20 | 1 |
+| LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 7 | 16 | 1 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **74** | **263** | **125** |
+| **TOTAL** | **462** | **75** | **262** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -152,7 +152,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 
 | Story | Status | Evidence / Justification |
 |---|---|---|
-| LEARN-01 | 🟡 Partial | Header title, level, `✓ {verifiedPct}% verified`, and the trust-summary line (`{verifiedCount} verified · {sourcedCount} sourced · {disputedCount} disputed`) are ledger-computed from `data.breakdown`/`verifiedPercent` (`LectureTab.tsx:69-128`). Missing: the section strip and "Section N of M / %" are hardcoded (`Section 2 of 4`, `50%`, static chips lines 133-153); and the zero-verified honest-treatment edge case is not handled — the green `✓ X% verified` chip always renders regardless of a low/zero figure. |
+| LEARN-01 | ✅ Done | Header title/level, the verified chip, and the trust-summary line are ledger-computed, and the **section strip is now real**: `LectureTab` derives sections from the claims' `sectionId`s (`data.claims`), rendering one chip per section (`§N · X claims`, with a ⚠ marker + red tint when a section holds disputed/unsupported claims), and the meta bar shows the real "{N} sections · {M} claims · {verifiedPct}% verified" with a bar tracking real verification. The **zero-verified edge case is handled**: the verified chip's tone is thresholded (green ≥67 / amber ≥34 / red below) so a low/zero figure never renders as a green "✓", using ◐/⚠ marks. Remaining nice-to-have: human-readable section titles (needs the Deferred lecture generation — only `sectionId` order is known). |
 | LEARN-02 | ✅ Done | Underlined claims are keyboard-activatable (`role="button"`, `tabIndex={0}`, Enter/Space) and now **mapped to real ledger claims**: `loadWorkspaceData` (`lib/services/workspace.ts`) surfaces a `claims[]` array (id, text, real `TrustState`, backing source, verifier confidence, method) built from each claim's latest `VerificationEvent`, and `LectureTab`'s `resolveClaim` resolves each inline span and the disputed callout to that real data — so the underline colour and trust come from the ledger, not constants. The six engine states render through the design's 3-colour vocabulary via `trustView` (execution→green, source/sourced→blue, disputed/unsupported/interpretive→red) — a deliberate visual grouping, not fabrication. Remaining Deferred (not this story): the surrounding prose stays templated until the LLM lecture author exists. |
 | LEARN-03 | ✅ Done | The "Selected claim" side-rail panel is now populated from **real ledger claim entries**: `resolveClaim` feeds it the selected claim's real text, a trust badge derived from the real `TrustState`, the real backing **source** (title + evidence detail, icon by `SourceKind`), and the **real verifier confidence** (`confLabel` turns the 0..1 event confidence into High/Medium/Low · score), with execution evidence surfaced for execution-verified claims and the "No source backs this → open Conflicts" state for disputed ones. Interactive across the topic's actual claims, not the demo constants. |
 | LEARN-04 | 🟡 Partial | The "Section trust" segmented bar + labeled per-state counts ARE ledger-computed from `data.breakdown` (`execCount`/`backedCount`/`disputedCount`, lines 71-75, 215-232). Missing the per-section requirement: there is no section model, so the bar reflects the whole topic, does not update on section change, and only surfaces 3 of the state rows. |
@@ -176,7 +176,7 @@ Disposition of the Lecture-tab / active-listening user stories against the curre
 | LEARN-22 | 🟡 Partial | No anti-gaming validation on the close gate — the gate is entirely non-functional (disabled button, no submit handler; lines 194-208), so empty/whitespace/junk/min-length checks and genuine-vs-rejected signal emission do not exist. The rubric/effort logic that lives in `lib/domain/rubric.ts` is Tasks-domain grading, not wired to a close gate here. |
 | LEARN-23 | 🟡 Partial | The read-only-over-ledger invariant holds (RBAC has no human `trust:write`, `lib/domain/rbac.ts`; the lecture only renders ledger state), and the store carries OWNER/TENANT scoping (`lib/store`). But no shared/curated team library is seeded, no per-seat reading/gate state is recorded separately from shared content, and the team-seat consumer reading flow is not built. |
 
-**Summary:** 23 stories — ✅ 2 Done · 🟡 20 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
+**Summary:** 23 stories — ✅ 3 Done · 🟡 19 Partial · ⏭️ 1 Deferred · 🚫 0 Out-of-scope.
 
 ---
 
