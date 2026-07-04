@@ -19,7 +19,7 @@ justification** — nothing is silently dropped.
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 8 | 13 | 1 |
-| VERIFY — Topic Creation & Verification Pipeline | 23 | 11 | 11 | 1 |
+| VERIFY — Topic Creation & Verification Pipeline | 23 | 12 | 10 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 8 | 13 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 11 | 7 | 4 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **100** | **237** | **125** |
+| **TOTAL** | **462** | **101** | **236** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -136,7 +136,7 @@ email — each behind a clean seam.
 | VERIFY-16 | ✅ Done | `sourceHallucinationGuard` fails a citation to any source not in the retrieved pool closed to `unsupported`, and downgrades a "verified" citation whose evidence is `resolved:false`; applied to every verify and skeptic verdict. Tested extensively: "a fabricated-citation verdict never yields a verified state", "downgrades an unresolvable citation", "keeps a citation that resolves". (Persistent quarantine/logging of fabricated sources is not stored, but the core "Unsupported can never masquerade as Verified·source" guarantee is enforced and tested.) |
 | VERIFY-17 | ✅ Done | `conflicts.resolveConflict` (`lib/services/conflicts.ts`) runs a targeted re-verification of the affected claim through the SYSTEM verifier (`producerVersion: "reverify-v1"`), respecting the firewall, updating only that claim's ledger state and the coverage/trust bar; wired to the Conflicts tab "Record resolution" flow with persistence. Other claims untouched. Covers the "close an Unsupported/disputed row → targeted re-match" path without full regeneration. |
 | VERIFY-18 | 🟡 Partial | No accessibility affordances on the creation flow: `grep` found no `aria-live`, `role="status"`, `aria-label`, or `sr-only` in `app/pipeline/page.tsx` or `app/new-topic/page.tsx`. Stage transitions and completion are conveyed by color/motion/time only — the required live-region announcements and non-visual status channel are not built. |
-| VERIFY-19 | 🟡 Partial | Prompt-injection defense is solid and tested: `sanitizeTopicInput` strips/flags "ignore previous instructions", "auto-certify", "bypass the skeptic", role-override, etc., and the tests prove it is load-bearing ("the same instruction WOULD certify if not stripped"). Missing: content-policy **refusal of unsafe/abusive topics** at triage (triage only rejects nonsense/too-broad, not disallowed content) and abuse rate-limiting/creation-freeze. |
+| VERIFY-19 | ✅ Done | Both defenses are now built and tested. **Injection**: `sanitizeTopicInput` strips/flags "ignore previous instructions", "auto-certify", "bypass the skeptic", role-override, etc. (load-bearing per its tests). **Content-policy refusal** (new): `topicPolicyViolation` (`lib/domain/pipeline.ts`) refuses a topic whose *subject* is disallowed — weapons/explosives construction, chem/bio weapons, illicit-drug synthesis, malware-for-harm, CSAM, self-harm methods — and `runPipeline` gates it **at triage** (checking the raw title so injection-stripping can't smuggle a banned subject through), failing the stage with a `content policy: refused` reason and running no teach/decompose stages. Deliberately narrow (a construction/synthesis verb must sit next to the harmful object) so dual-use security/education topics ("how ransomware spreads", "how TLS works", "the Haber process") pass — verified in `pipeline.test.ts`. Remaining nuance: per-account abuse **rate-limiting / creation-freeze** is throttling infra adjacent to the deferred async-job/ops layer. |
 | VERIFY-20 | 🟡 Partial | The firewall half is done and tested: no human role (including admin/root) has `trust:write` in the RBAC matrix (`lib/domain/rbac.ts`, `rbac.test.ts`), the ledger's epistemic firewall rejects non-verifier actors, and every event stamps `producerVersion` (model-version tagging for audit/rollback). Missing: admin operational tooling — restart stuck jobs, capacity scaling, model rollout/rollback — which needs the (absent) async job infra. |
 | VERIFY-21 | 🟡 Partial | The invariant is enforced: the support role is firewalled from `trust:write`/certification via RBAC, so support can never fabricate a verification result, and "ready" only comes from a genuine `runPipeline` completion. Missing: the actual support-recovery feature — scoped-consent re-queue/restart of a stuck job and its audit trail — which depends on the not-yet-built background job system. |
 | VERIFY-22 | 🟡 Partial | Only the RBAC seam exists: a `guest` role scoped to `topic:read`/`claim:read` (`lib/domain/rbac.ts`, tested "guest is read-only / limited"). There is no ephemeral demo-pipeline route or UI, no canned-topic run, and no conversion CTA — the guest demo surface itself is not built. (Nice-to-Have.) |

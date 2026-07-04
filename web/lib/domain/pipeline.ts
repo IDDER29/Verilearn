@@ -167,6 +167,28 @@ export function sanitizeTopicInput(raw: string): SanitizeResult {
   return { clean, flagged: markers.length > 0, markers };
 }
 
+/**
+ * Content-policy patterns (VERIFY-19). Distinct from injection sanitization:
+ * these refuse a topic whose SUBJECT is disallowed (operational harm intent),
+ * not one that tries to hijack the verifier. Deliberately narrow — each requires
+ * a construction/synthesis verb next to the harmful object — so legitimate
+ * security/education topics ("how TLS works", "how ransomware spreads") pass.
+ */
+const CONTENT_POLICY_PATTERNS: ReadonlyArray<{ re: RegExp; category: string }> = [
+  { re: /\b(build|make|construct|assemble|detonate)\b[^.?!]{0,40}\b(bomb|explosive|ied|pipe\s?bomb|detonator|grenade)\b/i, category: "weapons/explosives" },
+  { re: /\b(synthesi[sz]e|produce|manufacture|weaponi[sz]e)\b[^.?!]{0,40}\b(nerve\s?agent|sarin|vx|mustard\s?gas|anthrax|bioweapon|ricin)\b/i, category: "chemical/biological weapons" },
+  { re: /\b(synthesi[sz]e|cook|manufacture|produce)\b[^.?!]{0,30}\b(meth(amphetamine)?|fentanyl|heroin|cocaine|mdma)\b/i, category: "illicit drug synthesis" },
+  { re: /\b(write|create|build|develop|code)\b[^.?!]{0,40}\b(ransomware|keylogger|botnet|spyware|malware|virus)\b[^.?!]{0,40}\b(to\s+(steal|extort|attack|infect|spy)|for\s+(theft|extortion|attack))\b/i, category: "malware-for-harm" },
+  { re: /\bchild\b[^.?!]{0,20}\b(sexual|porn(ography)?|exploitation|abuse\s+material)\b/i, category: "child sexual abuse material" },
+  { re: /\b(how\s+to|best\s+way\s+to|methods?\s+to)\b[^.?!]{0,25}\b(kill\s+myself|end\s+my\s+life|commit\s+suicide)\b/i, category: "self-harm" },
+];
+
+/** The disallowed-content category a topic requests, or null if policy-clean (VERIFY-19). */
+export function topicPolicyViolation(text: string): string | null {
+  for (const { re, category } of CONTENT_POLICY_PATTERNS) if (re.test(text)) return category;
+  return null;
+}
+
 // ----------------------------------------------------------------------------
 // Integrity guards (VERIFY-16, authority boundaries)
 // ----------------------------------------------------------------------------
@@ -290,9 +312,13 @@ export function runPipeline(args: RunPipelineArgs): PipelineRun {
     ledger.record(actor, event);
   };
 
-  // --- Stage 1: Triage (VERIFY-07) ---
+  // --- Stage 1: Triage (VERIFY-07 + content-policy refusal, VERIFY-19) ---
   let triage: TriageResult | undefined;
   if (!stage("triage", () => {
+    // Content-policy gate: refuse disallowed/harmful subjects before teaching them.
+    // Checks the raw title so injection-stripping can't smuggle a banned subject past.
+    const violation = topicPolicyViolation(topic.title);
+    if (violation) throw new Error(`content policy: refused — ${violation}`);
     triage = verifier.triage(cleanTopic);
     if (!triage.ok) throw new Error(`triage refused: ${triage.detail}`);
     return triage.detail;
