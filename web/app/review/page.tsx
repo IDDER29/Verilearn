@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
-import { getDueCardsAction, gradeCardAction, type SessionCard } from "@/app/review-actions";
+import { caughtUpInfoAction, getDueCardsAction, gradeCardAction, type CaughtUpInfo, type SessionCard } from "@/app/review-actions";
 import type { Rating } from "@/lib/domain/fsrs";
 
 const CONF = {
@@ -62,9 +62,13 @@ export default function ReviewPage() {
   const [rating, setRating] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tracked, setTracked] = useState(0);
+  const [caughtUp, setCaughtUp] = useState<CaughtUpInfo | null>(null);
 
   useEffect(() => {
-    getDueCardsAction().then(setCards);
+    getDueCardsAction().then((cs) => {
+      setCards(cs);
+      if (cs.length === 0) caughtUpInfoAction().then(setCaughtUp);
+    });
   }, []);
 
   const TOTAL = cards?.length ?? 0;
@@ -112,14 +116,32 @@ export default function ReviewPage() {
             </div>
           </div>
           <div style={{ background: "#fff", borderRadius: 24, padding: "44px 32px", textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
-            <div style={{ font: "900 20px var(--font-nunito)", marginBottom: 6 }}>All caught up!</div>
-            <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>
-              No cards are due right now. FSRS will resurface them exactly when you&apos;re about to forget.
-            </div>
-            <Link href="/" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
-              Back to dashboard
-            </Link>
+            {caughtUp && caughtUp.totalCards === 0 ? (
+              <>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>🌱</div>
+                <div style={{ font: "900 20px var(--font-nunito)", marginBottom: 6 }}>No review deck yet</div>
+                <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>
+                  Start a topic — its verified claims become spaced-review cards, and they&apos;ll appear here when they&apos;re due.
+                </div>
+                <Link href="/new-topic" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+                  Start a topic
+                </Link>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
+                <div style={{ font: "900 20px var(--font-nunito)", marginBottom: 6 }}>All caught up!</div>
+                <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>
+                  No cards are due right now.{" "}
+                  {caughtUp?.nextDue
+                    ? `Your next card is due ${new Date(caughtUp.nextDue).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}.`
+                    : "FSRS will resurface them exactly when you're about to forget."}
+                </div>
+                <Link href="/" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+                  Back to dashboard
+                </Link>
+              </>
+            )}
           </div>
         </main>
       </AppShell>

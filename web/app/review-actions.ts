@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth/current";
 import { nextIntervals, type Rating } from "@/lib/domain/fsrs";
 import { formatInterval } from "@/lib/format";
 import { getDueCards, gradeCard, type Confidence } from "@/lib/services/review";
-import { getDb } from "@/lib/store/db";
+import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
 
 export interface SessionCard {
@@ -50,6 +50,23 @@ export interface GradeActionResult {
   ok: boolean;
   gapReopened?: boolean;
   error?: string;
+}
+
+export interface CaughtUpInfo {
+  /** Total review cards the learner has (0 ⇒ brand-new, no deck yet). */
+  totalCards: number;
+  /** Soonest upcoming due timestamp, or null if none. */
+  nextDue: number | null;
+}
+
+/** Info for the "all caught up" state: deck size + next due (REVIEW-18). */
+export async function caughtUpInfoAction(): Promise<CaughtUpInfo> {
+  const user = await getCurrentUser();
+  if (!user) return { totalCards: 0, nextDue: null };
+  const cards = reviewCardsOf(getDb(), user.id);
+  const at = now();
+  const upcoming = cards.filter((c) => c.fsrs.due > at).map((c) => c.fsrs.due).sort((a, b) => a - b);
+  return { totalCards: cards.length, nextDue: upcoming[0] ?? null };
 }
 
 /** Persist a graded card (FSRS reschedule + calibration log + gap auto-reopen). */

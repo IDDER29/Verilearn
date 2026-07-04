@@ -23,7 +23,7 @@ justification** — nothing is silently dropped.
 | LEARN — Lecture & Active Listening | 23 | 2 | 20 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 7 | 11 | 4 |
-| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 6 | 17 | 1 |
+| REVIEW — Review / FSRS, Confidence & Calibration | 24 | 7 | 16 | 1 |
 | GAP — Gap Map & Misconception Tracking | 23 | 8 | 13 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **63** | **274** | **125** |
+| **TOTAL** | **462** | **64** | **273** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -267,7 +267,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-15 | 🟡 Partial | Not enforced in card generation. Seed (`web/lib/store/seed.ts`) creates review cards from `dijkstra.claims.slice(0, 4)` with a "drawn from verified/sourced claims" comment but no actual trust-state filter, and there is no live eligibility recomputation. The eligibility concept exists for Tests (`web/lib/domain/tests-engine.ts` verified/sourced-only), but review cards are not gated by it and `ReviewCardRecord` carries no trust-state link. |
 | REVIEW-16 | 🟡 Partial | Not implemented. `ReviewCardRecord` has no `suspended` field, there is no trust-ledger-event listener that pulls a card from the due queue on dispute/revoke, and no restore-with-FSRS-history-intact path. The trust engine (`web/lib/domain/trust.ts`) emits state changes but nothing in the review layer reacts to them. |
 | REVIEW-17 | 🟡 Partial | Happy-path server persistence only: `gradeCardAction` is a server action that writes synchronously (`web/app/review-actions.ts`). There is no local capture/queue of commits and ratings, no idempotent reconciliation, no offline/syncing UI, and no streak model — so nothing yet protects progress or streaks across a dropped connection. |
-| REVIEW-18 | 🟡 Partial | The honest caught-up state is wired: `web/app/review/page.tsx` shows "All caught up!" (never manufacturing cards) when `getDueCards` returns none, with "Back to dashboard." Missing per AC: a computed next-due date, a conditional "Review ahead" offer (REVIEW-11 unbuilt), and distinguishing a brand-new no-topics learner from a caught-up learner. |
+| REVIEW-18 | ✅ Done | The honest caught-up state is now fully wired via `caughtUpInfoAction` (`web/app/review-actions.ts`, returns deck size + soonest upcoming due): `web/app/review/page.tsx` distinguishes a **brand-new learner** (zero cards → "No review deck yet — start a topic" with a `/new-topic` CTA) from a **caught-up learner** (has cards, none due → "All caught up! Your next card is due {weekday, Mon D}" computed from the real soonest `fsrs.due`), and never manufactures cards. Remaining nice-to-have: a "Review ahead" offer (REVIEW-11, still unbuilt). |
 | REVIEW-19 | 🟡 Partial | Not implemented. `getDueCards` returns the entire due set sorted soonest-first with no daily-limit cap, no most-overdue/lowest-retention prioritization, no "clear N/day" backlog framing, and no reversible "spread" action. FSRS itself does feed true elapsed time (`fsrs.ts` uses `now - lastReview`), so scheduling would stay correct once a cap is added. |
 | REVIEW-20 | 🟡 Partial | Not implemented. No behavioral anomaly detection (calibration-juking, implausible timing, streak-farming), no signal quarantine/freeze, no appeal path, and no audit log for freezes. The 12-role RBAC matrix (`web/lib/domain/rbac.ts`) and the no-fabrication invariant provide a foundation, but the T&S subsystem itself is absent. |
 | REVIEW-21 | 🟡 Partial | The firewall foundation exists — the epistemic firewall (no human role has `trust:write`, `web/lib/domain/trust.ts` + `rbac.ts`) and the fact that `reviewLog` is only ever written by `gradeCard` mean there is no fabrication path. But the support tooling itself (consent-scoped requeue, streak restore, re-run failed sync, audit trail) is not built. |
@@ -275,7 +275,7 @@ Evidence base: pure engines `web/lib/domain/fsrs.ts` (+`fsrs.test.ts`), `web/lib
 | REVIEW-23 | 🟡 Partial | `web/app/settings/danger/page.tsx` exists but is static: no "reset review history" that wipes FSRS/calibration/blind-spot/streak, no DSAR export of review/calibration data, and no retention windows. The COPPA age-gate (`web/lib/auth`) provides minor-safe defaults at signup, but review-data-specific minor handling and reset/export/deletion are unbuilt. |
 | REVIEW-24 | ⏭️ Deferred | Team shared-library review (Nice-to-Have, R2/R3 per roadmap). No shared-library topic model or team-seat model is seeded, so shared-source cards, private-vs-shared signal policy, and posting wrong-ideas into a shared Gap Map cannot exist yet. Needs the Teams/Org data model and shared-library sourcing; the individual FSRS/calibration/gap engines it would build on are in place. |
 
-Counts: total 24 — ✅ Done 6, 🟡 Partial 17, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
+Counts: total 24 — ✅ Done 7, 🟡 Partial 16, ⏭️ Deferred 1, 🚫 Out-of-scope 0.
 
 ---
 
