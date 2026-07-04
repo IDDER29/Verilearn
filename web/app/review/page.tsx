@@ -248,7 +248,7 @@ export default function ReviewPage() {
             {phase === "front" ? (
               <>
                 {/* confidence gate */}
-                <div style={{ background: "#f7f5fb", border: "1.5px solid #ece8f4", borderRadius: 18, padding: "18px 20px", marginBottom: 22 }}>
+                <div role="group" aria-label="Commit your confidence before revealing" style={{ background: "#f7f5fb", border: "1.5px solid #ece8f4", borderRadius: 18, padding: "18px 20px", marginBottom: 22 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, font: "800 12.5px var(--font-nunito)", color: "#6d5bd0", marginBottom: 13 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 3a7 7 0 00-4 12.7V18h8v-2.3A7 7 0 0012 3z" />
@@ -270,6 +270,8 @@ export default function ReviewPage() {
                           key={k}
                           type="button"
                           onClick={() => setConfidence(k)}
+                          aria-pressed={sel}
+                          aria-label={`Confidence: ${cfg.label}`}
                           style={{
                             display: "flex",
                             flexDirection: "column",
@@ -299,8 +301,8 @@ export default function ReviewPage() {
 
                 {/* reveal gate */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, font: "700 13px var(--font-nunito)", color: confidence ? "#2e9c6a" : "#9a95a8" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <div id="vl-reveal-hint" role="status" aria-live="polite" style={{ display: "flex", alignItems: "center", gap: 8, font: "700 13px var(--font-nunito)", color: confidence ? "#2e9c6a" : "#9a95a8" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       {confidence ? <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 017-2.6" /></> : <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>}
                     </svg>
                     {confidence ? "Locked in — reveal when ready" : "Pick a confidence level to reveal the answer"}
@@ -308,6 +310,7 @@ export default function ReviewPage() {
                   <button
                     type="button"
                     disabled={!confidence}
+                    aria-describedby="vl-reveal-hint"
                     onClick={() => setPhase("back")}
                     style={{
                       border: "none",
