@@ -30,9 +30,11 @@ export interface WorkspaceData {
   disputedClaims: { claimId: string; text: string }[];
   coverage: {
     sources: { id: string; title: string; kind: string }[];
-    rows: { claimId: string; claimText: string; state: TrustState; cells: { sourceId: string; filled: boolean }[] }[];
+    rows: { claimId: string; claimText: string; state: TrustState; cells: { sourceId: string; filled: boolean; state: TrustState | null }[] }[];
     coveragePercent: number;
     backedCount: number;
+    /** Per-source count of claims it backs, keyed by source id. */
+    backsBySource: Record<string, number>;
   } | null;
 }
 

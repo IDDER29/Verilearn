@@ -70,7 +70,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Progress (`/reports`) | four honest signals from the review log (honest empty states) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger |
 | Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted |
-| Workspace › Sources | real claims×sources coverage %/unsupported count |
+| Workspace › Sources | full real coverage matrix (claims × sources, ledger-coloured cells), real source strip, coverage %/unsupported |
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass) |
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
 | Gap Map (`/gap-map`) | real gaps grouped Open/Watching/Closed from the gap engine; correct recalls advance gaps open→watching→closed |
@@ -84,14 +84,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, workspace loader — all unit-tested (**236 tests total**).
 
-**Test count:** 256 passing across 20 files · build green.
+**Test count:** 260 passing across 21 files · build green.
 
 ## Roadmap accounting (462 stories — 100% accounted for)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 51 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 286 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 53 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 284 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 125 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **462** | every story classified; nothing silently dropped |
@@ -122,4 +122,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after the Gap Map board pass — 51 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the Conflicts/Sources matrix pass — 53 Done; remainder is field-polish or deferred-with-justification._

@@ -11,7 +11,7 @@ const ROWS = [
   ["VERIFY", "Topic Creation & Verification Pipeline", 23, 9, 13, 1],
   ["LEARN", "Lecture & Active Listening", 23, 2, 20, 1],
   ["TASK", "Tasks & Rubric Assessment", 24, 3, 18, 3],
-  ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 3, 15, 4],
+  ["TRUST", "Conflicts, Trust Ledger & Sources", 22, 5, 13, 4],
   ["REVIEW", "Review / FSRS, Confidence & Calibration", 24, 6, 17, 1],
   ["GAP", "Gap Map & Misconception Tracking", 23, 5, 16, 2],
   ["TEST", "Tests, Certificates & Verification", 23, 2, 18, 3],

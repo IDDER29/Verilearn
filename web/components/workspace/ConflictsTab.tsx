@@ -8,14 +8,20 @@ import type { TabKey, WorkspaceData } from "./types";
 
 export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey) => void; data?: WorkspaceData | null }) {
   const router = useRouter();
-  const disputed = data?.disputedClaims[0];
-  const disputedText = disputed?.text ?? "Dijkstra's algorithm works on any weighted graph.";
-  const [constraint, setConstraint] = useState("Only holds for graphs with non-negative edge weights; use Bellman-Ford otherwise.");
+  const disputes = data?.disputedClaims ?? [];
+  const [selIdx, setSelIdx] = useState(0);
+  const disputed = disputes[selIdx] ?? disputes[0];
+  const disputedText = disputed?.text ?? "";
+  const [constraint, setConstraint] = useState("");
   const [saving, setSaving] = useState(false);
   const [resolved, setResolved] = useState(false);
 
+  const claimCount = data?.claimCount ?? 0;
+  const flagged = disputes.length;
+  const held = Math.max(0, claimCount - flagged);
+
   async function recordResolution() {
-    if (!data || !disputed) return;
+    if (!data || !disputed || constraint.trim().length === 0) return;
     setSaving(true);
     const r = await resolveConflictAction(data.topicId, disputed.claimId, constraint);
     setSaving(false);
@@ -63,33 +69,47 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
             </svg>
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Topics / Algorithms</div>
-            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Dijkstra&apos;s algorithm</div>
+            <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Topics / {data?.level ?? "Algorithms"}</div>
+            <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>{data?.title ?? "Topic"}</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 12.5px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "9px 15px", borderRadius: 12 }}>
-            ⚖️ 1 open conflict
+          <div style={{ display: "flex", alignItems: "center", gap: 6, font: "800 12.5px var(--font-nunito)", color: flagged > 0 ? "#c0392b" : "#2e9c6a", background: flagged > 0 ? "#fbeceb" : "#e4f4ec", padding: "9px 15px", borderRadius: 12 }}>
+            ⚖️ {flagged} open conflict{flagged === 1 ? "" : "s"}
           </div>
         </div>
 
         {/* tabs */}
         <WorkspaceTabs active="conflicts" onTab={onTab} />
 
-        {/* conflict list */}
-        <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ flex: 1, background: "#fff", borderRadius: 16, padding: "14px 16px", border: "2px solid #6d5bd0", boxShadow: "0 12px 26px -14px rgba(109,91,208,.4)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ font: "800 11px var(--font-nunito)", color: "#c0392b" }}>● OPEN</span>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Raised by the Skeptic</span>
+        {flagged === 0 ? (
+          /* honest empty state — nothing disputed */
+          <div style={{ background: "#fff", borderRadius: 22, padding: "40px 32px", textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+            <div style={{ fontSize: 38, marginBottom: 10 }}>⚖️</div>
+            <div style={{ font: "900 19px var(--font-nunito)", marginBottom: 6 }}>Every claim is settled</div>
+            <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8b8699", maxWidth: 420, margin: "0 auto" }}>
+              The Skeptic has no open disputes on this topic right now. If it flags a claim later, it&apos;ll appear here for you to adjudicate.
             </div>
-            <div style={{ font: "800 13.5px/1.4 var(--font-nunito)" }}>&quot;{disputedText}&quot;</div>
           </div>
-          <div style={{ flex: 1, background: "#fbfafd", borderRadius: 16, padding: "14px 16px", border: "1.5px solid #ece8f4", opacity: 0.7 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ font: "800 11px var(--font-nunito)", color: "#2e9c6a" }}>✓ RESOLVED</span>
-              <span style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Execution sandbox</span>
-            </div>
-            <div style={{ font: "800 13.5px/1.4 var(--font-nunito)", color: "#6c6780" }}>&quot;O(V²) is always fastest&quot;</div>
-          </div>
+        ) : (
+        <>
+        {/* conflict list — one card per real open dispute, selectable */}
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {disputes.map((d, i) => {
+            const sel = i === selIdx;
+            return (
+              <button
+                key={d.claimId}
+                type="button"
+                onClick={() => { setSelIdx(i); setResolved(false); }}
+                style={{ flex: "1 1 240px", textAlign: "left", cursor: "pointer", background: "#fff", borderRadius: 16, padding: "14px 16px", border: sel ? "2px solid #6d5bd0" : "1.5px solid #ece8f4", boxShadow: sel ? "0 12px 26px -14px rgba(109,91,208,.4)" : "none" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ font: "800 11px var(--font-nunito)", color: "#c0392b" }}>● OPEN</span>
+                  <span style={{ font: "700 11px var(--font-nunito)", color: "#9a95a8" }}>Raised by the Skeptic</span>
+                </div>
+                <div style={{ font: "800 13.5px/1.4 var(--font-nunito)" }}>&quot;{d.text}&quot;</div>
+              </button>
+            );
+          })}
         </div>
 
         {/* conflict detail */}
@@ -104,7 +124,7 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
           </div>
           <div style={{ background: "#fbeceb", borderLeft: "4px solid #c0392b", borderRadius: "0 14px 14px 0", padding: "15px 18px", marginBottom: 22 }}>
             <div style={{ font: "800 15px/1.5 var(--font-nunito)", color: "#221f2e" }}>&quot;{disputedText}&quot;</div>
-            <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8a5a56", marginTop: 6 }}>Flagged because the lecture didn&apos;t qualify &quot;weighted&quot; — with negative weights the correctness proof fails.</div>
+            <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8a5a56", marginTop: 6 }}>Flagged by the Skeptic — no source backs this claim as stated. Add the missing constraint or qualify it, and record why.</div>
           </div>
 
           {/* competing positions */}
@@ -129,6 +149,7 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
             rows={3}
             value={constraint}
             onChange={(e) => setConstraint(e.target.value)}
+            placeholder="State the constraint or correction that resolves this — e.g. the condition under which the claim holds, and the source that backs it."
             style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #ece8f4", borderRadius: 14, padding: "13px 15px", font: "600 14px/1.6 var(--font-nunito)", background: "#fbfafd", outline: "none", resize: "none", marginBottom: 18 }}
           />
 
@@ -137,13 +158,15 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
             <button
               type="button"
               onClick={recordResolution}
-              disabled={saving || resolved || !data}
-              style={{ border: "none", background: resolved ? "#0e8c6b" : "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: saving || resolved ? "default" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", whiteSpace: "nowrap" }}
+              disabled={saving || resolved || !data || constraint.trim().length === 0}
+              style={{ border: "none", background: resolved ? "#0e8c6b" : constraint.trim().length === 0 ? "#cdc6e8" : "#6d5bd0", color: "#fff", font: "800 14px var(--font-nunito)", padding: "12px 24px", borderRadius: 13, cursor: saving || resolved || constraint.trim().length === 0 ? "default" : "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)", whiteSpace: "nowrap" }}
             >
               {resolved ? "Resolved ✓" : saving ? "Re-verifying…" : "Record resolution"}
             </button>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* ---- RIGHT ---- */}
@@ -160,15 +183,15 @@ export default function ConflictsTab({ onTab, data = null }: { onTab: (t: TabKey
           <div style={{ font: "600 13px/1.65 var(--font-nunito)", color: "#d8d3e8" }}>It stress-tests each claim against edge cases and sources, then flags anything it can break. You stay the judge.</div>
           <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             <div>
-              <div style={{ font: "900 20px var(--font-nunito)" }}>6</div>
+              <div style={{ font: "900 20px var(--font-nunito)" }}>{claimCount}</div>
               <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>claims tested</div>
             </div>
             <div>
-              <div style={{ font: "900 20px var(--font-nunito)" }}>1</div>
+              <div style={{ font: "900 20px var(--font-nunito)" }}>{flagged}</div>
               <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>flagged</div>
             </div>
             <div>
-              <div style={{ font: "900 20px var(--font-nunito)" }}>5</div>
+              <div style={{ font: "900 20px var(--font-nunito)" }}>{held}</div>
               <div style={{ font: "700 11px var(--font-nunito)", color: "#b3a7f0" }}>held up</div>
             </div>
           </div>

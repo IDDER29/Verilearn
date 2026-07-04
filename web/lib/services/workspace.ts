@@ -44,9 +44,10 @@ export function loadWorkspaceData(userId: string, topicId?: string): WorkspaceDa
     coverage: cov
       ? {
           sources: cov.sources.map((s) => ({ id: s.id, title: s.title, kind: s.kind })),
-          rows: cov.rows.map((r) => ({ claimId: r.claimId, claimText: r.claimText, state: r.state, cells: r.cells.map((c) => ({ sourceId: c.sourceId, filled: c.state !== null })) })),
+          rows: cov.rows.map((r) => ({ claimId: r.claimId, claimText: r.claimText, state: r.state, cells: r.cells.map((c) => ({ sourceId: c.sourceId, filled: c.state !== null, state: c.state })) })),
           coveragePercent: cov.coveragePercent,
           backedCount: cov.backedCount,
+          backsBySource: Object.fromEntries(cov.sources.map((s) => [s.id, cov.rows.filter((r) => r.cells.some((c) => c.sourceId === s.id && c.state !== null)).length])),
         }
       : null,
   };
