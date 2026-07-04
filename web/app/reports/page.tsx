@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth/current";
 import { focusAreas, perTopicProgress, progressFor, signalDisplay } from "@/lib/services/progress";
@@ -132,7 +133,7 @@ export default async function ReportsPage() {
             {focus.map((f, i) => {
               const tone = FOCUS_TONE[f.tone];
               return (
-                <div key={f.topicId} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: tone.bg, marginBottom: i < focus.length - 1 ? 10 : 0 }}>
+                <Link key={f.topicId} href="/gap-map" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, background: tone.bg, marginBottom: i < focus.length - 1 ? 10 : 0 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={tone.color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       {f.tone === "green" ? <><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></> : <><path d="M12 4l9 15.5H3z" /><path d="M12 10v4M12 17h.01" /></>}
@@ -142,7 +143,7 @@ export default async function ReportsPage() {
                     <div style={{ font: "800 13px var(--font-nunito)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.title}</div>
                     <div style={{ font: "700 11px var(--font-nunito)", color: tone.color, textTransform: "capitalize" }}>{f.reason}</div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
