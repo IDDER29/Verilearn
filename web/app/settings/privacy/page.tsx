@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
 import { getPrefsAction, savePrivacyAction } from "@/app/prefs-actions";
+import { exportDataAction } from "@/app/export-actions";
 import type { UserPrefs } from "@/lib/store/entities";
 
 type Privacy = UserPrefs["privacy"];
@@ -40,6 +41,8 @@ function Toggle({ on, disabled, onClick }: { on: boolean; disabled?: boolean; on
 
 export default function SettingsPrivacyPage() {
   const [privacy, setPrivacy] = useState<Privacy | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState<string | null>(null);
 
   useEffect(() => {
     getPrefsAction().then((p) => setPrivacy(p?.privacy ?? null));
@@ -52,6 +55,26 @@ export default function SettingsPrivacyPage() {
     const next = { ...privacy, [key]: !privacy[key] };
     setPrivacy(next);
     await savePrivacyAction({ [key]: next[key] });
+  }
+
+  async function exportData() {
+    setExporting(true);
+    setExportErr(null);
+    const r = await exportDataAction();
+    setExporting(false);
+    if (r.ok && r.json) {
+      const blob = new Blob([r.json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "verilearn-export.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } else {
+      setExportErr(r.error ?? "Export failed.");
+    }
   }
 
   return (
@@ -123,7 +146,7 @@ export default function SettingsPrivacyPage() {
             </div>
           </div>
 
-          {/* export — Deferred: there is no export service yet, so this stays a stub. */}
+          {/* export — real DSAR bundle (SETTINGS-13): full claim ledger, reviews, gaps, certs. */}
           <div style={{ background: "#fff", borderRadius: 20, padding: "20px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a63b0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -132,9 +155,18 @@ export default function SettingsPrivacyPage() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ font: "800 14px var(--font-nunito)" }}>Export your data</div>
-              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>Download everything as JSON — topics, reviews, gaps</div>
+              <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>
+                {exportErr ?? "Download everything as JSON — profile, topics + claim ledger, reviews, gaps, tasks, certificates"}
+              </div>
             </div>
-            <button style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#4a4560", font: "800 12.5px var(--font-nunito)", padding: "10px 18px", borderRadius: 12, cursor: "pointer" }}>Request export</button>
+            <button
+              type="button"
+              onClick={exportData}
+              disabled={exporting}
+              style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#4a4560", font: "800 12.5px var(--font-nunito)", padding: "10px 18px", borderRadius: 12, cursor: exporting ? "default" : "pointer" }}
+            >
+              {exporting ? "Preparing…" : "Download JSON"}
+            </button>
           </div>
         </div>
       </main>

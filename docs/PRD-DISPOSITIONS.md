@@ -30,14 +30,14 @@ justification** — nothing is silently dropped.
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
 | NOTIF — Notifications, Reminders & Messaging | 24 | 2 | 13 | 9 |
 | ANALYTICS — Progress, Reports & Analytics | 21 | 4 | 8 | 9 |
-| SETTINGS — Settings, Profile & Privacy | 23 | 9 | 11 | 3 |
+| SETTINGS — Settings, Profile & Privacy | 23 | 10 | 10 | 3 |
 | BILL — Billing, Plans & Subscriptions | 23 | 5 | 6 | 12 |
 | ORG — Organization / Team Administration | 22 | 0 | 21 | 1 |
 | ADMIN — Platform Admin, Moderation & T&S | 23 | 1 | 12 | 10 |
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **72** | **265** | **125** |
+| **TOTAL** | **462** | **73** | **264** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -502,7 +502,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | SETTINGS-10 | ✅ Done | `app/settings/review/page.tsx` is a client component bound to the real `review` prefs: the target-retention slider (clamped 80–95), daily-limit and max-interval steppers (clamped), and the confidence-gate / drills / reminder toggles all auto-persist via `saveReviewPrefsAction` → `updatePrefs` (with bounds enforced in the UI), loaded via `getPrefsAction`, with a Saved confirmation. Covered by `prefs.test.ts` (section-scoped patch, ledger untouched). Remaining nice-to-have: threading these params into `schedule()` at grade time (engine already accepts them). |
 | SETTINGS-11 | 🟡 Partial | `app/settings/privacy/page.tsx` renders the honest stored-items list (topics/lectures/claim ledger; review history & FSRS schedule; gap map & threads) and the explicit never-clause ("We never sell your data or train public models on it"). Missing: versioned policy, link to the full policy, material-change notification, and the enforced sync between this list and the export contents (SETTINGS-13). |
 | SETTINGS-12 | ✅ Done | `app/settings/privacy/page.tsx` is a client component bound to the real `privacy` prefs: the three toggles (analytics, community-visible, product-emails) auto-persist via `savePrivacyAction` → `updatePrefs`, loaded via `getPrefsAction`, and minor-safe defaults are applied at sign-up (`auth/service.ts` sets communityVisible/emailUpdates false for minors). Remaining nice-to-have: collection-layer opt-out enforcement + Community attribution once those surfaces exist (Community is R2). |
-| SETTINGS-13 | 🟡 Partial | A "Request export" button is present (`app/settings/privacy/page.tsx`) with correct framing ("Download everything as JSON — topics, reviews, gaps"), but it has no handler — no async generation, no JSON bundle, no faithful claim-ledger (trust states/sources/coverage matrix) export, no time-limited authenticated link, no rate-limit. UI stub only; the pipeline is unbuilt (internal, not externally blocked). |
+| SETTINGS-13 | ✅ Done | The export is real: `buildDataExport(userId, at)` (`lib/services/export.ts`) serialises the **full DSAR bundle** — profile + prefs, every topic with its per-claim trust state and append-only verification event ledger + sources + coverage, the review log + FSRS schedule, the gap map with history, tasks, and certificates — owner-scoped. The privacy page's "Download JSON" button calls `exportDataAction`, then builds a Blob and triggers a client download of `verilearn-export.json`. Covered by `export.test.ts` (bundle includes the honest ledger incl. a disputed claim; owner-scoped; JSON-serialisable). Remaining nice-to-haves: a time-limited authenticated link + rate-limit (delivery infra) rather than an in-browser download. |
 | SETTINGS-14 | ⏭️ Deferred | No DPO/DSAR tooling: no data-footprint locator, no machine-readable access package, no cascading erasure, no per-data-class retention schedules, no auto-purge, no DSAR audit log (actor/scope/timestamp/legal basis). Needs a real database + retention infra + legal-basis handling and FERPA/COPPA reconciliation with certificate retention (I7). RBAC has roles but no back-office DSAR surface. |
 | SETTINGS-15 | 🟡 Partial | The age-gate half is genuinely implemented and unit-tested: `lib/auth/age.ts` (`ageGate`) blocks under-13 pending verifiable parental consent, assigns a coarse `AgeBand` (`entities.ts`: `ageBand`), and sets `minorSafeDefaults` for minors; sign-up applies the year-of-birth gate. Not implemented: guardian-held billing/safety controls, the verifiable-consent flow, minor community-suppression enforcement, and the documented single-shared-account disclosure. (Priority: Future.) |
 | SETTINGS-16 | ✅ Done | The "Reset review history" card is wired: its button calls `resetReviewHistoryAction` (`app/danger-actions.ts`), which clears the learner's `reviewLog` and resets every owned card's FSRS to `newCard(now)` — topics/lectures untouched — then revalidates Reports + Settings. `app/settings/danger/page.tsx` is a client component with per-action busy state. |
@@ -514,7 +514,7 @@ Honest, evidence-based disposition of the SETTINGS domain against the current co
 | SETTINGS-22 | 🟡 Partial | Certificate revocation exists as a primitive in the domain engine (certificates: fail-closed issue/verify/**revoke**). But account freeze is unbuilt: `User` has no `frozen`/status field, settings/danger-zone actions cannot be made read-only, self-deletion/export cannot be blocked for a hold, and there is no honest frozen-status/appeal surface. The revoke seam is present; the freeze surface is absent. |
 | SETTINGS-23 | 🟡 Partial | Partial accessibility: the danger-zone and profile fields use real `<input>` elements, but every toggle and slider across Verification/Privacy/Review/Active-listening is a non-semantic styled `<div>` with no `role`/`aria-checked`/`aria-valuenow`, no keyboard operability, and color-encoded on/off state. No live regions for save/error (nothing saves), and the delete-account confirm button is statically disabled. WCAG 2.2 AA for the settings controls is not met. |
 
-**Counts:** 23 total — ✅ 9 Done · 🟡 11 Partial · ⏭️ 3 Deferred · 🚫 0 Out-of-scope.
+**Counts:** 23 total — ✅ 10 Done · 🟡 10 Partial · ⏭️ 3 Deferred · 🚫 0 Out-of-scope.
 
 ---
 
