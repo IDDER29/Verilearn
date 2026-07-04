@@ -17,14 +17,14 @@ justification** — nothing is silently dropped.
 
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
-| AUTH — Authentication, Onboarding & Identity | 24 | 1 | 14 | 9 |
+| AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
 | HOME — Learner Home / Dashboard & Discovery | 22 | 6 | 15 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 9 | 13 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 2 | 20 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 3 | 18 | 3 |
 | TRUST — Conflicts, Trust Ledger & Sources | 22 | 5 | 13 | 4 |
 | REVIEW — Review / FSRS, Confidence & Calibration | 24 | 6 | 17 | 1 |
-| GAP — Gap Map & Misconception Tracking | 23 | 5 | 16 | 2 |
+| GAP — Gap Map & Misconception Tracking | 23 | 6 | 15 | 2 |
 | TEST — Tests, Certificates & Verification | 23 | 2 | 18 | 3 |
 | COMM — Community, Contributions & Reputation | 24 | 0 | 14 | 10 |
 | EVENT — Events: Workshops, Groups & Challenges | 25 | 0 | 18 | 7 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **53** | **284** | **125** |
+| **TOTAL** | **462** | **57** | **280** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -60,9 +60,9 @@ email — each behind a clean seam.
 | AUTH-04 | ⏭️ Deferred | No social/OAuth path in `lib/auth` or the sign-up UI. Needs an OAuth/OIDC provider integration (vendor). Account-linking-on-matching-email seam not present. |
 | AUTH-05 | ⏭️ Deferred | No email-verification token, no unverified state, no `verified` flag on `User`; sign-up creates an immediately-usable account. Needs a transactional email pipeline (Deferred infra) plus expiring single-use tokens. |
 | AUTH-06 | 🟡 Partial | Durable secure session done: HMAC-SHA256 signed token with 30-day TTL (`lib/auth/session.ts`), httpOnly cookie (`lib/auth/current.ts` `setSessionCookie`), `signIn` lands on `/`, generic non-enumerating error ("Email or password is incorrect."), `/logout` + `logoutAction` end the session; tested. Missing: "Remember me", failed-sign-in lockout/backoff counter, and step-up re-auth for sensitive surfaces. |
-| AUTH-07 | 🟡 Partial | `app/welcome/page.tsx` greets by first name, shows new-learner empty state, "Create your first topic" hero CTA, three example on-ramps, all from real topic counts via `requireUser()`. Missing: it is not auto-shown-once — sign-up redirects to `/` (Dashboard) not `/welcome`, and there is no first-run "seen" flag to suppress re-display; no role-aware team-library variant. |
+| AUTH-07 | ✅ Done | `app/welcome/page.tsx` greets by first name, shows the new-learner empty state, "Create your first topic" hero CTA, and three example on-ramps, all from real topic counts via `requireUser()` — **and it is now auto-shown for first-run**: `app/page.tsx` `redirect("/welcome")`s any zero-topic account (HOME-01), so a just-signed-up learner lands on Welcome and stops seeing it the moment they create their first topic (the topic count *is* the "seen" signal — no separate flag needed). Remaining nice-to-have: a role-aware team-library variant (depends on the Teams model). |
 | AUTH-08 | ⏭️ Deferred | No password-reset flow — no reset token, no request/consume route, no email. Needs the transactional email pipeline (Deferred). Anti-enumeration + all-session-invalidation-on-reset not present. |
-| AUTH-09 | 🟡 Partial | `app/settings/profile/page.tsx` displays real name/email/role/join date and renders editable name/avatar/language/timezone fields with a Save button — but there is no wired server action; edits do not persist and timezone does not recompute FSRS boundaries. Read path is real; write path is static. |
+| AUTH-09 | ✅ Done | `app/settings/profile/page.tsx` displays real name/email/role/join date, and the **write path is now wired**: a `ProfileForm` client island (`components/settings/ProfileForm.tsx`) edits the display name and persists it through `updateDisplayNameAction` (`app/profile-actions.ts`, trimmed + 1–60 char validated), with dirty-state Save/Cancel, an inline error, a "Saved ✓" confirmation, and `router.refresh()` so the new name propagates (avatar row, dashboard greeting). Email is shown read-only ("identity · locked") since changing it needs re-verification. Remaining nice-to-have: avatar upload and locale/timezone models (no store fields yet; FSRS uses UTC boundaries). |
 | AUTH-10 | ⏭️ Deferred | No change-email flow (new-address verification, old-address security notice, step-up). Depends on the email pipeline (Deferred). |
 | AUTH-11 | ⏭️ Deferred | No MFA/TOTP, recovery codes, or step-up. Needs an MFA vendor (Deferred infra). |
 | AUTH-12 | 🟡 Partial | A revocable server-side session store exists (`db.sessions`, keyed by token; `signOut` deletes it) and single-session logout works (`/logout`, `logoutAction`). Missing the user-facing feature: no active-sessions list (device/location/last-active), no "sign out everywhere", and no cascade invalidation on password/MFA change. |
@@ -72,14 +72,14 @@ email — each behind a clean seam.
 | AUTH-16 | ⏭️ Deferred | No SCIM directory sync or programmatic per-tenant SSO config. Marked Future in the PRD; needs external directory/IdP integration (Deferred). |
 | AUTH-17 | 🟡 Partial | The firewall guarantee is genuinely enforced: `lib/domain/rbac.ts` grants `user:impersonate` to no role by default and `trust:write` to no human role, and `assertNoEpistemicWriteGrants` proves support can never mark a claim Verified/gift a certificate (tested in `rbac.test.ts`). Missing the operational half: consented, ticket-scoped, time-boxed, audit-logged impersonation access and the resend/reset/delete-on-behalf actions. |
 | AUTH-18 | 🟡 Partial | RBAC guarantees T&S cannot re-certify or resolve a Conflict on the merits (no `trust:write`, firewall-swept). But there is no account-status model (freeze/suspend/ban) on `User`, no session-invalidation-on-ban, no appeal state, and no reason-coded audit trail. Lifecycle unbuilt; the epistemic invariant it must respect is done. |
-| AUTH-19 | 🟡 Partial | `app/settings/danger/page.tsx` renders the exact confirmation pattern (copy: type `DELETE` to confirm, destructive button held disabled). But it is static — no wired server action, the button opacity stays `0.55`, and there is no deletion service removing account/content or invalidating sessions. UI present, behavior not wired. |
+| AUTH-19 | ✅ Done | `app/settings/danger/page.tsx` is a wired client component: the delete-account card holds its button disabled until the confirmation input equals `DELETE`, then calls `deleteAccountAction` (`app/danger-actions.ts`) which removes the user, their topics/review-log/cards/gaps/tasks, **invalidates every session** for that user, clears the session cookie, and redirects to `/signup`. The same page also wires reset-review-history, reset-gap-map, and delete-all-topics to their real server actions. Behavior is real end-to-end. |
 | AUTH-20 | 🟡 Partial | Owner/tenant scoping exists in the store layer (in-memory repo with OWNER/TENANT scoping; services filter by `user.id`, e.g. `listTopicSummaries(user.id)`) and is tested (`store.test.ts`); authorization fails closed via `requireUser()`. RBAC keeps `platform_admin` free of any epistemic write. Missing: real multi-tenant provisioning, enforced "admin cannot read epistemic content", and audited break-glass. |
 | AUTH-21 | 🟡 Partial | The age gate is implemented and tested (`lib/auth/age.ts`): under-13 self-serve is blocked pending verifiable parental consent, 13–17 get a `minor` band with minor-safe defaults, coarse band retained (no precise DOB); wired into `signUp` and the `/signup` birth-year field with COPPA copy. Missing (PRD marks Future): first-class guardian↔dependent link, guardian dashboard, FERPA consent routing. |
 | AUTH-22 | 🟡 Partial | Auth forms use associated `<label htmlFor>`, semantic typed inputs, and `autoComplete` hints (`app/login`, `app/signup`, `AuthShell`), giving a keyboard/screen-reader baseline. Not verified: announced error/validation states with focus moved to the first invalid field, no color-only/timed-only cues, and full WCAG conformance; MFA/reset/verify surfaces don't exist yet to audit. |
 | AUTH-23 | 🟡 Partial | Only anti-enumeration is honored: `signIn` returns a uniform "Email or password is incorrect." regardless of factor. Missing everything else in the layer — no rate limiting, no accessible CAPTCHA/progressive challenge, no disposable/known-abuse domain list, no credential-stuffing lockout/backoff or alerting. |
 | AUTH-24 | 🟡 Partial | Expiry fails closed safely: `authenticate` rejects expired/revoked tokens and `requireUser()` redirects to `/login` without corrupting state. Missing the graceful-resume behavior — no lightweight re-auth-and-resume, no preservation of uncommitted in-progress work, and no server-side background-pipeline reattach (the pipeline is a client animation). |
 
-**Counts:** 24 total — ✅ 1 Done, 🟡 14 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
+**Counts:** 24 total — ✅ 4 Done, 🟡 11 Partial, ⏭️ 9 Deferred, 🚫 0 Out-of-scope.
 
 ---
 
@@ -304,12 +304,12 @@ The pure lifecycle engine (`web/lib/domain/gap.ts`, 22 tests in `gap.test.ts`) i
 | GAP-17 | 🟡 Partial | The no-fabrication firewall philosophy is embodied in the domain (append-only history, evidence-gated transitions). No Support restore tooling, pre-incident snapshots, scoped-consent flow, or gap audit log exist (`app/support/page.tsx` is static). |
 | GAP-18 | 🟡 Partial | COPPA age-gate / minor-safe defaults exist in auth. No DSAR export of gaps+origins+history+threads, no retention/deletion propagation, and threads are unmodeled — Privacy lists them but nothing serializes them. |
 | GAP-19 | 🟡 Partial | The "never a false state" invariant is real and tested: illegal transitions are no-ops returning the same reference, `closeGap` refuses closure by fiat, `gradeCard` persists atomically. Missing infra: offline queue, optimistic-concurrency/etag guards, and stale-write reconciliation (store is in-memory). |
-| GAP-20 | 🟡 Partial | The Danger-zone "Reset gap map" card exists with correct copy ("Deletes all tracked gaps & their discussion threads") at `app/settings/danger/page.tsx:43-50`, but the button is static — no `onClick`, no server action, no confirmation, no transactional delete. |
+| GAP-20 | ✅ Done | The Danger-zone "Reset gap map" card is wired: its button calls `resetGapMapAction` (`app/danger-actions.ts`), which deletes every `GapRecord` for the current user from the store and revalidates. `app/settings/danger/page.tsx` is a client component with per-action busy/confirmation handling. Remaining nice-to-have: discussion-thread deletion (threads are unmodeled — GAP-18). |
 | GAP-21 | 🟡 Partial | `conflict` is a modeled origin and the seed contains a conflict-origin gap (`gap_1`, `seed.ts:179`). But `resolveConflict` (`web/lib/services/conflicts.ts`) contains no gap wiring — resolving/reopening a dispute does not create or reopen a linked gap. |
 | GAP-22 | 🟡 Partial | Notifications are derived from real state and `gradeCard` already surfaces `gapReopened`. No gap-reopen / heat-spike event is emitted into the notifications feed, and no batching/throttling for gap events exists. |
 | GAP-23 | ⏭️ Deferred | PRD-scoped Future. Requires a real guardian↔dependent account relationship (Auth/Org) that does not exist; today's single-account model cannot provide a per-child gap view. Explicitly unsupported rather than approximated. |
 
-Counts: 23 total — ✅ 5 Done, 🟡 16 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
+Counts: 23 total — ✅ 6 Done, 🟡 15 Partial, ⏭️ 2 Deferred, 🚫 0 Out-of-scope.
 
 ---
 

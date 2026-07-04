@@ -1,40 +1,12 @@
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
+import ProfileForm from "@/components/settings/ProfileForm";
 import { requireUser } from "@/lib/auth/current";
 
 export const metadata = { title: "Profile · Settings · VeriLearn" };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const ROLE_LABEL: Record<string, string> = { learner: "Verified Learner", instructor: "Instructor", sme_reviewer: "Subject-Matter Expert" };
-
-const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box" as const,
-  font: "600 14px var(--font-nunito)",
-  padding: "11px 13px",
-  border: "1.5px solid #ece8f4",
-  borderRadius: 12,
-  background: "#fbfafd",
-};
-
-const selectRow = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  font: "600 14px var(--font-nunito)",
-  padding: "11px 13px",
-  border: "1.5px solid #ece8f4",
-  borderRadius: 12,
-  background: "#fbfafd",
-} as const;
-
-const labelStyle = { font: "700 12px var(--font-nunito)", color: "#6c6780", marginBottom: 6 } as const;
-
-const chevron = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a7a1b8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-);
 
 export default async function SettingsProfilePage() {
   const user = await requireUser();
@@ -82,39 +54,8 @@ export default async function SettingsProfilePage() {
             </button>
           </div>
 
-          {/* fields */}
-          <div style={{ background: "#fff", borderRadius: 20, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-              <div>
-                <div style={labelStyle}>Full name</div>
-                <input type="text" defaultValue={user.displayName} style={inputStyle} />
-              </div>
-              <div>
-                <div style={labelStyle}>Display name</div>
-                <input type="text" defaultValue={user.displayName} style={inputStyle} />
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <div style={labelStyle}>Email</div>
-              <input type="text" defaultValue={user.email} style={inputStyle} />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <div style={labelStyle}>Language</div>
-                <div style={selectRow}>English (US){chevron}</div>
-              </div>
-              <div>
-                <div style={labelStyle}>Timezone</div>
-                <div style={selectRow}>GMT+3 · Riyadh{chevron}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* save bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, background: "#fff", borderRadius: 20, padding: "16px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
-            <button style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#6c6780", font: "800 13.5px var(--font-nunito)", padding: "11px 20px", borderRadius: 13, cursor: "pointer" }}>Cancel</button>
-            <button style={{ border: "none", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "11px 24px", borderRadius: 13, cursor: "pointer", boxShadow: "0 10px 22px -8px rgba(109,91,208,.7)" }}>Save changes</button>
-          </div>
+          {/* editable identity (display name persists) */}
+          <ProfileForm initialName={user.displayName} email={user.email} />
         </div>
       </main>
     </AppShell>
