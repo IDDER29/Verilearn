@@ -18,7 +18,7 @@ justification** — nothing is silently dropped.
 | Domain | Total | ✅ Done | 🟡 Partial | ⏭️ Deferred |
 |---|--:|--:|--:|--:|
 | AUTH — Authentication, Onboarding & Identity | 24 | 4 | 11 | 9 |
-| HOME — Learner Home / Dashboard & Discovery | 22 | 7 | 14 | 1 |
+| HOME — Learner Home / Dashboard & Discovery | 22 | 8 | 13 | 1 |
 | VERIFY — Topic Creation & Verification Pipeline | 23 | 11 | 11 | 1 |
 | LEARN — Lecture & Active Listening | 23 | 3 | 19 | 1 |
 | TASK — Tasks & Rubric Assessment | 24 | 7 | 14 | 3 |
@@ -37,7 +37,7 @@ justification** — nothing is silently dropped.
 | A11Y — Accessibility, Mobile & Offline | 24 | 0 | 20 | 4 |
 | API — Integrations, API, Webhooks, SSO & LTI | 22 | 1 | 3 | 18 |
 | SEC — Security, Privacy Eng. & Compliance | 23 | 2 | 4 | 17 |
-| **TOTAL** | **462** | **90** | **247** | **125** |
+| **TOTAL** | **462** | **91** | **246** | **125** |
 
 **Interpretation.** The **thesis-critical spine is real and tested**: the trust ledger + epistemic firewall,
 FSRS, calibration, rubric grading, gap auto-reopen, test eligibility/scoring, certificates, honest signals,
@@ -89,7 +89,7 @@ email — each behind a clean seam.
 |---|---|---|
 | HOME-01 | ✅ Done | `/welcome` (`app/welcome/page.tsx`) implements the full first-run screen (branded hero, 3-step "How VeriLearn works" strip, single CTA into `/new-topic`, real per-account `topicCount`/`claimsChecked` placeholders with honest zero copy), **and it is now gated as the actual first screen**: `app/page.tsx` `redirect("/welcome")`s any zero-topic account before rendering, so a new learner never lands on empty Dashboard widgets. The former hardcoded vanity stat cards are also gone — the Dashboard's "Verified topics / Claims checked / Certificates" now read real derived counts (see HOME-11), so the "no vanity metrics" intent holds. |
 | HOME-02 | 🟡 Partial | `app/welcome/page.tsx` shows a curated example row (Dijkstra's algorithm, Merkle trees, Binary search) with subject + level. Gaps: selecting an example just `href="/new-topic"` — it does **not** seed New Topic pre-filled nor open a pre-verified showcase; and the `EXAMPLES` array renders unconditionally, so it does not demote/disappear once the learner has their own topics. |
-| HOME-03 | 🟡 Partial | Dashboard header (`app/page.tsx:41-43`) aggregates **real** live counts: `dueCount` from `reviewCardsOf(...).filter(due <= now())` (FSRS source-of-truth) and `conflicts` summed from ledger `disputes` — "You have N reviews due and M open conflicts today." Missing: counts are plain text, **not links** to Review/Conflicts; tasks-due and newly-verified-topics counts are absent; there is no "You're all caught up" reward state with next-due date; day-boundary uses `now()` with no explicit learner-timezone handling. |
+| HOME-03 | ✅ Done | The Dashboard header status line is now a real, **linkable** triage summary (`app/page.tsx`): "N reviews due" links to `/review`, "M open conflicts" to the new `/conflicts` inbox, and "K tasks to do" (real `pendingTasks`) to `/my-tasks` — all from live source-of-truth counts (FSRS due set, ledger `disputes`, task pass-state). When everything is zero it shows an **"You're all caught up ✨"** reward state, including the **next-due** interval (computed from the soonest future FSRS `due` via `formatInterval`). Remaining nuance: a newly-verified-topics count and explicit learner-timezone day-boundary handling (currently `now()`-based) are R2 polish. |
 | HOME-04 | ✅ Done | The Dashboard right-panel "To review" list (`app/page.tsx`) is now a **real cross-portfolio aggregation**, each row live and linked: "{dueCount} flashcards due" → `/review` (FSRS due set), "Resolve {conflicts} conflicts" → `/topics/conflicts` (summed ledger disputes, with a "No open conflicts" zero-state), and "Finish {pendingTasks} tasks" → `/my-tasks` (tasks where `passed !== true`, with an "All tasks complete" zero-state). Remaining nice-to-have: an explicit overdue > due-today > soon ordering and "+N more" capping (the three canonical buckets are all shown, so nothing is hidden). |
 | HOME-05 | ✅ Done | Fully wired to real ledger data. `listTopicSummaries` (`lib/services/topics.ts:42`) returns per-topic `claimCount`, `verifiedPercent`, `breakdown` (five trust states), and `disputes` derived from `TrustLedger`/`trustBreakdown`/`verifiedPercent`. Dashboard (`app/page.tsx:271-301`) renders each row with title, level, claim count, a segmented `TrustBar` (verified/sourced/disputed proportions), the percent-verified figure, and a status chip ("N disputes" / "✓ Verified" / "● On track") that reflects real ledger state; rows link into the topic surface and a "See all" links to `/topics`. |
 | HOME-06 | 🟡 Partial | The top-bar search input renders (`app/page.tsx:61-71`) but is **purely decorative** — no `onChange`, no typeahead, no results, no debounce, no scope enforcement. Underlying tenant scoping exists (`topicsOf(db, userId)`), but no search index or query path is wired. |

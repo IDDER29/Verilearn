@@ -8,6 +8,7 @@ import { listTestableTopics } from "@/lib/services/tests";
 import { unreadNotificationCount } from "@/lib/services/notifications";
 import { getDb, reviewCardsOf } from "@/lib/store/db";
 import { now } from "@/lib/ids";
+import { formatInterval } from "@/lib/format";
 
 export const metadata = { title: "Dashboard · VeriLearn" };
 
@@ -24,7 +25,10 @@ export default async function DashboardPage() {
   // First-run gating (HOME-01): a zero-topic account sees the branded welcome
   // screen, never a Dashboard full of empty widgets.
   if (topics.length === 0) redirect("/welcome");
-  const dueCount = reviewCardsOf(db, user.id).filter((c) => c.fsrs.due <= now()).length;
+  const at = now();
+  const cards = reviewCardsOf(db, user.id);
+  const dueCount = cards.filter((c) => c.fsrs.due <= at).length;
+  const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
   const conflicts = topics.reduce((n, t) => n + t.disputes, 0);
 
   // Real headline stats.
@@ -53,7 +57,16 @@ export default async function DashboardPage() {
                 Welcome back, {user.displayName} 👋
               </div>
               <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginTop: 2 }}>
-                You have {dueCount} review{dueCount === 1 ? "" : "s"} due and {conflicts} open conflict{conflicts === 1 ? "" : "s"} today.
+                {dueCount === 0 && conflicts === 0 && pendingTasks === 0 ? (
+                  <>You&apos;re all caught up ✨{nextDue !== undefined ? <> — next review {formatInterval((nextDue - at) / 86_400_000)}.</> : "."}</>
+                ) : (
+                  <>
+                    You have{" "}
+                    <Link href="/review" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>{dueCount} review{dueCount === 1 ? "" : "s"} due</Link>,{" "}
+                    <Link href="/conflicts" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>{conflicts} open conflict{conflicts === 1 ? "" : "s"}</Link>, and{" "}
+                    <Link href="/my-tasks" style={{ color: "#6d5bd0", fontWeight: 800, textDecoration: "none" }}>{pendingTasks} task{pendingTasks === 1 ? "" : "s"} to do</Link> today.
+                  </>
+                )}
               </div>
             </div>
             <div
