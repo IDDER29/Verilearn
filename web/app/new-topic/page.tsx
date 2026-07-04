@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton } from "@/components/ui";
+import { createTopicAction } from "@/app/topic-actions";
 
 type Goal = { label: string; icon: React.ReactNode };
 
@@ -75,6 +76,8 @@ export default function NewTopicPage() {
   const [level, setLevel] = useState("Comfortable with hashing; new to tree structures and cryptographic proofs.");
   const [goal, setGoal] = useState<number | null>(0);
   const [tried, setTried] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const ready = useMemo(() => topic.trim().length > 1 && level.trim().length > 3 && goal !== null, [topic, level, goal]);
 
@@ -89,9 +92,17 @@ export default function NewTopicPage() {
     color: "#221f2e",
   });
 
-  function submit() {
+  async function submit() {
     if (!ready) {
       setTried(true);
+      return;
+    }
+    setSubmitting(true);
+    setServerError(null);
+    const res = await createTopicAction({ title: topic.trim(), level: level.trim(), goal: goal !== null ? GOALS[goal].label : "" });
+    setSubmitting(false);
+    if (!res.ok) {
+      setServerError(res.error ?? "Something went wrong.");
       return;
     }
     router.push(`/pipeline?topic=${encodeURIComponent(topic.trim())}`);
@@ -170,6 +181,11 @@ export default function NewTopicPage() {
             </div>
 
             {/* submit */}
+            {serverError && (
+              <div style={{ background: "#fbeceb", border: "1px solid #f4d5d1", color: "#c0392b", font: "700 12.5px var(--font-nunito)", borderRadius: 12, padding: "10px 13px" }}>
+                {serverError}
+              </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 20, borderTop: "1px solid #f0edf6" }}>
               {ready ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, font: "800 13px var(--font-nunito)", color: "#2e9c6a" }}>
@@ -191,17 +207,18 @@ export default function NewTopicPage() {
               <button
                 type="button"
                 onClick={submit}
+                disabled={submitting}
                 style={{
                   border: "none",
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: ready ? "#6d5bd0" : "#c9c2e6",
+                  background: submitting ? "#8b7fd0" : ready ? "#6d5bd0" : "#c9c2e6",
                   color: "#fff",
                   font: "800 15px var(--font-nunito)",
                   padding: "14px 26px",
                   borderRadius: 14,
-                  cursor: "pointer",
+                  cursor: submitting ? "wait" : "pointer",
                   boxShadow: ready ? "0 12px 26px -10px rgba(109,91,208,.7)" : "none",
                   transition: "background .15s",
                 }}
@@ -209,7 +226,7 @@ export default function NewTopicPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                Start verifying
+                {submitting ? "Verifying…" : "Start verifying"}
               </button>
             </div>
           </div>

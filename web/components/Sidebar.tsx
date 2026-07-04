@@ -276,6 +276,27 @@ export default function Sidebar({ active }: { active?: NavKey }) {
           Upgrade
         </Link>
       </div>
+
+      <a
+        href="/logout"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          marginTop: 10,
+          padding: "9px 14px",
+          borderRadius: 12,
+          color: "#8b8699",
+          textDecoration: "none",
+          font: "700 12.5px var(--font-nunito)",
+        }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 17l5-5-5-5M21 12H9M12 19H6a2 2 0 01-2-2V7a2 2 0 012-2h6" />
+        </svg>
+        Sign out
+      </a>
     </aside>
   );
 }
