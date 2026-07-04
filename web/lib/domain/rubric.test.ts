@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   MalformedRubricError,
+  MIN_SUBSTANCE_WORDS,
   PASS_THRESHOLD,
   UngradeableCriterionError,
   assertRubricGradeable,
+  checkSubstance,
   grade,
   gradeSubmission,
   hitsFor,
@@ -174,6 +176,24 @@ describe("default keyword matcher + hitsFor / gradeSubmission", () => {
   it("accepts a custom injected matcher", () => {
     const alwaysHit = () => true;
     expect(hitsFor(r, sub, alwaysHit)).toEqual({ cut: true, negative: true, nokw: true });
+  });
+});
+
+describe("minimum-substance gate (TASK-22)", () => {
+  const prompt = "Explain why the greedy approach fails here.";
+
+  it(`rejects fewer than ${MIN_SUBSTANCE_WORDS} words`, () => {
+    expect(checkSubstance("not sure why", prompt)).toEqual({ ok: false, reason: "too_short" });
+    expect(checkSubstance("dunno", prompt)).toEqual({ ok: false, reason: "too_short" });
+  });
+
+  it("rejects the prompt copied back verbatim, case/punctuation-insensitively", () => {
+    expect(checkSubstance(prompt, prompt)).toEqual({ ok: false, reason: "copies_prompt" });
+    expect(checkSubstance("EXPLAIN WHY THE GREEDY APPROACH FAILS HERE", prompt)).toEqual({ ok: false, reason: "copies_prompt" });
+  });
+
+  it("accepts a genuine attempt of adequate length that isn't the prompt", () => {
+    expect(checkSubstance("The greedy pick can't be undone once a lighter edge shows up later.", prompt)).toEqual({ ok: true });
   });
 });
 

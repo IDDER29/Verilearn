@@ -3,7 +3,7 @@
  * source-anchored rubric (each criterion traces to a canonical source), ≥75% to
  * pass, revise-to-pass. Traces to TASK-04 (source-traced rubric), TASK.
  */
-import { assertRubricGradeable, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
+import { assertRubricGradeable, checkSubstance, grade, keywordMatcher, UngradeableCriterionError, type Criterion } from "@/lib/domain/rubric";
 import { onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { isTestEligible, type TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
@@ -115,6 +115,18 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
   const task = db.tasks.get(taskId);
   if (!task || task.userId !== userId) return { ok: false, error: "Task not found." };
   if (!answer.trim()) return { ok: false, error: "Write an answer before submitting." };
+
+  // Minimum-substance gate (TASK-22): too short to grade, or just the prompt copied back.
+  const substance = checkSubstance(answer, task.prompt);
+  if (!substance.ok) {
+    return {
+      ok: false,
+      error:
+        substance.reason === "copies_prompt"
+          ? "That's the question, not an answer — explain it in your own words."
+          : "Add a bit more detail — your answer is too short to grade meaningfully.",
+    };
+  }
 
   // Trust-gate the rubric (TASK-04): every criterion must anchor to a live
   // test-eligible (verified/sourced) claim. A criterion pointing at a disputed/

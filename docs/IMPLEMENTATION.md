@@ -85,7 +85,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, workspace loader — all unit-tested.
 
-**Test count:** 324 passing across 26 files · build green.
+**Test count:** 328 passing across 26 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
@@ -123,4 +123,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after Tasks localStorage draft persistence + offline-disabled submit (TASK-16) — 135 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after the Tasks minimum-substance + paste-of-prompt gate (TASK-22) — 135 Done; remainder is field-polish or deferred-with-justification._

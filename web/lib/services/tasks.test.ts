@@ -42,7 +42,7 @@ describe("tasks service (produce step)", () => {
     // Before any pass, getTasks must not leak the model answer.
     expect(getTasks(USER, "topic_dijkstra")[0].modelAnswer).toBeUndefined();
     // A failing grade doesn't reveal it either.
-    const thin = gradeSubmission(USER, "task_dijkstra_1", "dunno");
+    const thin = gradeSubmission(USER, "task_dijkstra_1", "I don't really know the reason for that.");
     expect(thin.modelAnswer).toBeUndefined();
     // A pass returns it, and it's now exposed via getTasks.
     const good = gradeSubmission(USER, "task_dijkstra_1", "The greedy finality fails when a negative edge lowers a finalised distance; use Bellman-Ford.");
@@ -56,13 +56,32 @@ describe("tasks service (produce step)", () => {
     expect(gradeSubmission("intruder", "task_dijkstra_1", "x").ok).toBe(false);
   });
 
+  it("TASK-22: rejects a too-short submission and one that just echoes the prompt back", () => {
+    const tooShort = gradeSubmission(USER, "task_dijkstra_1", "not sure why");
+    expect(tooShort.ok).toBe(false);
+    expect(tooShort.error).toMatch(/too short/i);
+
+    const echoed = gradeSubmission(
+      USER,
+      "task_dijkstra_1",
+      "Explain why Dijkstra's algorithm can fail on a graph with negative edge weights, and what to use instead.",
+    );
+    expect(echoed.ok).toBe(false);
+    expect(echoed.error).toMatch(/question, not an answer/i);
+
+    // A genuine (if thin) attempt of adequate length still grades normally.
+    const genuine = gradeSubmission(USER, "task_dijkstra_1", "I don't really know the reason for that.");
+    expect(genuine.ok).toBe(true);
+    expect(genuine.passed).toBe(false);
+  });
+
   it("TASK-14: a missed claim-anchored criterion opens a task-origin gap; a later hit advances it", () => {
     const db = globalThis.__verilearnDb!;
     const before = [...db.gaps.values()].filter((g) => g.userId === USER).length;
 
     // A thin answer misses every criterion → opens gaps on the anchored claims
     // (c2 and c5; c2's second criterion is a no-op on the now-open gap).
-    const thin = gradeSubmission(USER, "task_dijkstra_1", "dunno");
+    const thin = gradeSubmission(USER, "task_dijkstra_1", "I don't really know the reason for that.");
     expect(thin.gapsOpened).toBe(2);
     const gaps = [...db.gaps.values()].filter((g) => g.userId === USER);
     expect(gaps.length).toBe(before + 2);

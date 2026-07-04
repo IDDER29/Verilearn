@@ -198,6 +198,38 @@ export const keywordMatcher: CriterionMatcher = (criterion, submission) => {
   return keywords.every((k) => haystack.includes(k.toLowerCase()));
 };
 
+/** Minimum word count for a submission to be worth grading at all (TASK-22). */
+export const MIN_SUBSTANCE_WORDS = 5;
+
+export interface SubstanceCheck {
+  ok: boolean;
+  reason?: "too_short" | "copies_prompt";
+}
+
+function wordCount(s: string): number {
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function normalizeForComparison(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * TASK-22 minimum-substance gate: rejects a submission that's too short to
+ * grade meaningfully (below {@link MIN_SUBSTANCE_WORDS}), or that's just the
+ * task prompt copied back verbatim — a trivial gaming attempt, not an answer.
+ * Distinct from (and checked in addition to) the plain empty-string rejection.
+ */
+export function checkSubstance(answer: string, prompt: string): SubstanceCheck {
+  if (wordCount(answer) < MIN_SUBSTANCE_WORDS) return { ok: false, reason: "too_short" };
+  if (normalizeForComparison(answer) === normalizeForComparison(prompt)) return { ok: false, reason: "copies_prompt" };
+  return { ok: true };
+}
+
 /**
  * TASK-04 / TASK-09 gate: a rubric may only grade against criteria whose
  * underlying claim is test-eligible (Verified·execution, Verified·source, or
