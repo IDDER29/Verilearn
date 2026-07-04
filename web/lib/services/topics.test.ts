@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
-import { activeTopicCount, chooseFreeTopics, createTopic, FREE_TOPIC_CAP, listTopicSummaries } from "./topics";
+import { activeTopicCount, chooseFreeTopics, createTopic, FREE_TOPIC_CAP, listTopicSummaries, searchClaims } from "./topics";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -119,5 +119,32 @@ describe("chooseFreeTopics (BILL-12)", () => {
     chooseFreeTopics(USER, keep);
     // every owned topic (archived or not) is still a real, readable record
     for (const t of owned) expect(db.topics.get(t.id)).toBeTruthy();
+  });
+});
+
+describe("searchClaims — cross-topic claim search (HOME-07)", () => {
+  it("finds the actual disputed claims across MULTIPLE topics, not just topics that have one", () => {
+    const results = searchClaims(USER, "disputed");
+    const topicIds = new Set(results.map((r) => r.topicId));
+    expect(topicIds.size).toBeGreaterThan(1); // dijkstra AND merkle each have a disputed claim
+    expect(results.every((r) => r.state === "disputed")).toBe(true);
+    expect(results.every((r) => r.topicTitle.length > 0)).toBe(true);
+  });
+
+  it("finds a claim by free-text substring, case-insensitively", () => {
+    const results = searchClaims(USER, "priority queue");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].text.toLowerCase()).toContain("priority queue");
+  });
+
+  it("the 'verified' operator only matches genuinely verified claims", () => {
+    const results = searchClaims(USER, "verified");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((r) => r.state === "verified_execution" || r.state === "verified_source")).toBe(true);
+  });
+
+  it("returns nothing for an empty query, and nothing for a foreign/unowned account", () => {
+    expect(searchClaims(USER, "")).toEqual([]);
+    expect(searchClaims("someone_else", "disputed")).toEqual([]);
   });
 });

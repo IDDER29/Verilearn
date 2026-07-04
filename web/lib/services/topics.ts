@@ -48,6 +48,46 @@ export function listTopicSummaries(userId: string): TopicSummary[] {
   return topicsOf(getDb(), userId).map(summarize);
 }
 
+export interface ClaimSearchResult {
+  claimId: string;
+  text: string;
+  sectionId: string;
+  state: TrustState;
+  topicId: string;
+  topicTitle: string;
+}
+
+/**
+ * Cross-topic, claim-level search (HOME-07): the same trust-state operators
+ * `topicMatchesQuery` (Dashboard) applies per-topic, applied per-claim instead
+ * — "disputed" finds the actual disputed claims, not just the topics that
+ * have one — plus a free-text substring match on claim text. Every state is
+ * read live off each topic's real ledger; never a fabricated match.
+ */
+export function searchClaims(userId: string, query: string): ClaimSearchResult[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const results: ClaimSearchResult[] = [];
+  for (const topic of topicsOf(getDb(), userId)) {
+    const ledger = ledgerFor(topic);
+    for (const c of topic.claims) {
+      const state = ledger.stateOf(c.id);
+      const matches =
+        q === "disputed"
+          ? state === "disputed"
+          : q === "unsupported"
+            ? state === "unsupported"
+            : q === "interpretive"
+              ? state === "interpretive"
+              : q === "verified"
+                ? state === "verified_execution" || state === "verified_source"
+                : c.text.toLowerCase().includes(q);
+      if (matches) results.push({ claimId: c.id, text: c.text, sectionId: c.sectionId, state, topicId: topic.id, topicTitle: topic.title });
+    }
+  }
+  return results;
+}
+
 /** Topics that count against the Free-plan cap — archived topics don't (BILL-12). */
 function activeTopics(userId: string): TopicRecord[] {
   return topicsOf(getDb(), userId).filter((t) => !t.archived);

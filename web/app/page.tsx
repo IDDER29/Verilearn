@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { StatCard, TrustBar } from "@/components/ui";
 import { requireUser } from "@/lib/auth/current";
-import { listTopicSummaries, FREE_TOPIC_CAP } from "@/lib/services/topics";
+import { listTopicSummaries, searchClaims, FREE_TOPIC_CAP } from "@/lib/services/topics";
+import { TRUST_LABEL } from "@/lib/domain/types";
 import { listTestableTopics } from "@/lib/services/tests";
 import { getDueCards } from "@/lib/services/review";
 import RefreshOnFocus from "@/components/RefreshOnFocus";
@@ -49,6 +50,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   // headline counts stay computed over the full set.
   const query = ((await searchParams).q ?? "").trim().toLowerCase();
   const topics = query ? allTopics.filter((t) => topicMatchesQuery(t, query)) : allTopics;
+  // Cross-topic, claim-level results for the same search (HOME-07): "which
+  // claims are disputed", not just "which topics have one" — real per-claim
+  // ledger states, deep-linking straight to the claim's own topic/tab.
+  const matchingClaims = query ? searchClaims(user.id, query) : [];
   const at = now();
   const cards = reviewCardsOf(db, user.id);
   // Eligibility-gated to match the review deck (REVIEW-15): contested claims are held out.
@@ -367,6 +372,37 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               );
             })}
           </section>
+
+          {/* cross-topic claim results for the same search (HOME-07) */}
+          {query && matchingClaims.length > 0 && (
+            <section aria-label="Matching claims" style={{ background: "#fff", borderRadius: 22, padding: "22px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+              <h2 style={{ margin: "0 0 16px", font: "900 18px var(--font-nunito)", letterSpacing: "-.01em" }}>
+                Matching claims <span style={{ color: "#8b8699", fontWeight: 700 }}>({matchingClaims.length})</span>
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {matchingClaims.map((c, i) => {
+                  const label = TRUST_LABEL[c.state];
+                  const adjudicable = c.state === "disputed" || c.state === "unsupported";
+                  const tone = adjudicable ? { color: "#c0392b", bg: "#fbeceb" } : c.state === "interpretive" ? { color: "#6d5bd0", bg: "#efe9ff" } : { color: "#2d6cdf", bg: "#e7effb" };
+                  return (
+                    <Link
+                      key={c.claimId}
+                      href={adjudicable ? `/topics/conflicts?topic=${c.topicId}&claim=${c.claimId}` : `/topics?topic=${c.topicId}`}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 4px", textDecoration: "none", color: "inherit", ...(i < matchingClaims.length - 1 ? { borderBottom: "1px solid #f5f3fa" } : {}) }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ font: "700 13px/1.4 var(--font-nunito)", color: "#221f2e" }}>{c.text}</div>
+                        <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699", marginTop: 3 }}>{c.topicTitle}</div>
+                      </div>
+                      <span style={{ font: "800 10.5px var(--font-nunito)", color: tone.color, background: tone.bg, padding: "4px 10px", borderRadius: 8, whiteSpace: "nowrap" }}>
+                        {label.glyph} {label.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* ---- RIGHT PANEL ---- */}

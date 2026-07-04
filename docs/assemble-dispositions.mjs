@@ -7,7 +7,7 @@ const DIR = new URL("./dispositions/", import.meta.url).pathname;
 // Roadmap order + counts (from the disposition sweep).
 const ROWS = [
   ["AUTH", "Authentication, Onboarding & Identity", 24, 6, 9, 9],
-  ["HOME", "Learner Home / Dashboard & Discovery", 22, 14, 7, 1],
+  ["HOME", "Learner Home / Dashboard & Discovery", 22, 15, 6, 1],
   ["VERIFY", "Topic Creation & Verification Pipeline", 23, 15, 7, 1],
   ["LEARN", "Lecture & Active Listening", 23, 5, 17, 1],
   ["TASK", "Tasks & Rubric Assessment", 24, 13, 8, 3],
