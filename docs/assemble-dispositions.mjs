@@ -23,7 +23,7 @@ const ROWS = [
   ["BILL", "Billing, Plans & Subscriptions", 23, 5, 6, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],
-  ["A11Y", "Accessibility, Mobile & Offline", 24, 0, 20, 4],
+  ["A11Y", "Accessibility, Mobile & Offline", 24, 1, 19, 4],
   ["API", "Integrations, API, Webhooks, SSO & LTI", 22, 1, 3, 18],
   ["SEC", "Security, Privacy Eng. & Compliance", 23, 2, 4, 17],
 ];
