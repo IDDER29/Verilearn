@@ -20,7 +20,7 @@ const ROWS = [
   ["NOTIF", "Notifications, Reminders & Messaging", 24, 5, 10, 9],
   ["ANALYTICS", "Progress, Reports & Analytics", 21, 8, 4, 9],
   ["SETTINGS", "Settings, Profile & Privacy", 23, 13, 7, 3],
-  ["BILL", "Billing, Plans & Subscriptions", 23, 5, 6, 12],
+  ["BILL", "Billing, Plans & Subscriptions", 23, 6, 5, 12],
   ["ORG", "Organization / Team Administration", 22, 0, 21, 1],
   ["ADMIN", "Platform Admin, Moderation & T&S", 23, 1, 12, 10],
   ["A11Y", "Accessibility, Mobile & Offline", 24, 6, 14, 4],

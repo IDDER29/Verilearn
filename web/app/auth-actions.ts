@@ -28,6 +28,10 @@ export async function signupAction(formData: FormData): Promise<void> {
   const displayName = String(formData.get("displayName") ?? "");
   const birthYearRaw = String(formData.get("birthYear") ?? "");
   const birthYear = birthYearRaw ? Number(birthYearRaw) : undefined;
+  // Plan intent carried from /pricing through the form (BILL-03) — preserved
+  // across a validation failure too, so retrying doesn't lose it.
+  const planRaw = String(formData.get("plan") ?? "");
+  const plan = planRaw === "pro" || planRaw === "team" ? planRaw : undefined;
   let token: string;
   try {
     const r = signUp(
@@ -38,10 +42,12 @@ export async function signupAction(formData: FormData): Promise<void> {
     token = r.token;
   } catch (e) {
     const msg = e instanceof AuthError ? e.message : "Sign-up failed.";
-    redirect(`/signup?error=${encodeURIComponent(msg)}`);
+    redirect(`/signup?error=${encodeURIComponent(msg)}${plan ? `&plan=${plan}` : ""}`);
   }
   await setSessionCookie(token);
-  redirect("/");
+  // A newly-created account never lands mid-checkout unannounced — it's routed
+  // to /upgrade with the intent so the learner explicitly confirms the plan.
+  redirect(plan ? `/upgrade?plan=${plan}` : "/");
 }
 
 export async function logoutAction(): Promise<void> {

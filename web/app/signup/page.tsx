@@ -4,8 +4,8 @@ import { signupAction } from "@/app/auth-actions";
 
 export const metadata = { title: "Create account · VeriLearn" };
 
-export default async function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string; plan?: string }> }) {
+  const { error, plan } = await searchParams;
   return (
     <AuthShell
       title="Learn things you can trust ✨"
@@ -20,7 +20,15 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       }
     >
       <ErrorNote error={error} />
+      {(plan === "pro" || plan === "team") && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f2effc", border: "1.5px solid #e3ddf6", borderRadius: 12, padding: "10px 13px", font: "700 12px var(--font-nunito)", color: "#6d5bd0", marginBottom: 14 }}>
+          <span aria-hidden>✦</span> Continuing with {plan === "pro" ? "Pro" : "Teams"} — you&apos;ll confirm it on the next screen.
+        </div>
+      )}
       <form action={signupAction} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Carries the plan picked on /pricing through the signup POST (BILL-03) so
+            the intent survives account creation without silently activating it. */}
+        {(plan === "pro" || plan === "team") && <input type="hidden" name="plan" value={plan} />}
         <div>
           <label style={labelStyle} htmlFor="displayName">Name</label>
           <input id="displayName" name="displayName" required autoComplete="name" style={fieldStyle} />

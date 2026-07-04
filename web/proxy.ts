@@ -6,7 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * cryptographic verification still happens per-page via requireUser() — this is
  * a cheap first gate (defense in depth), not the source of truth.
  */
-const PUBLIC = new Set(["/login", "/signup"]);
+// /pricing is a public, unauthenticated pricing view (BILL-03).
+const PUBLIC = new Set(["/login", "/signup", "/pricing"]);
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
