@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
 import ProfileForm from "@/components/settings/ProfileForm";
@@ -56,6 +57,22 @@ export default async function SettingsProfilePage() {
 
           {/* editable identity (display name persists) */}
           <ProfileForm initialName={user.displayName} email={user.email} />
+
+          {/* hand-off to the Auth-owned security surface (SETTINGS-03) */}
+          <div style={{ background: "#fff", borderRadius: 20, padding: "20px 24px", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ font: "800 14.5px var(--font-nunito)" }}>Security</div>
+              <div style={{ font: "600 12px/1.5 var(--font-nunito)", color: "#8b8699" }}>
+                Review every device signed in to your account and sign out anywhere you don&apos;t recognize.
+              </div>
+            </div>
+            <Link
+              href="/settings/sessions"
+              style={{ border: "1.5px solid #ece8f4", background: "#fbfafd", color: "#4a4560", font: "800 12.5px var(--font-nunito)", padding: "10px 16px", borderRadius: 12, textDecoration: "none", whiteSpace: "nowrap" }}
+            >
+              Sessions &amp; devices →
+            </Link>
+          </div>
         </div>
       </main>
     </AppShell>
