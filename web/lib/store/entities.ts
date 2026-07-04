@@ -89,6 +89,17 @@ export interface TestRecord {
   passed?: boolean;
 }
 
+/** One graded review — feeds calibration (REVIEW-02) and the retention signal. */
+export interface ReviewLogEntry {
+  userId: string;
+  claimId: string;
+  topicId: string;
+  confidence: "sure" | "unsure" | "guessing";
+  rating: "again" | "hard" | "good" | "easy";
+  correct: boolean;
+  at: number;
+}
+
 export interface CertificateRecord {
   id: string;
   topicId: string;

@@ -2,34 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { BackButton, ProgressRing, SpotlightCard } from "@/components/ui";
-
-type Card = { q: string; a: string; source: string };
-
-const CARDS: Card[] = [
-  {
-    q: "Why can Dijkstra finalise a node's distance the moment it's picked, and never revisit it?",
-    a: "Because every edge weight is non-negative, once a node is dequeued its tentative distance can't be lowered by any future path — every remaining route is at least as long. So the greedy choice is provably final.",
-    source: "Verified · CLRS §24.3 (cut property)",
-  },
-  {
-    q: "What single assumption, if broken, invalidates Dijkstra's correctness proof?",
-    a: "Non-negative edge weights. A negative edge means a later path can lower an already-finalised distance, so the cut-property argument fails — you'd reach for Bellman-Ford instead.",
-    source: "Verified · CLRS §24.3",
-  },
-  {
-    q: "Why does a binary-heap priority queue speed Dijkstra up over a plain array?",
-    a: "Extract-min is the hot loop. A binary heap makes each extraction O(log V) instead of O(V), giving O((V+E) log V) overall — a big win on sparse graphs.",
-    source: "Verified · CLRS §24.3",
-  },
-  {
-    q: "On a dense graph, can a plain array actually beat a heap?",
-    a: "Yes. With ~V² edges, the array's O(V²) total can beat the heap's O(E log V) = O(V² log V). Dense graphs favour the simpler array — the 'always use a heap' claim is unqualified.",
-    source: "Sourced · Skiena §6.3",
-  },
-];
+import { getDueCardsAction, gradeCardAction, type SessionCard } from "@/app/review-actions";
+import type { Rating } from "@/lib/domain/fsrs";
 
 const CONF = {
   confident: { label: "Confident", color: "#2e9c6a", border: "#cdeadd", bg: "#f0f9f4" },
@@ -45,30 +22,43 @@ const RATINGS = [
   { key: "easy", label: "Easy", sub: "9 days", color: "#2e9c6a", subColor: "#6ab48c", border: "#cdeadd", bg: "#f0f9f4" },
 ] as const;
 
-const TOTAL = CARDS.length;
-
-function SessionRing({ reviewed }: { reviewed: number }) {
+function SessionRing({ reviewed, total }: { reviewed: number; total: number }) {
   return (
     <div style={{ margin: "0 auto 10px", width: 128 }}>
-      <ProgressRing size={128} stroke={13} r={54} pct={(reviewed / TOTAL) * 100} animate>
-        <div style={{ font: "900 26px var(--font-nunito)" }}>{reviewed}/{TOTAL}</div>
+      <ProgressRing size={128} stroke={13} r={54} pct={total ? (reviewed / total) * 100 : 0} animate>
+        <div style={{ font: "900 26px var(--font-nunito)" }}>{reviewed}/{total}</div>
         <div style={{ font: "700 11px var(--font-nunito)", color: "#8b8699" }}>reviewed</div>
       </ProgressRing>
     </div>
   );
 }
 
+/** Map the confidence-gate key to the domain calibration vocabulary. */
+const CONF_TO_DOMAIN = { confident: "sure", unsure: "unsure", guessing: "guessing" } as const;
+
 export default function ReviewPage() {
   const router = useRouter();
+  const [cards, setCards] = useState<SessionCard[] | null>(null);
   const [card, setCard] = useState(0);
   const [phase, setPhase] = useState<"front" | "back">("front");
   const [confidence, setConfidence] = useState<ConfKey | null>(null);
   const [rating, setRating] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const c = CARDS[card];
+  useEffect(() => {
+    getDueCardsAction().then(setCards);
+  }, []);
+
+  const TOTAL = cards?.length ?? 0;
+  const c = cards && cards[card];
   const reviewed = phase === "back" ? card + 1 : card;
 
-  function next() {
+  async function next() {
+    if (!c) return;
+    // Persist the graded card (FSRS reschedule + calibration + gap auto-reopen).
+    setSaving(true);
+    await gradeCardAction(c.id, CONF_TO_DOMAIN[confidence ?? "unsure"], (rating as Rating) ?? "again");
+    setSaving(false);
     if (card + 1 >= TOTAL) {
       router.push("/review/complete");
       return;
@@ -77,6 +67,42 @@ export default function ReviewPage() {
     setPhase("front");
     setConfidence(null);
     setRating(null);
+  }
+
+  // Loading / all-caught-up states.
+  if (cards === null) {
+    return (
+      <AppShell active="tasks">
+        <main style={{ padding: "24px 26px 30px" }}>
+          <div style={{ font: "700 14px var(--font-nunito)", color: "#8b8699" }}>Loading your review session…</div>
+        </main>
+      </AppShell>
+    );
+  }
+  if (cards.length === 0 || !c) {
+    return (
+      <AppShell active="tasks">
+        <main style={{ padding: "24px 26px 30px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+            <BackButton href="/" />
+            <div>
+              <div style={{ font: "700 12px var(--font-nunito)", color: "#9a95a8" }}>Spaced review · today</div>
+              <div style={{ font: "900 24px var(--font-nunito)", letterSpacing: "-.02em" }}>Review session</div>
+            </div>
+          </div>
+          <div style={{ background: "#fff", borderRadius: 24, padding: "44px 32px", textAlign: "center", boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)" }}>
+            <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
+            <div style={{ font: "900 20px var(--font-nunito)", marginBottom: 6 }}>All caught up!</div>
+            <div style={{ font: "600 13.5px var(--font-nunito)", color: "#8b8699", marginBottom: 18 }}>
+              No cards are due right now. FSRS will resurface them exactly when you&apos;re about to forget.
+            </div>
+            <Link href="/" style={{ textDecoration: "none", display: "inline-block", background: "#6d5bd0", color: "#fff", font: "800 13.5px var(--font-nunito)", padding: "12px 24px", borderRadius: 13 }}>
+              Back to dashboard
+            </Link>
+          </div>
+        </main>
+      </AppShell>
+    );
   }
 
   return (
@@ -98,7 +124,7 @@ export default function ReviewPage() {
 
           {/* progress dots */}
           <div style={{ display: "flex", gap: 7 }}>
-            {CARDS.map((_, i) => (
+            {cards.map((_, i) => (
               <div key={i} style={{ flex: 1, height: 7, borderRadius: 4, background: i <= card ? "#6d5bd0" : "#e2dcf1", transition: "background .3s" }} />
             ))}
           </div>
@@ -349,7 +375,7 @@ export default function ReviewPage() {
           {/* session ring */}
           <div style={{ background: "#fff", borderRadius: 22, padding: 22, boxShadow: "0 10px 30px -18px rgba(80,60,140,.28)", textAlign: "center" }}>
             <div style={{ font: "900 16px var(--font-nunito)", marginBottom: 16, textAlign: "left" }}>Today&apos;s session</div>
-            <SessionRing reviewed={reviewed} />
+            <SessionRing reviewed={reviewed} total={TOTAL} />
             <div style={{ font: "700 12px var(--font-nunito)", color: "#8b8699" }}>~2 min left · next batch in 2 days</div>
           </div>
 
@@ -406,7 +432,7 @@ export default function ReviewPage() {
           ) : (
             <button
               type="button"
-              disabled={!rating}
+              disabled={!rating || saving}
               onClick={next}
               style={{
                 border: "none",

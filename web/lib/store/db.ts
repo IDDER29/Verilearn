@@ -10,6 +10,7 @@ import type {
   GapRecord,
   Org,
   ReviewCardRecord,
+  ReviewLogEntry,
   Session,
   TaskRecord,
   TestRecord,
@@ -23,6 +24,7 @@ export interface Db {
   orgs: Map<string, Org>;
   topics: Map<string, TopicRecord>;
   reviewCards: Map<string, ReviewCardRecord>;
+  reviewLog: ReviewLogEntry[];
   gaps: Map<string, GapRecord>;
   tasks: Map<string, TaskRecord>;
   tests: Map<string, TestRecord>;
@@ -36,6 +38,7 @@ export function createDb(): Db {
     orgs: new Map(),
     topics: new Map(),
     reviewCards: new Map(),
+    reviewLog: [],
     gaps: new Map(),
     tasks: new Map(),
     tests: new Map(),
