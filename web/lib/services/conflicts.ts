@@ -5,6 +5,7 @@
  * triggers RE-VERIFICATION, and the system verifier emits the new verification
  * event. Traces to TRUST (conflicts), VERIFY-13, and the firewall invariant.
  */
+import { revokeCertificate, shouldRevokeOnClaimDowngrade } from "@/lib/domain/certificates";
 import { noteOriginHit, onLapse, openGap, toWatching } from "@/lib/domain/gap";
 import { verifiedPercent, type VerificationActor } from "@/lib/domain/trust";
 import type { TrustState } from "@/lib/domain/types";
@@ -32,6 +33,24 @@ function trackConflictGap(db: Db, userId: string, topicId: string, claimId: stri
 function advanceConflictGap(db: Db, userId: string, claimId: string, at: number): void {
   const rec = gapsOf(db, userId).find((g) => g.gap.claimId === claimId);
   if (rec) rec.gap = toWatching(rec.gap, at);
+}
+
+/**
+ * Revocation-propagation (TEST-13): a certificate cannot outlive the ledger
+ * truth beneath it. Certificates aren't linked to the specific claims their
+ * test covered — only to a topic — so the materiality check available here is
+ * topic-scoped: when ANY claim in a topic is downgraded to `disputed`, every
+ * one of that learner's live (not-already-revoked) certs for that topic is
+ * revoked via the same `revokeCertificate` the admin console uses, attributed
+ * to the system verifier rather than a human reviewer — this is an automatic
+ * ledger-truth consequence, not a T&S judgment call.
+ */
+function revokeCertsOnClaimDowngrade(db: Db, userId: string, topicId: string, claimText: string, at: number): void {
+  for (const cert of db.certificates.values()) {
+    if (cert.topicId !== topicId || cert.learnerId !== userId) continue;
+    if (!shouldRevokeOnClaimDowngrade(cert, true)) continue;
+    db.certificates.set(cert.id, revokeCertificate(cert, `A claim this topic's test covered ("${claimText}") was disputed after issuance.`, at, SYSTEM.id));
+  }
 }
 
 export interface ConflictItem {
@@ -101,6 +120,7 @@ export function raiseDispute(userId: string, topicId: string, claimId: string, r
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
   trackConflictGap(db, userId, topicId, claimId, at);
+  revokeCertsOnClaimDowngrade(db, userId, topicId, claim.text, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }
 
@@ -283,5 +303,6 @@ export function reopenConflict(userId: string, topicId: string, claimId: string,
   topic.events = ledger.allEvents();
   topic.verifiedPercent = verifiedPercent(topic.claims.map((c) => ledger.stateOf(c.id)));
   trackConflictGap(db, userId, topicId, claimId, at);
+  revokeCertsOnClaimDowngrade(db, userId, topicId, claim.text, at);
   return { ok: true, newState: ledger.stateOf(claimId) };
 }

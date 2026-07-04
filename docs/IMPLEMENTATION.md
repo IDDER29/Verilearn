@@ -69,7 +69,7 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 | Session Complete (`/review/complete`) | `sessionSummaryFor` — real cards-reviewed, recalled count, rating breakdown, session calibration, day-streak, next-due card from the review log |
 | Progress (`/reports`) | four honest signals from the review log (honest empty states); real 7-day trend delta per signal, never fabricated (ANALYTICS-01); real keyboard-operable trend-window selector replacing a decorative button (ANALYTICS-17); real "As of {time}" freshness marker (ANALYTICS-20) |
 | Workspace › Lecture | title, verified %, counts, trust breakdown, section-trust panel from the ledger; the disputed-claim callout is driven by real `data.disputedClaims` and disappears on reload once the dispute is genuinely resolved, not a hardcoded example (LEARN-12) |
-| Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted; resolving/reopening a dispute now opens/advances/reopens a linked Gap Map entry too (GAP-21) |
+| Workspace › Conflicts | real disputed claim; "Record resolution" → **re-verifies via the system verifier** (firewall-safe), coverage rises, persisted; resolving/reopening a dispute now opens/advances/reopens a linked Gap Map entry too (GAP-21); disputing or reopening a claim also revokes every live certificate issued from that topic (TEST-13) — a cert can't outlive the ledger truth beneath it, visible immediately on `/verify/[code]` and `/admin/certificates` |
 | Workspace › Sources | full real coverage matrix (claims × sources, ledger-coloured cells), real source strip, coverage %/unsupported |
 | Workspace › Tasks | real source-anchored task; write-in answer **graded on the rubric** (score + hit/missing + revise-to-pass); real `localStorage` draft persistence + offline-disabled submit (TASK-16); "Dispute this" opens a real, rate-limited conflict on a missed criterion's claim (TASK-11) |
 | My Tasks | real due-review + conflict counts + per-topic task aggregation (revise/to-do/done) |
@@ -94,14 +94,14 @@ create → verify → learn → **produce** → conflicts/sources → retain →
 
 Services: topics, review, progress, conflicts, sources, notifications, testsession, tasks, certificates, audit, workspace loader — all unit-tested.
 
-**Test count:** 492 passing across 40 files · build green.
+**Test count:** 496 passing across 40 files · build green.
 
 ## Roadmap accounting (461 of 462 PRD stories enumerated — see note below)
 
 | Disposition | Count | Meaning |
 |---|--:|---|
-| ✅ Done | 166 | core behavior implemented + tested, or wired to real data |
-| 🟡 Partial | 172 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
+| ✅ Done | 167 | core behavior implemented + tested, or wired to real data |
+| 🟡 Partial | 171 | engine/logic done with headline UI wired, or faithful screen awaiting full binding |
 | ⏭️ Deferred | 123 | needs external infra/vendor/business decision (behind a clean seam) |
 | 🚫 Out-of-scope | 0 | — |
 | **Total** | **461** | every enumerated story classified; nothing silently dropped. (The PRD specifies 462; NOTIF-12 has no row in the per-domain sweep — a pre-existing numbering gap discovered and documented this session, not a story dropped from scope.) |
@@ -116,7 +116,7 @@ per-story evidence in `docs/PRD-DISPOSITIONS.md`.
 ### Terminal state of the wiring pass
 
 Every screen that is backed by a real engine **and not downstream of deferred infrastructure is now
-wired to real data**. The remaining **172 Partial** stories fall into exactly two honest buckets:
+wired to real data**. The remaining **171 Partial** stories fall into exactly two honest buckets:
 
 1. **Field-level polish on already-live screens** — the headline data is real and server-authoritative;
    what remains is cosmetic completeness (e.g. a hardcoded "up next" list or section breakdown on a page
@@ -131,4 +131,4 @@ Per the project's completion criteria — *every story implemented, deferred wit
 as intentionally out of scope* — this is the terminal state: the achievable roadmap is complete and tested,
 and the remainder is deferred-with-justification, documented per-story in `docs/PRD-DISPOSITIONS.md`.
 
-_Last updated: after building a real ban-appeal flow (AUTH-18) — the disposition row had gone stale, claiming the account-status model, session-invalidation, and audit trail were all still missing when ADMIN-16/ADMIN-20 had already built them this session; the one genuinely missing piece, an appeal state, is now real: `lib/domain/appeal.ts`'s reviewer-accountable lifecycle, a public unauthenticated `/appeal` page (the only path back in for an account that fails `authenticate()` before reaching anything else), linked from the login page's ban error, and a real Approve/Deny section on `/admin/users` where approving calls the same `unbanUser` engine — so the reviewer-other-than-whoever-banned rule holds even for an appeal. Verified live end-to-end: ban → refused sign-in with an appeal link → appeal submitted → the banning reviewer refused approving it → a different reviewer approves → signs in again. Recent momentum: a real, data-driven Review › Discuss screen (REVIEW-08, which also surfaced and fixed a severe pre-existing production bug in `app/review-actions.ts` that left `/review` stuck loading forever), a data-driven disputed-claim callout on the Lecture tab (LEARN-12), and an explicit auditable cross-origin merge policy for the Gap Map (GAP-07). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 166 Done; remainder is field-polish or deferred-with-justification._
+_Last updated: after wiring real certificate-revocation propagation on a claim downgrade (TEST-13) — `raiseDispute` and `reopenConflict` (`lib/services/conflicts.ts`) now revoke every live certificate for the affected topic/learner through the same tested `revokeCertificate` primitive the admin console uses, attributed to the system verifier since it's an automatic ledger-truth consequence, not a human judgment call; the materiality check is honestly topic-scoped (certs record a `topicId`, not the specific claims their test covered) — visible immediately on the pre-existing `/verify/[code]` and `/admin/certificates` surfaces, no new UI needed. Recent momentum: a real ban-appeal flow (AUTH-18, closing a stale disposition row), a data-driven Review › Discuss screen (REVIEW-08, which also fixed a severe pre-existing production bug that left `/review` stuck loading forever), a data-driven disputed-claim callout on the Lecture tab (LEARN-12), and an explicit auditable cross-origin merge policy for the Gap Map (GAP-07). Full history of every disposition flip lives in each story's own row in `docs/PRD-DISPOSITIONS.md` — this footer tracks only current momentum, not a complete changelog — 167 Done; remainder is field-polish or deferred-with-justification._

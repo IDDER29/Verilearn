@@ -4,6 +4,7 @@ import { seedDb } from "@/lib/store/seed";
 import { listConflicts, listRankedConflicts, listResolvedConflicts, raiseDispute, reopenConflict, resolveAsInterpretive, resolveConflict } from "./conflicts";
 import { isTestEligible } from "@/lib/domain/types";
 import { gradeCard } from "./review";
+import { issueCertificate } from "@/lib/domain/certificates";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -225,6 +226,63 @@ describe("conflicts service", () => {
       expect(resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", { constraint: "x" }).ok).toBe(false);
       expect(resolveAsInterpretive(USER, "topic_dijkstra", "topic_dijkstra_c6", [{ stance: "a" }, { stance: "b" }]).ok).toBe(false);
       expect(reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c6", "reason").ok).toBe(false);
+    });
+  });
+
+  describe("TEST-13: cert revocation propagates from a claim downgrade", () => {
+    const SEEDED_CERT = "cert_binsearch_1"; // topic_binsearch, live, unrevoked in a fresh seed
+
+    it("disputing a fresh (never-disputed) claim in the cert's topic revokes it", () => {
+      const db = globalThis.__verilearnDb!;
+      expect(db.certificates.get(SEEDED_CERT)!.revoked).toBe(false);
+
+      const r = raiseDispute(USER, "topic_binsearch", "topic_binsearch_c1", "not convinced");
+      expect(r.ok).toBe(true);
+
+      const cert = db.certificates.get(SEEDED_CERT)!;
+      expect(cert.revoked).toBe(true);
+      expect(cert.revokedBy).toBe("system:verifier");
+      expect(cert.revokedReason).toMatch(/Requires a sorted array/);
+    });
+
+    it("disputing a claim in a DIFFERENT topic does not touch the cert (topic-scoped)", () => {
+      const db = globalThis.__verilearnDb!;
+      raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "not convinced");
+      expect(db.certificates.get(SEEDED_CERT)!.revoked).toBe(false);
+    });
+
+    it("reopening a resolved conflict also propagates to a live cert issued in the meantime", () => {
+      const db = globalThis.__verilearnDb!;
+      // Dispute + resolve a Dijkstra claim first (no cert there yet), then issue a
+      // fresh cert for Dijkstra, then reopen the SAME conflict — the reopen (a
+      // downgrade) should revoke the cert issued while it was resolved.
+      raiseDispute(USER, "topic_dijkstra", "topic_dijkstra_c1", "not convinced");
+      resolveConflict(USER, "topic_dijkstra", "topic_dijkstra_c1", { constraint: "holds under standard assumptions" });
+
+      const freshCert = issueCertificate({
+        topicId: "topic_dijkstra",
+        learnerId: USER,
+        testResult: { correct: 5, total: 6, pct: 83, passed: true, passBar: 75 },
+        now: SEED_NOW,
+        id: "cert_dijkstra_fresh",
+        verifyCode: "VL-DIJKSTRA-FRESH",
+      });
+      db.certificates.set(freshCert.id, freshCert);
+
+      const r = reopenConflict(USER, "topic_dijkstra", "topic_dijkstra_c1", "the constraint doesn't actually hold");
+      expect(r.ok).toBe(true);
+      expect(db.certificates.get("cert_dijkstra_fresh")!.revoked).toBe(true);
+    });
+
+    it("an already-revoked cert is left alone — no re-stamping on a second downgrade", () => {
+      const db = globalThis.__verilearnDb!;
+      raiseDispute(USER, "topic_binsearch", "topic_binsearch_c1", "first dispute");
+      const revokedAt = db.certificates.get(SEEDED_CERT)!.revokedAt;
+
+      raiseDispute(USER, "topic_binsearch", "topic_binsearch_c2", "second, unrelated dispute");
+      const cert = db.certificates.get(SEEDED_CERT)!;
+      expect(cert.revokedAt).toBe(revokedAt); // unchanged — not re-revoked
+      expect(cert.revokedReason).toMatch(/Requires a sorted array/); // original reason kept
     });
   });
 });
