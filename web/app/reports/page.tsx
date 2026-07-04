@@ -22,9 +22,16 @@ const FOCUS_TONE = {
 const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)}%`);
 const barPct = (v: number | null) => (v === null ? "0%" : `${Math.round(v * 100)}%`);
 
+const CALIB_DIRECTION: Record<string, string> = {
+  overconfident: "Overconfident — you rate yourself higher than you score. Slow down on “sure”.",
+  underconfident: "Underconfident — you know more than you claim. Trust your “sure”.",
+  well_calibrated: "Well calibrated — your confidence tracks your accuracy.",
+};
+
 export default async function ReportsPage() {
   const user = await requireUser();
-  const { signals } = progressFor(user.id);
+  const { signals, calibration } = progressFor(user.id);
+  const calibSub = calibration ? CALIB_DIRECTION[calibration.direction] : "Confidence vs. reality";
   const topicRows = perTopicProgress(user.id);
   const allFocus = focusAreas(user.id);
   const focus = allFocus.slice(0, 3);
@@ -37,7 +44,7 @@ export default async function ReportsPage() {
   const SIGNAL_CARDS = [
     { s: signals.retention, bg: "#eef2fb", stroke: "#3a63b0", label: "Retention", labelColor: "#3a63b0", sub: "How much you recall over time", subColor: "#7d90b5", icon: <path d="M20 11A8 8 0 004.6 9M4 4v5h5M4 13a8 8 0 0015.4 2M20 20v-5h-5" /> },
     { s: signals.transfer, bg: "#eef7f1", stroke: "#2e9c6a", label: "Transfer", labelColor: "#2e9c6a", sub: "Applying it to new problems", subColor: "#6ba888", icon: <path d="M4 17l5-5-5-5M12 19h8" /> },
-    { s: signals.calibration, bg: "#f3eefc", stroke: "#6d5bd0", label: "Calibration", labelColor: "#6d5bd0", sub: "Confidence vs. reality", subColor: "#948ab5", icon: <><path d="M12 3a9 9 0 100 18M12 3a9 9 0 019 9h-9z" /><path d="M12 12l4-4" /></> },
+    { s: signals.calibration, bg: "#f3eefc", stroke: "#6d5bd0", label: "Calibration", labelColor: "#6d5bd0", sub: calibSub, subColor: "#948ab5", icon: <><path d="M12 3a9 9 0 100 18M12 3a9 9 0 019 9h-9z" /><path d="M12 12l4-4" /></> },
     { s: signals.blindSpot, bg: "#fbf3e4", stroke: "#c99a2b", label: "Drill detection", labelColor: "#b4830f", sub: "Catching seeded errors", subColor: "#b09257", icon: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></> },
   ];
   return (

@@ -4,7 +4,7 @@
  * blind-spot from seeded drills. Signals with no data report an honest empty state
  * (never a fabricated 0%).
  */
-import { calibrationScore } from "@/lib/domain/calibration";
+import { calibrationScore, type CalibrationDirection } from "@/lib/domain/calibration";
 import { computeSignals, type Signals } from "@/lib/domain/signals";
 import { eligibleClaims, predictReadiness } from "@/lib/domain/tests-engine";
 import { getDb, ledgerFor, topicsOf } from "@/lib/store/db";
@@ -15,6 +15,8 @@ export interface ProgressView {
   signals: Signals;
   reviewCount: number;
   topicCount: number;
+  /** Named direction of miscalibration + score, or null under MIN_RECORDS (ANALYTICS-06). */
+  calibration: { score: number; direction: CalibrationDirection; count: number } | null;
 }
 
 export function progressFor(userId: string): ProgressView {
@@ -34,7 +36,7 @@ export function progressFor(userId: string): ProgressView {
     drills: [], // seeded error-drills are not yet wired → honest empty blind-spot
   });
 
-  return { signals, reviewCount: log.length, topicCount: topicsOf(db, userId).length };
+  return { signals, reviewCount: log.length, topicCount: topicsOf(db, userId).length, calibration };
 }
 
 export interface Readiness {

@@ -42,6 +42,21 @@ describe("progress signals", () => {
     expect(signals.retention.confidence).not.toBe("none");
   });
 
+  it("ANALYTICS-06: progressFor surfaces the named calibration direction once past the threshold", () => {
+    // 6 confident-but-wrong reviews → overconfident (needs ≥ MIN_RECORDS=5)
+    const ids = ["rc_topic_dijkstra_c1", "rc_topic_dijkstra_c2", "rc_topic_dijkstra_c3", "rc_topic_dijkstra_c4", "rc_topic_dijkstra_c1", "rc_topic_dijkstra_c2"];
+    ids.forEach((id, i) => gradeCard(USER, id, "sure", "again", SEED_NOW + i));
+    const { calibration } = progressFor(USER);
+    expect(calibration).not.toBeNull();
+    expect(calibration!.direction).toBe("overconfident");
+    expect(calibration!.count).toBeGreaterThanOrEqual(5);
+  });
+
+  it("ANALYTICS-06: calibration is null below the minimum record threshold (honest empty)", () => {
+    gradeCard(USER, "rc_topic_dijkstra_c1", "sure", "good", SEED_NOW);
+    expect(progressFor(USER).calibration).toBeNull();
+  });
+
   it("readiness is low-confidence with no review history (never fabricated)", () => {
     const r = readinessFor(USER, "topic_dijkstra", SEED_NOW);
     expect(r.lowConfidence).toBe(true);
