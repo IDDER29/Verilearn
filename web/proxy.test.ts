@@ -25,6 +25,11 @@ describe("proxy (coarse auth gate)", () => {
     }
   });
 
+  it("lets the health probe and robots.txt through without a session (monitors/crawlers can't authenticate)", () => {
+    expect(proxy(req("/api/health")).status).toBe(200);
+    expect(proxy(req("/robots.txt")).status).toBe(200);
+  });
+
   it("lets an unauthenticated visitor through to the public verify page and API, but not other API routes", () => {
     expect(proxy(req("/verify/VL-ABC123")).status).toBe(200);
     expect(proxy(req("/api/verify/VL-ABC123")).status).toBe(200);

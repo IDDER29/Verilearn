@@ -10,9 +10,29 @@ import { authenticate } from "./service";
 
 export const SESSION_COOKIE = "vl_session";
 
-/** Signing secret. In production this MUST come from env; a stable dev fallback keeps local runs working. */
+/** The well-known dev fallback — safe for local runs, catastrophic in production. */
+const INSECURE_DEV_SECRET = "dev-only-insecure-secret-change-me";
+
+/**
+ * Signing secret for session cookies and the verify-endpoint envelope.
+ *
+ * In production the secret MUST come from `VERILEARN_SESSION_SECRET` — the app
+ * **refuses to fall back** to the well-known dev default there, because signing
+ * real sessions with a public constant would let anyone forge a session. A
+ * missing/blank secret in production throws (fail closed), surfacing as a clear
+ * boot/500 rather than a silent security hole. Locally, the stable dev fallback
+ * keeps `npm run dev` frictionless.
+ */
 export function sessionSecret(): string {
-  return process.env.VERILEARN_SESSION_SECRET || "dev-only-insecure-secret-change-me";
+  const fromEnv = process.env.VERILEARN_SESSION_SECRET?.trim();
+  if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "VERILEARN_SESSION_SECRET is not set. Refusing to sign sessions with the insecure dev default in production. " +
+        "Set it to a long random value (e.g. `openssl rand -hex 32`).",
+    );
+  }
+  return INSECURE_DEV_SECRET;
 }
 
 export async function getCurrentUser(): Promise<User | null> {
