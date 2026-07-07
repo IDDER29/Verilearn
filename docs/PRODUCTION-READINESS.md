@@ -50,5 +50,6 @@ Each attaches to an existing seam; none is a rewrite.
 - **Verification is deterministic**, not a real skeptic — it validates the *pipeline and trust propagation*, not genuine semantic correctness.
 - **Single-process assumptions** — the login lockout and any in-memory rate limiting are per-instance; horizontal scaling needs shared state.
 - **Community/Events** are lightly-seeded R2/R3 surfaces, faithful but not backed by full data models.
+- **Accessibility** foundations are in place (`lang`, landmark `<main>`/`<nav>`, a skip link, accessible names on controls), but page titles are styled `<div>`s rather than semantic `<h1>`/heading hierarchy — a screen-reader heading-navigation improvement tracked in the `A11Y` dispositions, deferred here to avoid a broad style-risking refactor.
 
 Per-story detail for everything above lives in [`PRD-DISPOSITIONS.md`](./PRD-DISPOSITIONS.md) (Done / Partial / Deferred, with justification).

@@ -117,6 +117,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <DashboardSearch initialQuery={query} />
             <Link
               href="/notifications"
+              aria-label={unreadNotifs > 0 ? `Notifications, ${unreadNotifs} unread` : "Notifications"}
               style={{
                 width: 46,
                 height: 46,
@@ -130,7 +131,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 position: "relative",
               }}
             >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4a4560" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 004 0" />
               </svg>
               {unreadNotifs > 0 && (
