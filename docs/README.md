@@ -12,6 +12,7 @@ Everything about *what* VeriLearn is, *why* it's built the way it is, and *where
 | [`PRD-DISPOSITIONS.md`](./PRD-DISPOSITIONS.md) | The honest per-story accounting: every story marked **Done / Partial / Deferred** with justification. Assembled from `dispositions/`. |
 | [`dispositions/`](./dispositions) | The disposition **source**, one file per domain (20 files). Editing happens here. |
 | [`IMPLEMENTATION.md`](./IMPLEMENTATION.md) | The build order, the "screens wired to real data" table, the test count, and a running momentum log of fixes. |
+| [`PRODUCTION-READINESS.md`](./PRODUCTION-READINESS.md) | The honest deploy picture: what's already production-grade, what's gated on vendor/infra swaps (each at a named seam), and the deploy runbook. |
 | [`scripts/`](./scripts) | The tooling that assembles `prd/` → `PRD.md` and `dispositions/` → `PRD-DISPOSITIONS.md`. |
 
 ## The source → assembled pattern

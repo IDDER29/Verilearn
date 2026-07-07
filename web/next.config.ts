@@ -29,6 +29,14 @@ const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // HSTS (production only): once a browser has seen this over HTTPS it refuses
+  // to talk to the origin over plain HTTP for a year, defeating SSL-strip
+  // downgrade attacks. Emitted only in production — over local http://localhost
+  // it's a no-op the spec says to ignore, and we never want it pinned against a
+  // dev box. `preload` is intentionally omitted: opting into the browser
+  // preload list is a hard-to-reverse commitment the domain owner should make
+  // deliberately, not a framework default.
+  ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
 ];
 
 /**
