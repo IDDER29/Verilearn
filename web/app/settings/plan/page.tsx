@@ -2,7 +2,7 @@ import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import SettingsNav from "@/components/SettingsNav";
 import { requireUser } from "@/lib/auth/current";
-import { listTopicSummaries } from "@/lib/services/topics";
+import { activeTopicCount, listTopicSummaries } from "@/lib/services/topics";
 import { entitlementsFor } from "@/lib/domain/entitlements";
 
 export const metadata = { title: "Plan & billing · Settings · VeriLearn" };
@@ -12,7 +12,10 @@ const PLAN_LABEL: Record<string, string> = { free: "Free", pro: "Pro", team: "Te
 export default async function SettingsPlanPage() {
   const user = await requireUser();
   const summaries = listTopicSummaries(user.id);
-  const topicCount = summaries.length;
+  // Archived topics (BILL-12) don't count against the cap they were archived
+  // to respect — this must match the exact same active-only count createTopic
+  // enforces, or the usage meter and the actual cap could disagree (BILL-02/08).
+  const topicCount = activeTopicCount(user.id);
   const cap = entitlementsFor(user.plan).maxActiveTopics;
   const planLabel = PLAN_LABEL[user.plan] ?? "Free";
   const atLimit = topicCount >= cap;
@@ -74,7 +77,7 @@ export default async function SettingsPlanPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", font: "700 12.5px var(--font-nunito)", marginBottom: 7 }}>
               <span>Claims verified</span>
-              <span style={{ color: "#8b8699" }}>{claimsVerified} across {topicCount} topic{topicCount === 1 ? "" : "s"}</span>
+              <span style={{ color: "#8b8699" }}>{claimsVerified} across {summaries.length} topic{summaries.length === 1 ? "" : "s"}</span>
             </div>
             <div style={{ height: 8, borderRadius: 5, background: "#eee9f7", overflow: "hidden" }}>
               <div style={{ width: claimsVerified > 0 ? "100%" : "0%", height: "100%", background: "#6d5bd0" }} />
