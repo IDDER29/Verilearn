@@ -210,7 +210,11 @@ export interface ReviewLogEntry {
 export interface CertificateRecord {
   id: string;
   topicId: string;
+  /** The topic's title at issuance, snapshotted so a durable credential still names what was certified even if the topic is later deleted. */
+  topicTitle: string;
   learnerId: string;
+  /** The learner's display name at issuance, snapshotted so the admin console can still identify whose certificate this is after account erasure. */
+  learnerName: string;
   issuedAt: number;
   testScorePct: number;
   revoked: boolean;

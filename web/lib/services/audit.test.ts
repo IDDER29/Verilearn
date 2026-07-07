@@ -84,4 +84,20 @@ describe("central audit log (ADMIN-20)", () => {
     expect(listAuditLogForAdmin("compliance_dpo")).toHaveLength(1);
     expect(listAuditLogForAdmin("platform_admin")).toHaveLength(1);
   });
+
+  it("a ban's and a quarantine's labels survive the target user/topic being deleted afterward", () => {
+    banUserForAdmin(REVIEWER1, "trust_safety_lead", LEARNER, "Repeated harassment reports", SEED_NOW);
+    quarantineClaimForAdmin(REVIEWER1, "trust_safety_lead", VERIFIED_CLAIM, DIJKSTRA, "Suspected fabricated citation", SEED_NOW + 1);
+
+    const db = globalThis.__verilearnDb!;
+    db.users.delete(LEARNER); // simulates account erasure
+    db.topics.delete(DIJKSTRA); // simulates bulk topic delete
+
+    const rows = listAuditLogForAdmin("trust_safety_lead");
+    const ban = rows.find((r) => r.action === "user_ban")!;
+    const quarantine = rows.find((r) => r.action === "claim_quarantine")!;
+    expect(ban.targetLabel).toBe("Adeline"); // not a raw user id
+    expect(ban.actorName).toBe("Priya (T&S)");
+    expect(quarantine.targetLabel).toBe("Pick the unvisited node with the smallest tentative distance."); // not a raw claim id
+  });
 });

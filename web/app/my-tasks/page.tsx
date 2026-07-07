@@ -40,7 +40,9 @@ export default async function MyTasksPage() {
   const user = await requireUser();
   const db = getDb();
   const dueCount = getDueCards(user.id, now()).length;
-  const conflictCount = listTopicSummaries(user.id).reduce((n, t) => n + t.disputes, 0);
+  // Archived topics can never actually be adjudicated (every conflict action
+  // refuses one), so they must not inflate this counter either (TRUST-06).
+  const conflictCount = listTopicSummaries(user.id).reduce((n, t) => n + (t.archived ? 0 : t.disputes), 0);
 
   const tasks = [...db.tasks.values()].filter((t) => t.userId === user.id);
   const title = (topicId: string) => db.topics.get(topicId)?.title ?? "Topic";

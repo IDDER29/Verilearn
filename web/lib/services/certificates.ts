@@ -46,7 +46,10 @@ export function publicVerify(verifyCode: string): PublicVerifyResult {
   if (!result.valid || !cert) {
     return { verifyCode, valid: result.valid, reason: result.reason, detail: result.detail };
   }
-  const topicTitle = getDb().topics.get(cert.topicId)?.title;
+  // Prefer the title snapshotted at issuance — a certificate outliving its
+  // (deliberately deletable) topic must keep naming what it certified; fall
+  // back to a live lookup only for a hypothetical pre-snapshot record.
+  const topicTitle = cert.topicTitle ?? getDb().topics.get(cert.topicId)?.title;
   return {
     verifyCode,
     valid: true,
@@ -83,8 +86,12 @@ export function listAllCertificates(): AdminCertificateView[] {
     .sort((a, b) => b.issuedAt - a.issuedAt)
     .map((c) => ({
       ...c,
-      topicTitle: db.topics.get(c.topicId)?.title ?? "Unknown topic",
-      learnerName: db.users.get(c.learnerId)?.displayName ?? "Unknown learner",
+      // Prefer the title/name snapshotted at issuance — falls back to a live
+      // lookup only for the rare pre-snapshot record, so an erased learner's
+      // certificates still show who earned them (an account deletion
+      // deliberately keeps certificates alive).
+      topicTitle: c.topicTitle ?? db.topics.get(c.topicId)?.title ?? "Unknown topic",
+      learnerName: c.learnerName ?? db.users.get(c.learnerId)?.displayName ?? "Unknown learner",
     }));
 }
 

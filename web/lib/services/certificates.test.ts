@@ -20,7 +20,9 @@ function issue(overrides: Partial<CertificateRecord> = {}): CertificateRecord {
   const cert: CertificateRecord = {
     id: "cert_1",
     topicId: "topic_dijkstra",
+    topicTitle: "Dijkstra's algorithm",
     learnerId: USER,
+    learnerName: "Adeline",
     issuedAt: SEED_NOW,
     testScorePct: 92,
     revoked: false,
@@ -62,6 +64,15 @@ describe("publicVerify (API-03)", () => {
   it("echoes the queried code back regardless of outcome", () => {
     expect(publicVerify("VL-ANYTHING").verifyCode).toBe("VL-ANYTHING");
   });
+
+  it("still names the certified topic after the topic itself is deleted (account erasure / bulk topic delete both keep certs alive)", () => {
+    issue();
+    const db = globalThis.__verilearnDb!;
+    db.topics.delete("topic_dijkstra"); // simulates deleteAccountAction/deleteAllTopicsAction
+    const r = publicVerify("VL-ABC123");
+    expect(r.valid).toBe(true);
+    expect(r.topicTitle).toBe("Dijkstra's algorithm"); // snapshotted at issuance, not a live lookup
+  });
 });
 
 const REVIEWER1 = "user_ts_reviewer1";
@@ -76,6 +87,14 @@ describe("admin certificate console (ADMIN-15/22)", () => {
     const seeded = list.find((c) => c.id === SEEDED_CERT)!;
     expect(seeded.topicTitle).toBe("Binary search");
     expect(seeded.learnerName).toBe("Adeline");
+  });
+
+  it("still names the certifying learner after the account is erased (GDPR erasure keeps certs alive)", () => {
+    issue();
+    const db = globalThis.__verilearnDb!;
+    db.users.delete(USER); // simulates deleteAccountAction
+    const cert = listAllCertificates().find((c) => c.id === "cert_1")!;
+    expect(cert.learnerName).toBe("Adeline"); // snapshotted at issuance, not a live lookup
   });
 
   it("refuses revoke/reinstate for a role without cert:revoke (the RBAC gate is real, not decorative)", () => {

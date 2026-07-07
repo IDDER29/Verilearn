@@ -268,7 +268,9 @@ export function seedDb(db: Db, now: number): void {
   // a raw record by hand.
   const binsearchCert = issueCertificate({
     topicId: binsearch.id,
+    topicTitle: binsearch.title,
     learnerId: userId,
+    learnerName: "Adeline",
     testResult: { correct: 4, total: 5, pct: 80, passed: true, passBar: 75 },
     now,
     id: "cert_binsearch_1",

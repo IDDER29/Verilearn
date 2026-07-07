@@ -18,7 +18,9 @@ function score(partial: Partial<TestScore> = {}): TestScore {
 function issued(overrides: Partial<Parameters<typeof issueCertificate>[0]> = {}): Certificate {
   return issueCertificate({
     topicId: "t1",
+    topicTitle: "Topic One",
     learnerId: "learner-1",
+    learnerName: "Learner One",
     testResult: score(),
     now: 1_000,
     id: "cert-1",

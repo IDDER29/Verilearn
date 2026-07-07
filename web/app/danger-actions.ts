@@ -47,6 +47,10 @@ export async function deleteAllTopicsAction(): Promise<{ ok: boolean }> {
  * Delete the account and ALL its data (GDPR erasure). Requires the confirmation
  * text to equal "DELETE". Clears every owned record, ends the session, and
  * redirects to sign-up.
+ *
+ * NOT erased: certificates and ban appeals outlive the account they were
+ * issued to/filed by (a public verify code must keep resolving; an appeal is
+ * moderation history, not the learner's own data) — see TEST-11/AUTH-18.
  */
 export async function deleteAccountAction(confirm: string): Promise<{ ok: boolean; error?: string }> {
   const user = await getCurrentUser();
@@ -61,6 +65,8 @@ export async function deleteAccountAction(confirm: string): Promise<{ ok: boolea
   for (const [id, g] of db.gaps) if (g.userId === user.id) db.gaps.delete(id);
   for (const [id, t] of db.tasks) if (t.userId === user.id) db.tasks.delete(id);
   for (const [tok, s] of db.sessions) if (s.userId === user.id) db.sessions.delete(tok);
+  for (const k of db.readNotifications) if (k.startsWith(`${user.id} `)) db.readNotifications.delete(k);
+  db.disputeLog = db.disputeLog.filter((d) => d.userId !== user.id);
   db.loginAttempts.delete(user.email);
   await clearSessionCookie();
   redirect("/signup");

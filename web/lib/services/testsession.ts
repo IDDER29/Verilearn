@@ -24,12 +24,20 @@ export interface TestSessionInfo {
   reducedCoverage: boolean;
   /** How many of the topic's claims were left out of the test. */
   excludedCount: number;
+  /** False when there isn't a single eligible claim to test — the zero-question case (TEST-20): the test can't be started at all, not just reduced. */
+  startable: boolean;
+  /** The claim ids the test actually draws on, in the same deterministic (claim-id-ascending) order `buildTest` selects them — lets a caller identify which real claims a given question count corresponds to (TEST-05/06). */
+  claimIds: string[];
 }
 
 /** Format a test for a topic from its eligible claims (returns null if none). */
 export function buildSession(userId: string, topicId: string): TestSessionInfo | null {
   const topic = getDb().topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return null;
+  // Read-only enforcement (BILL-12): an archived topic can't be tested — the
+  // same guard review (`getDueCards`), tasks (`gradeSubmission`), and drills
+  // already apply.
+  if (topic.archived) return null;
   const ledger = ledgerFor(topic);
   // A quarantined claim (ADMIN-14) is filtered out before the pure engine ever
   // sees it — a T&S override layered on top of the trust ledger, not a ledger
@@ -42,8 +50,10 @@ export function buildSession(userId: string, topicId: string): TestSessionInfo |
     questionCount: built.questions.length,
     durationMs: TEST_DURATION_MS,
     passBar: TEST_PASS_BAR,
+    startable: built.questions.length > 0,
     reducedCoverage: built.reducedCoverage,
     excludedCount: topic.claims.length - built.questions.length,
+    claimIds: built.questions.map((q) => q.claimId),
   };
 }
 
@@ -95,6 +105,8 @@ export function submitTest(userId: string, topicId: string, correctCount: number
   const db = getDb();
   const topic = db.topics.get(topicId);
   if (!topic || topic.ownerId !== userId) return { ok: false, error: "Topic not found." };
+  // Read-only enforcement (BILL-12): an archived topic can't mint a certificate.
+  if (topic.archived) return { ok: false, error: "This topic is archived. Upgrade or free up a slot to reactivate it before testing." };
   if (totalCount <= 0) return { ok: false, error: "No questions to score." };
 
   const answers = Array.from({ length: totalCount }, (_, i) => ({ correct: i < correctCount }));
@@ -108,7 +120,8 @@ export function submitTest(userId: string, topicId: string, correctCount: number
   let verifyCode: string | undefined;
   if (score.passed) {
     verifyCode = newId("vc").replace("vc_", "VL-").toUpperCase();
-    const cert = issueCertificate({ topicId, learnerId: userId, testResult: score, now: at, id: newId("cert"), verifyCode });
+    const learnerName = db.users.get(userId)?.displayName ?? "Unknown learner";
+    const cert = issueCertificate({ topicId, topicTitle: topic.title, learnerId: userId, learnerName, testResult: score, now: at, id: newId("cert"), verifyCode });
     const record: CertificateRecord = { ...cert };
     db.certificates.set(cert.id, record);
     certificateId = cert.id;

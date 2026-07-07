@@ -65,6 +65,10 @@ export interface ConflictItem {
 export function listConflicts(userId: string): ConflictItem[] {
   const out: ConflictItem[] = [];
   for (const topic of topicsOf(getDb(), userId)) {
+    // Read-only enforcement (BILL-12): an archived topic can't actually be
+    // adjudicated (every conflict action already refuses one), so it must not
+    // inflate the conflict inbox/counters either.
+    if (topic.archived) continue;
     const ledger = ledgerFor(topic);
     for (const claim of topic.claims) {
       if (ledger.stateOf(claim.id) === "disputed") {

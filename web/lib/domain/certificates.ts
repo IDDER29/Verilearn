@@ -29,7 +29,11 @@ import type { TestScore } from "./tests-engine";
 export interface Certificate {
   id: string;
   topicId: string;
+  /** The topic's title at issuance, snapshotted so a durable credential still names what was certified even if the topic is later deleted (account erasure, bulk topic delete). */
+  topicTitle: string;
   learnerId: string;
+  /** The learner's display name at issuance, snapshotted so the admin console can still identify whose certificate this is after the account is erased (account erasure keeps certificates alive). */
+  learnerName: string;
   /** Server timestamp (epoch ms) the cert was issued — caller-supplied. */
   issuedAt: number;
   /** The passing score percentage recorded at issuance. */
@@ -61,7 +65,11 @@ export class CertificateIssuanceError extends Error {
 
 export interface IssueCertificateInput {
   topicId: string;
+  /** The topic's title at issuance — snapshotted onto the cert (see {@link Certificate.topicTitle}). */
+  topicTitle: string;
   learnerId: string;
+  /** The learner's display name at issuance — snapshotted onto the cert (see {@link Certificate.learnerName}). */
+  learnerName: string;
   /** The graded test result; the cert issues only when this passed. */
   testResult: TestScore;
   /** Server timestamp (epoch ms) of issuance. */
@@ -78,14 +86,16 @@ export interface IssueCertificateInput {
  * The freshly-issued cert is never revoked.
  */
 export function issueCertificate(input: IssueCertificateInput): Certificate {
-  const { topicId, learnerId, testResult, now, id, verifyCode } = input;
+  const { topicId, topicTitle, learnerId, learnerName, testResult, now, id, verifyCode } = input;
   if (!testResult.passed) {
     throw new CertificateIssuanceError(testResult.pct, testResult.passBar);
   }
   return {
     id,
     topicId,
+    topicTitle,
     learnerId,
+    learnerName,
     issuedAt: now,
     testScorePct: testResult.pct,
     revoked: false,

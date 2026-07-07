@@ -31,6 +31,9 @@ export interface AuditLogEntry {
   /** A small before/after snapshot of just the fields this action changed — not the whole record. */
   readonly before: Readonly<Record<string, unknown>>;
   readonly after: Readonly<Record<string, unknown>>;
+  /** The actor's display name and a human-readable label for the target, snapshotted at write time so the trail keeps naming who/what even after the actor or target is later deleted. */
+  readonly actorName?: string;
+  readonly targetLabel?: string;
 }
 
 export class AuditLogError extends Error {

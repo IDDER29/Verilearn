@@ -60,7 +60,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   // Eligibility-gated to match the review deck (REVIEW-15): contested claims are held out.
   const dueCount = getDueCards(user.id, at).length;
   const nextDue = cards.map((c) => c.fsrs.due).filter((d) => d > at).sort((a, b) => a - b)[0];
-  const conflicts = allTopics.reduce((n, t) => n + t.disputes, 0);
+  // Archived topics can never actually be adjudicated (every conflict action
+  // refuses one), so they must not inflate this counter either (TRUST-06).
+  const conflicts = allTopics.reduce((n, t) => n + (t.archived ? 0 : t.disputes), 0);
   // Free plan at its topic cap → the hero CTA nudges to Upgrade instead of New Topic (HOME-13).
   // Archived topics (BILL-12) don't count against the cap.
   const activeTopicCount = allTopics.filter((t) => !t.archived).length;

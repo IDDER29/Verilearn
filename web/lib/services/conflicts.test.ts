@@ -261,7 +261,9 @@ describe("conflicts service", () => {
 
       const freshCert = issueCertificate({
         topicId: "topic_dijkstra",
+        topicTitle: "Dijkstra's algorithm",
         learnerId: USER,
+        learnerName: "Adeline",
         testResult: { correct: 5, total: 6, pct: 83, passed: true, passBar: 75 },
         now: SEED_NOW,
         id: "cert_dijkstra_fresh",

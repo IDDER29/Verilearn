@@ -18,14 +18,22 @@ function tone(pct: number): string {
 export default async function TestsPage() {
   const user = await requireUser();
   const db = getDb();
-  // Most-ready first, then most eligible claims — the best test to take now leads.
+  const at = now();
+  // Real predicted readiness (the same tested engine the Test Detail hero uses,
+  // TEST-01) for every test-ready topic — computed once so the list rows below
+  // can't show a different "% ready" than the hero does for the identical topic.
+  const readinessByTopic = new Map(listTestableTopics(user.id).map((t) => [t.topicId, readinessFor(user.id, t.topicId, at)]));
+  const readyPct = (topicId: string) => {
+    const r = readinessByTopic.get(topicId);
+    return r && r.reviewed > 0 && r.pct !== null ? r.pct : null;
+  };
+  // Most-ready first (no-prediction-yet topics sort last, not first — a topic
+  // with zero review evidence isn't genuinely "most ready"), then most eligible claims.
   const testable = listTestableTopics(user.id)
     .filter((t) => t.eligibleCount > 0)
-    .sort((a, b) => b.readinessPercent - a.readinessPercent || b.eligibleCount - a.eligibleCount);
+    .sort((a, b) => (readyPct(b.topicId) ?? -1) - (readyPct(a.topicId) ?? -1) || b.eligibleCount - a.eligibleCount);
   const featured = testable[0];
-  // Real predicted readiness for the featured topic (tested engine); "—" until reviewed.
-  const heroReady = featured ? readinessFor(user.id, featured.topicId, now()) : null;
-  const heroPct = heroReady && heroReady.reviewed > 0 && heroReady.pct !== null ? heroReady.pct : null;
+  const heroPct = featured ? readyPct(featured.topicId) : null;
   const heroDeg = heroPct === null ? 0 : Math.round((heroPct / 100) * 360);
   const DETAIL_HREF = featured ? detailHref(featured.topicId) : "/tests";
 
@@ -34,7 +42,7 @@ export default async function TestsPage() {
   const certs = [...db.certificates.values()]
     .filter((c) => c.learnerId === user.id)
     .sort((a, b) => b.issuedAt - a.issuedAt);
-  const topicTitle = (topicId: string) => db.topics.get(topicId)?.title ?? "Topic";
+  const topicTitle = (c: { topicId: string; topicTitle?: string }) => c.topicTitle ?? db.topics.get(c.topicId)?.title ?? "Topic";
 
   return (
     <AppShell active="tests">
@@ -156,42 +164,47 @@ export default async function TestsPage() {
             No topics are test-ready yet — a test unlocks once a topic has verified or sourced claims the Skeptic hasn&apos;t disputed.
           </div>
         ) : (
-          testable.map((t) => (
-            <Link
-              key={t.topicId}
-              href={detailHref(t.topicId)}
-              style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff", borderRadius: 18, padding: "18px 20px", textDecoration: "none", color: "inherit", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}
-            >
-              <div style={{ width: 52, height: 52, borderRadius: 15, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M15 9l-2 5-4 1 2-5z" />
-                </svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 4 }}>
-                  <span style={{ font: "800 15px var(--font-nunito)" }}>{t.title}</span>
-                  {t.excludedCount > 0 && (
-                    <span style={{ font: "800 10px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "3px 9px", borderRadius: 8 }}>
-                      {t.excludedCount} excluded
+          testable.map((t) => {
+            const pct = readyPct(t.topicId);
+            return (
+              <Link
+                key={t.topicId}
+                href={detailHref(t.topicId)}
+                style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff", borderRadius: 18, padding: "18px 20px", textDecoration: "none", color: "inherit", boxShadow: "0 8px 22px -16px rgba(80,60,140,.3)" }}
+              >
+                <div style={{ width: 52, height: 52, borderRadius: 15, background: "#efe9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6d5bd0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M15 9l-2 5-4 1 2-5z" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 4 }}>
+                    <span style={{ font: "800 15px var(--font-nunito)" }}>{t.title}</span>
+                    {t.excludedCount > 0 && (
+                      <span style={{ font: "800 10px var(--font-nunito)", color: "#c0392b", background: "#fbeceb", padding: "3px 9px", borderRadius: 8 }}>
+                        {t.excludedCount} excluded
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>
+                    Checkpoint · {t.eligibleCount} eligible claim{t.eligibleCount === 1 ? "" : "s"} · 20 min · pass ≥ 75%
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 9 }}>
+                    <span style={{ font: "700 11px var(--font-nunito)", color: pct === null ? "#9a95a8" : tone(pct), flexShrink: 0 }}>
+                      {pct === null ? "No prediction yet" : `${pct}% ready`}
                     </span>
-                  )}
-                </div>
-                <div style={{ font: "600 12px var(--font-nunito)", color: "#8b8699" }}>
-                  Checkpoint · {t.eligibleCount} eligible claim{t.eligibleCount === 1 ? "" : "s"} · 20 min · pass ≥ 75%
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 9 }}>
-                  <span style={{ font: "700 11px var(--font-nunito)", color: tone(t.readinessPercent), flexShrink: 0 }}>{t.readinessPercent}% ready</span>
-                  <div style={{ flex: 1, maxWidth: 180, height: 6, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}>
-                    <div style={{ width: `${t.readinessPercent}%`, height: "100%", background: tone(t.readinessPercent) }} />
+                    <div style={{ flex: 1, maxWidth: 180, height: 6, borderRadius: 4, background: "#eee9f7", overflow: "hidden" }}>
+                      <div style={{ width: `${pct ?? 0}%`, height: "100%", background: pct === null ? "#d8d2e8" : tone(pct) }} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </Link>
-          ))
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c3bed1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </Link>
+            );
+          })
         )}
 
         {/* past results — real issued certificates */}
@@ -216,7 +229,7 @@ export default async function TestsPage() {
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: "800 13.5px var(--font-nunito)" }}>{topicTitle(c.topicId)} — Checkpoint</div>
+                    <div style={{ font: "800 13.5px var(--font-nunito)" }}>{topicTitle(c)} — Checkpoint</div>
                     <div style={{ font: "600 11.5px var(--font-nunito)", color: "#8b8699" }}>
                       {c.revoked ? "Revoked" : "Verified"} ·{" "}
                       <Link href={`/verify/${c.verifyCode}`} style={{ color: "#6d5bd0", textDecoration: "none", fontWeight: 700 }}>

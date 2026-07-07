@@ -14,25 +14,26 @@ export interface TestableTopic {
   claimCount: number;
   eligibleCount: number;
   excludedCount: number;
-  /** naive readiness = share of claims eligible (real eligibility off the ledger) */
-  readinessPercent: number;
 }
 
 export function listTestableTopics(userId: string): TestableTopic[] {
-  return topicsOf(getDb(), userId).map((topic) => {
-    const ledger = ledgerFor(topic);
-    // A quarantined claim (ADMIN-14) is held out the same way a disputed one is —
-    // a T&S override layered on top of the trust ledger, not a ledger state itself.
-    const eligible = eligibleClaims(topic.claims, ledger).filter((c) => !isQuarantined(c.id));
-    const claimCount = topic.claims.length;
-    return {
-      topicId: topic.id,
-      title: topic.title,
-      level: topic.level,
-      claimCount,
-      eligibleCount: eligible.length,
-      excludedCount: claimCount - eligible.length,
-      readinessPercent: claimCount === 0 ? 0 : Math.round((eligible.length / claimCount) * 100),
-    };
-  });
+  // Read-only enforcement (BILL-12): an archived topic can't be tested, so it
+  // shouldn't offer a live "start test" entry point in the first place.
+  return topicsOf(getDb(), userId)
+    .filter((topic) => !topic.archived)
+    .map((topic) => {
+      const ledger = ledgerFor(topic);
+      // A quarantined claim (ADMIN-14) is held out the same way a disputed one is —
+      // a T&S override layered on top of the trust ledger, not a ledger state itself.
+      const eligible = eligibleClaims(topic.claims, ledger).filter((c) => !isQuarantined(c.id));
+      const claimCount = topic.claims.length;
+      return {
+        topicId: topic.id,
+        title: topic.title,
+        level: topic.level,
+        claimCount,
+        eligibleCount: eligible.length,
+        excludedCount: claimCount - eligible.length,
+      };
+    });
 }
