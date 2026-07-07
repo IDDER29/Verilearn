@@ -13,6 +13,7 @@ So: you can deploy this today and it will run, authenticate, and enforce its tru
 | Area | Status |
 |---|---|
 | **Test coverage** | ~500 tests across the domain + service layers; CI runs lint + test + build on every push/PR (`.github/workflows/ci.yml`). |
+| **Dependencies** | Production runtime ships only `next`, `react`, `react-dom`. `npm audit` is clean (**0 vulnerabilities**) — the dev test-runner chain was upgraded (vitest v4) and a build-time `postcss` advisory pinned via an override, both verified against the full suite + build. |
 | **Auth** | scrypt password hashing; HMAC-signed session cookies with `httpOnly` + `sameSite=lax` + `secure` (prod) + `path=/`; failed-login lockout/backoff; COPPA age gate; banned-account sign-in refusal. |
 | **Secret handling** | `sessionSecret()` **fails closed** in production — refuses the insecure dev default, so a missing `VERILEARN_SESSION_SECRET` is a loud boot failure, not a silent hole. |
 | **HTTP hardening** | CSP locked to `'self'`, `frame-ancestors 'none'`, `object-src 'none'`, `base-uri`/`form-action 'self'`, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, and HSTS in production. One narrow, documented framing carve-out for the embeddable verify badge (carries no PII). |
