@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# `web` — the VeriLearn application
 
-## Getting Started
+The Next.js 16 (App Router) + React 19 app. This is the product; the repo root holds it alongside `docs/` and `design/`. For the project overview and the *why*, see the [root README](../README.md) and [`../docs/architecture/OVERVIEW.md`](../docs/architecture/OVERVIEW.md).
 
-First, run the development server:
+> ⚠️ **This is not the Next.js you may know** — see [`AGENTS.md`](./AGENTS.md). This version has breaking changes; read the guides under `node_modules/next/dist/docs/` before writing framework code.
+
+## Run it
+
+Requires **Node 22** (pinned in `../.nvmrc`).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Seeded logins (in-memory store, resets on restart): `adeline@example.com` / `verilearn` (learner), `reviewer1@example.com` / `verilearn` (Trust & Safety). Full seed in `lib/store/seed.ts`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint       # eslint (CI-enforced)
+npm test           # vitest — the full suite
+npm run test:watch # watch mode
+npm run build      # next build
+```
 
-## Learn More
+## Layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+web/
+├── app/            routes, server actions, delivery layer   → app/README.md
+├── components/     React UI (shells, widgets, panels)       → components/README.md
+├── lib/            the brain — domain / services / store…   → lib/README.md
+│   ├── domain/       pure, unit-tested engines (the thesis) → lib/domain/README.md
+│   ├── services/     application layer over domain + store  → lib/services/README.md
+│   ├── store/        entities, seed, in-memory repository    → lib/store/README.md
+│   ├── auth/         passwords, sessions, age gate           → lib/auth/README.md
+│   ├── demo/         guest (unauthenticated) demo data       → lib/demo/README.md
+│   └── content/      static curated content                 → lib/content/README.md
+├── public/         static assets                            → public/README.md
+├── proxy.ts        route middleware (the coarse auth gate + public allowlist)
+├── AGENTS.md       framework caveats — read before writing Next.js code
+└── (config)        next.config.ts, tsconfig.json, eslint.config.mjs,
+                    vitest.config.ts, postcss.config.mjs, package.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Each folder above has its own README going a level deeper. Start with [`lib/README.md`](./lib/README.md) to understand the architecture, or [`app/README.md`](./app/README.md) for the route map.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Config files
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| File | Purpose |
+|---|---|
+| `next.config.ts` | Next.js configuration. |
+| `tsconfig.json` | TypeScript config (path aliases like `@/lib/...`). |
+| `eslint.config.mjs` | ESLint flat config. |
+| `vitest.config.ts` | Test runner config. |
+| `postcss.config.mjs` | PostCSS. |
+| `proxy.ts` | Middleware: redirects unauthenticated visitors to `/login`, allowlisting public routes (`/verify/*`, `/appeal`, `/demo`, auth pages). Covered by `proxy.test.ts`. |
+| `AGENTS.md` / `CLAUDE.md` | Guidance for AI coding agents (the Next.js-version caveat). |
