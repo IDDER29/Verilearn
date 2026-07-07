@@ -75,9 +75,11 @@ The domain and service layers are covered by **~500 tests across 40 files** (`we
 
 ## Documentation
 
+- **`docs/architecture/OVERVIEW.md`** — how the pieces fit together and why: the three invariants, the ports-and-adapters layering, the learner data-flow, and the cross-cutting patterns. Start here to understand the codebase. Backed by short decision records in `docs/architecture/decisions/` (ADRs).
 - **`docs/PRD.md`** — the full product spec (462 user stories across a B2C + B2B platform).
 - **`docs/PRD-DISPOSITIONS.md`** — an honest, per-story accounting: every enumerated story is marked **Done**, **Partial** (what's missing spelled out), or **Deferred** (needs vendor/infra/business decision, behind a clean seam). Nothing is silently dropped.
 - **`docs/IMPLEMENTATION.md`** — build order, the "screens wired to real data" table, and a running log of fixes.
+- **`docs/scripts/`** — tooling that assembles the split `prd/` and `dispositions/` sources into the `PRD.md` / `PRD-DISPOSITIONS.md` roll-ups.
 
 ## A note on the design intent
 

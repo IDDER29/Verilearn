@@ -3,7 +3,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const DIR = new URL("./prd/", import.meta.url).pathname;
+const DIR = new URL("../prd/", import.meta.url).pathname;
 const files = readdirSync(DIR).filter((f) => f.endsWith(".md")).sort();
 
 const slug = (s) =>
@@ -32,7 +32,7 @@ ${toc}
 `;
 
 const out = header + "\n" + sections.map((s) => s.body).join("\n\n---\n\n") + "\n";
-writeFileSync(new URL("./PRD.md", import.meta.url).pathname, out);
+writeFileSync(new URL("../PRD.md", import.meta.url).pathname, out);
 
 const words = out.split(/\s+/).length;
 console.log(`Assembled ${sections.length} sections → docs/PRD.md (~${words.toLocaleString()} words)`);

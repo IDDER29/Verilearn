@@ -2,7 +2,7 @@
 // Assembles docs/dispositions/*.md into docs/PRD-DISPOSITIONS.md with a roll-up.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const DIR = new URL("./dispositions/", import.meta.url).pathname;
+const DIR = new URL("../dispositions/", import.meta.url).pathname;
 
 // Roadmap order + counts (from the disposition sweep).
 const ROWS = [
@@ -74,6 +74,6 @@ email — each behind a clean seam.
 const order = ROWS.map((r) => r[0]);
 const body = order.map((idp) => readFileSync(DIR + idp + ".md", "utf8").trimEnd()).join("\n\n---\n\n");
 
-writeFileSync(new URL("./PRD-DISPOSITIONS.md", import.meta.url).pathname, header + "\n" + body + "\n");
+writeFileSync(new URL("../PRD-DISPOSITIONS.md", import.meta.url).pathname, header + "\n" + body + "\n");
 console.log(`Assembled ${order.length} domains → docs/PRD-DISPOSITIONS.md`);
 console.log(`Totals: ${T.total} stories = ${T.done} done + ${T.partial} partial + ${T.deferred} deferred`);
