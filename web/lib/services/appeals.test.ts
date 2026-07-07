@@ -44,6 +44,16 @@ describe("ban appeal flow (AUTH-18)", () => {
     expect(appeals[0].userEmail).toBe(LEARNER_EMAIL);
   });
 
+  it("keeps the appellant's identity after the account is deleted (erasure keeps appeals as moderation history)", () => {
+    banUserForAdmin(REVIEWER1, "trust_safety_lead", LEARNER, "Suspected fraud", SEED_NOW);
+    submitAppealForBannedUser(LEARNER_EMAIL, "This was a mistake — please review", SEED_NOW + 1);
+    const db = globalThis.__verilearnDb!;
+    db.users.delete(LEARNER); // simulates deleteAccountAction
+    const appeal = listAppealsForAdmin("trust_safety_lead")[0];
+    expect(appeal.userEmail).toBe(LEARNER_EMAIL); // snapshotted at submission, not a live lookup
+    expect(appeal.userDisplayName).toBe("Adeline");
+  });
+
   it("rejects an empty message and a second appeal while one is pending", () => {
     banUserForAdmin(REVIEWER1, "trust_safety_lead", LEARNER, "fraud", SEED_NOW);
     expect(submitAppealForBannedUser(LEARNER_EMAIL, "   ", SEED_NOW).ok).toBe(false);

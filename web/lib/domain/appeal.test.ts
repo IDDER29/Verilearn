@@ -5,21 +5,23 @@ const NOW = 1_782_432_000_000;
 
 describe("submitAppeal (AUTH-18)", () => {
   it("creates a pending appeal with the message, user, and timestamp", () => {
-    const appeal = submitAppeal("appeal_1", "user_1", "I was banned by mistake", NOW);
+    const appeal = submitAppeal("appeal_1", "user_1", "user1@example.com", "User One", "I was banned by mistake", NOW);
     expect(appeal.status).toBe("pending");
     expect(appeal.userId).toBe("user_1");
+    expect(appeal.userEmail).toBe("user1@example.com");
+    expect(appeal.userDisplayName).toBe("User One");
     expect(appeal.message).toBe("I was banned by mistake");
     expect(appeal.submittedAt).toBe(NOW);
   });
 
   it("refuses an empty message", () => {
-    expect(() => submitAppeal("appeal_1", "user_1", "   ", NOW)).toThrow(AppealError);
+    expect(() => submitAppeal("appeal_1", "user_1", "user1@example.com", "User One", "   ", NOW)).toThrow(AppealError);
   });
 });
 
 describe("decideAppeal (AUTH-18)", () => {
   function pending(): Appeal {
-    return submitAppeal("appeal_1", "user_1", "Please reconsider", NOW);
+    return submitAppeal("appeal_1", "user_1", "user1@example.com", "User One", "Please reconsider", NOW);
   }
 
   it("approves with a reviewer and a reason, keeping the message as history", () => {

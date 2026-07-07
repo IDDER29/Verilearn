@@ -152,22 +152,6 @@ export default function ConflictsTab({ onTab, data = null, focusClaimId }: { onT
             <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8a5a56", marginTop: 6 }}>Flagged by the Skeptic — no source backs this claim as stated. Add the missing constraint or qualify it, and record why.</div>
           </div>
 
-          {/* competing positions */}
-          <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#9a95a8", marginBottom: 12 }}>Competing positions</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 22 }}>
-            <div style={{ border: "2px solid #6d5bd0", borderRadius: 16, padding: "16px 18px", background: "#f7f5fd", position: "relative" }}>
-              <div style={{ position: "absolute", top: 14, right: 14, width: 22, height: 22, borderRadius: "50%", background: "#6d5bd0", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12 }}>✓</div>
-              <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8 }}>Restrict to non-negative</div>
-              <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#6c6780" }}>Add the constraint: it&apos;s correct only on graphs with non-negative edge weights. Use Bellman-Ford otherwise.</div>
-              <div style={{ marginTop: 10, font: "700 11.5px var(--font-nunito)", color: "#2d6cdf" }}>◉ Backed by CLRS §24.3</div>
-            </div>
-            <div style={{ border: "1.5px solid #ece8f4", borderRadius: 16, padding: "16px 18px", background: "#fff" }}>
-              <div style={{ font: "900 14px var(--font-nunito)", marginBottom: 8, color: "#221f2e" }}>Keep as-is</div>
-              <div style={{ font: "600 13px/1.6 var(--font-nunito)", color: "#8b8699" }}>Argue &quot;weighted&quot; implies non-negative in context, so the original wording is acceptable.</div>
-              <div style={{ marginTop: 10, font: "700 11.5px var(--font-nunito)", color: "#b4690e" }}>△ Unsupported by sources</div>
-            </div>
-          </div>
-
           {/* resolution */}
           <div style={{ font: "800 11px var(--font-nunito)", letterSpacing: ".05em", textTransform: "uppercase", color: "#9a95a8", marginBottom: 10 }}>Your resolution</div>
           <textarea

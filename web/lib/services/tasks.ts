@@ -9,6 +9,7 @@ import { isTestEligible, type TrustState } from "@/lib/domain/types";
 import { getDb, gapsOf, ledgerFor } from "@/lib/store/db";
 import { newId, now } from "@/lib/ids";
 import type { TaskRecord, TaskType } from "@/lib/store/entities";
+import { isQuarantined } from "./quarantine";
 
 export interface TaskView {
   id: string;
@@ -55,9 +56,13 @@ export function getTasks(userId: string, topicId: string): TaskView[] {
     .filter((t) => t.userId === userId && t.topicId === topicId)
     .map((t) => {
       const view = toView(t);
-      // A recorded pass whose criteria now anchor to a non-eligible claim is stale (TASK-21).
+      // A recorded pass whose criteria now anchor to a non-eligible claim is stale (TASK-21) —
+      // eligibility is the same union Tests/Review/Progress read: a disputed/unsupported ledger
+      // state, OR a T&S quarantine (ADMIN-14) layered on top of it without touching the state itself.
       if (ledger && t.passed) {
-        view.needsReverify = t.rubric.criteria.some((c) => c.claimId != null && !isTestEligible(ledger.stateOf(c.claimId)));
+        view.needsReverify = t.rubric.criteria.some(
+          (c) => c.claimId != null && (!isTestEligible(ledger.stateOf(c.claimId)) || isQuarantined(c.claimId)),
+        );
       }
       return view;
     });
@@ -135,11 +140,15 @@ export function gradeSubmission(userId: string, taskId: string, answer: string):
   // Trust-gate the rubric (TASK-04): every criterion must anchor to a live
   // test-eligible (verified/sourced) claim. A criterion pointing at a disputed/
   // unsupported claim makes the task ungradeable until the conflict is resolved.
+  // A T&S quarantine (ADMIN-14) holds a claim out the same way without touching
+  // its ledger state — omitted here (not just left disputed/unsupported) so it
+  // falls through assertRubricGradeable's own "state === undefined" branch, the
+  // same union getTasks' needsReverify already reads on the display side.
   const topic = db.topics.get(task.topicId);
   if (topic) {
     const ledger = ledgerFor(topic);
     const trustByClaimId: Record<string, TrustState> = {};
-    for (const cl of topic.claims) trustByClaimId[cl.id] = ledger.stateOf(cl.id);
+    for (const cl of topic.claims) if (!isQuarantined(cl.id)) trustByClaimId[cl.id] = ledger.stateOf(cl.id);
     try {
       assertRubricGradeable(task.rubric, trustByClaimId);
     } catch (e) {

@@ -33,7 +33,7 @@ export function submitAppealForBannedUser(email: string, message: string, now: n
   const hasPending = [...db.appeals.values()].some((a) => a.userId === user.id && a.status === "pending");
   if (hasPending) return { ok: false, error: "You already have an appeal awaiting review." };
   try {
-    const appeal = submitAppeal(newId("appeal"), user.id, message, now);
+    const appeal = submitAppeal(newId("appeal"), user.id, user.email, user.displayName, message, now);
     db.appeals.set(appeal.id, appeal);
     return { ok: true };
   } catch (e) {
@@ -62,8 +62,13 @@ export function listAppealsForAdmin(actorRole: Role): AdminAppealView[] {
   return [...db.appeals.values()]
     .sort((a, b) => b.submittedAt - a.submittedAt)
     .map((a) => {
+      // Prefer the email/name snapshotted at submission — a decided appeal is
+      // kept as moderation history (deleteAccountAction deliberately keeps
+      // appeals alive), so it must keep naming who it was for even after the
+      // account is renamed or erased. Fall back to a live lookup only for a
+      // hypothetical pre-snapshot record.
       const u = db.users.get(a.userId);
-      return { ...a, userEmail: u?.email ?? "unknown", userDisplayName: u?.displayName ?? "Unknown learner" };
+      return { ...a, userEmail: a.userEmail ?? u?.email ?? "unknown", userDisplayName: a.userDisplayName ?? u?.displayName ?? "Unknown learner" };
     });
 }
 

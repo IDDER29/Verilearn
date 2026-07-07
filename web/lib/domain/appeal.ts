@@ -14,6 +14,9 @@ export type AppealStatus = "pending" | "approved" | "denied";
 export interface Appeal {
   readonly id: string;
   readonly userId: string;
+  /** The account's email/display name at submission, snapshotted so a decided appeal keeps naming who it was for even after the account is renamed or erased. */
+  readonly userEmail: string;
+  readonly userDisplayName: string;
   readonly message: string;
   readonly submittedAt: number;
   readonly status: AppealStatus;
@@ -30,9 +33,9 @@ export class AppealError extends Error {
 }
 
 /** Submit a new appeal. Requires a non-empty message explaining the ask. */
-export function submitAppeal(id: string, userId: string, message: string, now: number): Appeal {
+export function submitAppeal(id: string, userId: string, userEmail: string, userDisplayName: string, message: string, now: number): Appeal {
   if (!message.trim()) throw new AppealError("Explain why this ban should be reconsidered.");
-  return { id, userId, message: message.trim(), submittedAt: now, status: "pending" };
+  return { id, userId, userEmail, userDisplayName, message: message.trim(), submittedAt: now, status: "pending" };
 }
 
 /**

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createDb, SEED_NOW, type Db } from "@/lib/store/db";
 import { seedDb } from "@/lib/store/seed";
 import { getTasks, gradeSubmission } from "./tasks";
+import { quarantineClaimForAdmin } from "./quarantine";
 
 declare global {
   var __verilearnDb: Db | undefined;
@@ -137,5 +138,28 @@ describe("tasks service (produce step)", () => {
     const r = gradeSubmission(USER, "task_dijkstra_1", "greedy finality fails; use Bellman-Ford.");
     expect(r.ok).toBe(false);
     expect(r.error).toMatch(/verified or sourced/i);
+  });
+
+  it("TASK-04: also refuses to grade when a criterion's claim is quarantined (ADMIN-14) — not just disputed", () => {
+    // Quarantine doesn't touch the ledger state (verified_source stays verified_source),
+    // so the write-side gate must layer isQuarantined on top the same way Tests/Review
+    // do — otherwise a learner could bank a passing grade on content T&S has held out.
+    const claimId = "topic_dijkstra_c2"; // this task's criterion 0, verified_source
+    expect(quarantineClaimForAdmin("user_ts_reviewer1", "trust_safety_lead", claimId, "topic_dijkstra", "test", SEED_NOW).ok).toBe(true);
+    const r = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/verified or sourced/i);
+  });
+
+  it("TASK-21: also flags a recorded pass stale when a criterion's claim is quarantined (ADMIN-14), not just disputed", () => {
+    const good = gradeSubmission(USER, "task_dijkstra_1", "A negative edge can lower an already-finalised distance, breaking the greedy cut argument; use Bellman-Ford instead.");
+    expect(good.passed).toBe(true);
+    expect(getTasks(USER, "topic_dijkstra")[0].needsReverify).toBeFalsy();
+
+    expect(quarantineClaimForAdmin("user_ts_reviewer1", "trust_safety_lead", "topic_dijkstra_c2", "topic_dijkstra", "test", SEED_NOW).ok).toBe(true);
+
+    const view = getTasks(USER, "topic_dijkstra")[0];
+    expect(view.passed).toBe(true); // the historical record is preserved…
+    expect(view.needsReverify).toBe(true); // …but flagged stale, same as a dispute
   });
 });
